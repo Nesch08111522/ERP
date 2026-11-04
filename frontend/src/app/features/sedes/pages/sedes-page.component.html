@@ -1,0 +1,71 @@
+<section class="module-page">
+  <app-page-header title="Sedes" subtitle="Busca la dirección o arrastra el logo hasta el local. Cada sede queda marcada con el logo de la empresa." actionLabel="Nueva sede" (action)="abrirCrear()"></app-page-header>
+  <article class="card card-body sede-mapa">
+    <div>
+      <h2>Sedes en el mapa</h2>
+      <p class="text-sm text-muted">El punto se coloca al buscar la ciudad o la dirección. Si hace falta, se arrastra el logo hasta la puerta. La foto se ve al pulsar la marca.</p>
+    </div>
+    <div class="sede-layout">
+      <app-peru-mapa [puntos]="puntosVista" [logo]="marca.logoSrc()"></app-peru-mapa>
+      <div class="sede-fotos" *ngIf="mapa.length">
+        <article *ngFor="let sede of mapa">
+          <img *ngIf="sede.id && fotos[sede.id]" [src]="fotos[sede.id]" [alt]="'Foto de ' + (sede.nombre || 'sede')" />
+          <div *ngIf="!sede.id || !fotos[sede.id]" class="sede-foto-vacia"><app-icon name="image"></app-icon></div>
+          <strong>{{ sede.nombre }}</strong>
+          <span>{{ sede.direccion || 'Sin dirección' }}</span>
+          <span>{{ sede.ubicada ? (sede.ciudad || 'En el mapa') : 'Sin punto en el mapa' }}</span>
+        </article>
+      </div>
+    </div>
+  </article>
+  <app-filter-bar>
+    <app-form-field label="Buscar" inputId="sede-buscar"><input id="sede-buscar" class="input" type="search" [formControl]="filtros.controls.texto" placeholder="Nombre, ciudad o dirección" /></app-form-field>
+    <app-form-field label="Estado" inputId="sede-activa"><select id="sede-activa" class="select" [formControl]="filtros.controls.activa"><option value="">Todas</option><option value="true">Activas</option><option value="false">Inactivas</option></select></app-form-field>
+    <div class="filter-actions"><button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button><button type="button" class="btn btn-ghost" (click)="limpiar()">Limpiar</button></div>
+  </app-filter-bar>
+  <app-data-table [columns]="columns" [rows]="state.rows" [loading]="state.loading" [error]="state.error" [status]="state.status" [page]="state.page" [size]="state.size" [totalElements]="state.totalElements" [totalPages]="state.totalPages" emptyTitle="No hay sedes" emptyAction="Nueva sede" (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (sortChange)="ordenar($event)" (retry)="cargar()" (empty)="abrirCrear()">
+    <ng-template #rowActions let-row>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="abrirEditar(row)">Editar</button>
+      <button type="button" class="btn btn-danger btn-sm" (click)="pedirEliminar(row)">Eliminar</button>
+    </ng-template>
+  </app-data-table>
+</section>
+<app-modal [closable]="!guardando" [open]="modal" size="lg" [title]="editando ? 'Editar sede' : 'Nueva sede'" (closed)="modal = false">
+  <form class="sede-editor" [formGroup]="form">
+    <div class="form-grid">
+      <div *ngIf="errorFormulario" class="alert alert-error span-2">{{ errorFormulario }}</div>
+      <app-form-field class="span-2" label="Nombre" inputId="sede-nombre" [required]="true" [error]="errorDe('nombre')"><input id="sede-nombre" class="input" formControlName="nombre" /></app-form-field>
+      <app-form-field label="País" inputId="sede-pais"><input id="sede-pais" class="input" formControlName="pais" /></app-form-field>
+      <app-form-field label="Ciudad" inputId="sede-ciudad"><input id="sede-ciudad" class="input" formControlName="ciudad" (blur)="ubicarSiFalta()" /></app-form-field>
+      <app-form-field class="span-2" label="Dirección" inputId="sede-dir"><input id="sede-dir" class="input" formControlName="direccion" (blur)="ubicarSiFalta()" /></app-form-field>
+      <app-form-field label="Celular" inputId="sede-cel" [error]="errorDe('celularSede')"><input id="sede-cel" class="input" formControlName="celularSede" /></app-form-field>
+      <app-form-field label="Moneda" inputId="sede-moneda"><input id="sede-moneda" class="input" formControlName="moneda" maxlength="10" /></app-form-field>
+      <app-form-field label="Activa" inputId="sede-act"><input id="sede-act" class="switch" type="checkbox" formControlName="activa" /></app-form-field>
+    </div>
+    <div class="sede-lugar">
+      <div class="ubicar">
+        <label for="sede-ubicar">Buscar lugar</label>
+        <div class="ubicar-fila">
+          <input id="sede-ubicar" class="input" type="search" [formControl]="consulta" placeholder="Miraflores, Av. Larco, Trujillo" (keydown.enter)="$event.preventDefault(); ubicar()" />
+          <button type="button" class="btn btn-primary" (click)="ubicar()">Ubicar</button>
+        </div>
+        <p class="text-sm text-muted">{{ avisoMapa }}</p>
+      </div>
+      <app-peru-mapa *ngIf="modal" class="compacto" [elegir]="true" [puntos]="otrasSedes" [logo]="marca.logoSrc()" [marca]="punto" (marcaChange)="alMover($event)"></app-peru-mapa>
+      <div class="foto-caja">
+        <img *ngIf="vistaImagen" [src]="vistaImagen" alt="Foto de la sede" />
+        <div *ngIf="!vistaImagen" class="foto-vacia"><app-icon name="image"></app-icon><span>Foto del local</span></div>
+        <div>
+          <button type="button" class="btn btn-ghost btn-sm" (click)="selectorFoto.click()">Elegir foto</button>
+          <p class="text-xs text-muted">JPG, PNG o WEBP de hasta 5 MB. Se guarda con la sede y aparece al pulsar el logo.</p>
+        </div>
+        <input #selectorFoto id="sede-foto" type="file" accept="image/jpeg,image/png,image/webp" (change)="elegirImagen($event)" />
+      </div>
+    </div>
+  </form>
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="modal = false" [disabled]="guardando">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
+  </div>
+</app-modal>
+<app-confirm-dialog [open]="confirmar" title="Eliminar sede" [message]="'Se eliminará ' + (seleccionado?.nombre || 'esta sede') + '.'" confirmLabel="Eliminar" [loading]="eliminando" (confirm)="eliminar()" (cancel)="confirmar = false"></app-confirm-dialog>

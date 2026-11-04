@@ -1,0 +1,116 @@
+<section class="hero-grid">
+  <div class="hero-copy">
+    <p class="kicker">{{ cms.paquete()?.heroKicker || 'Suministro B2B' }}</p>
+    <h1>{{ cms.paquete()?.heroTitulo || 'Policarbonato y cubiertas para obras que necesitan certeza.' }}</h1>
+    <p class="lead">{{ cms.paquete()?.heroTexto || 'El precio y el stock salen del almacén. Coordinas por WhatsApp o dejas una cotización con RUC, sin pago en línea.' }}</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" routerLink="/catalogo">Ver catálogo</a>
+      <a class="btn btn-line" routerLink="/contacto">Hablar con un asesor</a>
+    </div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <img src="/marca/hero-planchas.jpg" alt="" />
+    <img src="/marca/hero-nave.jpg" alt="" />
+    <span class="pill">Stock en almacén</span>
+    <span class="pill">Atención desde Trujillo</span>
+  </div>
+</section>
+
+<section class="band" aria-label="Por qué POLICALUM">
+  <article>
+    <strong>Distribución desde Trujillo</strong>
+    <p>{{ marca.empresa().direccion || 'Sede principal para despacho y recojo.' }}</p>
+  </article>
+  <article>
+    <strong>Corte a medida</strong>
+    <p>Planchas y perfiles según la obra. El servicio publicado está en el ERP.</p>
+  </article>
+  <article>
+    <strong>Industria, obra y comercio</strong>
+    <p>El mismo catálogo sirve para naves, viviendas y reventa.</p>
+  </article>
+  <article>
+    <strong>Cotización con RUC</strong>
+    <p>Dejas los datos de tu empresa y ventas recibe el documento pendiente.</p>
+  </article>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <div>
+      <p class="kicker">Ofertas</p>
+      <h2>Lo que el ERP marcó en oferta</h2>
+    </div>
+    <a class="btn btn-line btn-sm" routerLink="/catalogo">Todo el catálogo</a>
+  </div>
+  @if (ofertas().length) {
+    <div class="product-grid">
+      @for (producto of ofertas(); track producto.id) {
+        <app-ficha [producto]="producto"></app-ficha>
+      }
+    </div>
+  } @else {
+    <p class="muted">Cuando un producto quede en oferta en el ERP, aparece aquí.</p>
+  }
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <div>
+      <p class="kicker">{{ obrasReales() ? 'Trabajos' : 'Obras' }}</p>
+      <h2>{{ obrasReales() ? 'Proyectos publicados' : 'Así se usa el material' }}</h2>
+    </div>
+    <a class="btn btn-line btn-sm" routerLink="/portafolio">Ver proyectos</a>
+  </div>
+  <div class="works">
+    @for (obra of obras().slice(0, 3); track obra.id; let i = $index) {
+      <article class="work">
+        @if (foto(obra); as imagen) { <img [src]="imagen" [alt]="obra.titulo" /> }
+        <div class="veil"></div>
+        <div>
+          <h3>{{ obra.titulo }}</h3>
+          @if (obra.cliente) { <p class="kicker">{{ obra.cliente }}</p> }
+          <p>{{ obra.descripcion }}</p>
+        </div>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <div>
+      <p class="kicker">Catálogo</p>
+      <h2>Productos con precio y stock</h2>
+    </div>
+    <a class="btn btn-line btn-sm" routerLink="/catalogo">Abrir tienda</a>
+  </div>
+  <div class="product-grid">
+    @for (producto of catalogo(); track producto.id) {
+      <app-ficha [producto]="producto"></app-ficha>
+    }
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <div>
+      <p class="kicker">Servicios</p>
+      <h2>Lo que el equipo instala o corta</h2>
+    </div>
+    <a class="btn btn-line btn-sm" routerLink="/servicios">Ver servicios</a>
+  </div>
+  @if (servicios().length) {
+    <div class="band">
+      @for (servicio of servicios().slice(0, 3); track servicio.id) {
+        <article>
+          <strong>{{ servicio.nombre }}</strong>
+          <p>{{ servicio.descripcion || 'Servicio publicado desde el ERP.' }}</p>
+          <p class="price">{{ pen(servicio.precio) }}</p>
+        </article>
+      }
+    </div>
+  } @else {
+    <p class="muted">Los servicios activos del ERP se listan en esta portada.</p>
+  }
+</section>

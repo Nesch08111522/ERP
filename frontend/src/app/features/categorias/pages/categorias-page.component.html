@@ -1,0 +1,28 @@
+<section class="module-page">
+  <app-page-header title="Categorías" subtitle="Árbol del catálogo. Un producto pertenece a una categoría." actionLabel="Nueva categoría" (action)="abrirCrear()"></app-page-header>
+  <app-filter-bar>
+    <app-form-field label="Buscar" inputId="cat-buscar"><input id="cat-buscar" class="input" type="search" [value]="filtros.controls.searchTerm.value" (input)="onBuscar($event)" placeholder="Nombre o slug" /></app-form-field>
+    <app-form-field label="Estado" inputId="cat-activa"><select id="cat-activa" class="select" [formControl]="filtros.controls.activa"><option value="">Todas</option><option value="true">Activas</option><option value="false">Inactivas</option></select></app-form-field>
+    <div class="filter-actions"><button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button><button type="button" class="btn btn-ghost" (click)="limpiar()">Limpiar</button></div>
+  </app-filter-bar>
+  <app-data-table [columns]="columns" [rows]="state.rows" [loading]="state.loading" [error]="state.error" [status]="state.status" [page]="state.page" [size]="state.size" [totalElements]="state.totalElements" [totalPages]="state.totalPages" [sortField]="state.sort.split(',')[0]" [sortDirection]="state.sort.endsWith('desc') ? 'desc' : 'asc'" emptyTitle="No hay categorías" emptyAction="Nueva categoría" (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (sortChange)="ordenar($event)" (retry)="cargar()" (empty)="abrirCrear()">
+    <ng-template #rowActions let-row>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="abrirEditar(row)">Editar</button>
+      <button type="button" class="btn btn-danger btn-sm" (click)="pedirEliminar(row)">Eliminar</button>
+    </ng-template>
+  </app-data-table>
+</section>
+<app-modal [closable]="!guardando" [open]="modal" [title]="editando ? 'Editar categoría' : 'Nueva categoría'" (closed)="modal = false">
+  <form class="form-grid" [formGroup]="form">
+    <div *ngIf="errorFormulario" class="alert alert-error span-2">{{ errorFormulario }}</div>
+    <app-form-field class="span-2" label="Nombre" inputId="cat-nombre" [required]="true" [error]="errorDe('nombre')"><input id="cat-nombre" class="input" formControlName="nombre" (blur)="sugerirSlug()" /></app-form-field>
+    <app-form-field label="Slug" inputId="cat-slug" [required]="true" [error]="errorDe('slug')" hint="Identificador en minúsculas, por ejemplo plancha-alveolar."><input id="cat-slug" class="input" formControlName="slug" /></app-form-field>
+    <app-form-field label="Categoría padre" inputId="cat-padre"><app-select inputId="cat-padre" [options]="padres" placeholder="Sin padre" formControlName="parentId"></app-select></app-form-field>
+    <app-form-field label="Activa" inputId="cat-act"><input id="cat-act" class="switch" type="checkbox" formControlName="activa" /></app-form-field>
+  </form>
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="modal = false" [disabled]="guardando">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
+  </div>
+</app-modal>
+<app-confirm-dialog [open]="confirmar" title="Eliminar categoría" [message]="'Si ' + (seleccionado?.nombre || 'esta categoría') + ' no tiene productos ni subcategorías, se elimina. Si los tiene, queda inactiva.'" confirmLabel="Eliminar" [loading]="eliminando" (confirm)="eliminar()" (cancel)="confirmar = false"></app-confirm-dialog>

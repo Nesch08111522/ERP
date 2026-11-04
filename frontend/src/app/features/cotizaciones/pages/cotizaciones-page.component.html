@@ -1,0 +1,106 @@
+<section class="module-page">
+  <app-page-header title="Cotizaciones" subtitle="La cotización no mueve stock. Si el cliente no compra queda como no comprada; si acepta, se convierte en venta con la caja abierta." actionLabel="Nueva cotización" (action)="abrirCrear()"></app-page-header>
+  <div *ngIf="nuevasWeb > 0" class="alert">Tienes una nueva cotización para visualizar.</div>
+  <app-tabs [tabs]="tabs" [active]="tab" (activeChange)="cambiarTab($event)"></app-tabs>
+  <app-filter-bar *ngIf="tab === 'lista'">
+    <app-form-field label="Cliente" inputId="cot-cli"><app-select inputId="cot-cli" [options]="clientes" placeholder="Todos" [formControl]="filtros.controls.clienteId"></app-select></app-form-field>
+    <app-form-field label="Sede" inputId="cot-sede"><app-select inputId="cot-sede" [options]="sedes" placeholder="Todas" [formControl]="filtros.controls.sedeId"></app-select></app-form-field>
+    <app-form-field label="Estado" inputId="cot-est"><select id="cot-est" class="select" [formControl]="filtros.controls.estado"><option value="">Todos</option><option value="PENDIENTE">Nuevo (web)</option><option value="EMITIDA">Emitida</option><option value="ACEPTADA">Aceptada</option><option value="NO_COMPRADO">No comprada</option><option value="RECHAZADA">Rechazada</option><option value="VENCIDA">Vencida</option><option value="CONVERTIDA">Convertida</option></select></app-form-field>
+    <app-form-field label="Desde" inputId="cot-desde"><input id="cot-desde" class="input" type="date" [formControl]="filtros.controls.desde" /></app-form-field>
+    <app-form-field label="Hasta" inputId="cot-hasta"><input id="cot-hasta" class="input" type="date" [formControl]="filtros.controls.hasta" /></app-form-field>
+    <div class="filter-actions"><button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button><button type="button" class="btn btn-ghost" (click)="limpiar()">Limpiar</button></div>
+  </app-filter-bar>
+  <app-data-table [columns]="columns" [rows]="state.rows" [loading]="state.loading" [error]="state.error" [status]="state.status" [page]="state.page" [size]="state.size" [totalElements]="state.totalElements" [totalPages]="state.totalPages" emptyTitle="No hay cotizaciones" emptyMessage="Emite una cotización para un cliente." emptyAction="Nueva cotización" (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (sortChange)="ordenar($event)" (retry)="cargar()" (empty)="abrirCrear()">
+    <ng-template #rowActions let-row>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="ver(row)">Ver</button>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="descargar(row, 'pdf')" [disabled]="documentoId === row.id">PDF</button>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="descargar(row, 'xlsx')" [disabled]="documentoId === row.id">Excel</button>
+      <button type="button" class="btn btn-ghost btn-sm" *ngIf="esEmitida(row)" (click)="abrirEditar(row)">Editar</button>
+      <button type="button" class="btn btn-ghost btn-sm" *ngIf="esGestionable(row)" (click)="noComprada(row)">No compró</button>
+      <button type="button" class="btn btn-ghost btn-sm" *ngIf="esGestionable(row)" (click)="aceptar(row)">Aceptar</button>
+      <button type="button" class="btn btn-ghost btn-sm" *ngIf="esGestionable(row)" (click)="abrirRechazar(row)">Rechazar</button>
+      <button type="button" class="btn btn-primary btn-sm" *ngIf="puedeConvertir(row)" (click)="abrirConvertir(row)">Convertir</button>
+      <button type="button" class="btn btn-danger btn-sm" *ngIf="esEmitida(row)" (click)="pedirEliminar(row)">Eliminar</button>
+    </ng-template>
+  </app-data-table>
+</section>
+
+<app-modal [closable]="!guardando" [open]="modal" [title]="editando ? 'Editar cotización' : 'Nueva cotización'" size="lg" (closed)="modal = false">
+  <form class="form-grid" [formGroup]="form">
+    <div *ngIf="errorFormulario" class="alert alert-error span-2">{{ errorFormulario }}</div>
+    <app-form-field label="Sede" inputId="cot-f-sede" [required]="true" [error]="errorDe('sedeId')"><app-select inputId="cot-f-sede" [options]="sedes" placeholder="Sede" formControlName="sedeId" [clearable]="false"></app-select></app-form-field>
+    <app-form-field label="Cliente" inputId="cot-f-cli"><app-select inputId="cot-f-cli" [options]="clientes" placeholder="Opcional" formControlName="clienteId"></app-select></app-form-field>
+    <app-form-field label="Vigencia" inputId="cot-f-vig"><input id="cot-f-vig" class="input" type="date" formControlName="fechaVigencia" /></app-form-field>
+    <app-form-field label="Observaciones" inputId="cot-f-obs" [error]="errorDe('observaciones')"><input id="cot-f-obs" class="input" formControlName="observaciones" /></app-form-field>
+    <div class="span-2" formArrayName="lineas">
+      <div class="form-grid" *ngFor="let linea of lineas.controls; let i = index" [formGroupName]="i">
+        <app-form-field label="Producto" [inputId]="'cot-prod-' + i"><app-select [inputId]="'cot-prod-' + i" [options]="productos" placeholder="Producto" formControlName="productoId"></app-select></app-form-field>
+        <app-form-field label="Fracción" [inputId]="'cot-frac-' + i" hint="Obligatoria si el producto se vende por fracción."><app-select [inputId]="'cot-frac-' + i" [options]="fraccionesLinea[i] || []" placeholder="Sin fracción" formControlName="fraccionId"></app-select></app-form-field>
+        <app-form-field label="Servicio" [inputId]="'cot-srv-' + i"><app-select [inputId]="'cot-srv-' + i" [options]="servicios" placeholder="Servicio" formControlName="servicioId"></app-select></app-form-field>
+        <app-form-field label="Cantidad" [inputId]="'cot-cant-' + i" [required]="true"><input class="input" type="number" min="0.0001" step="0.0001" formControlName="cantidad" /></app-form-field>
+        <div class="filter-actions"><button type="button" class="btn btn-ghost btn-sm" (click)="quitarLinea(i)" [disabled]="lineas.length === 1">Quitar</button></div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="agregarLinea()">Agregar línea</button>
+    </div>
+  </form>
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="modal = false">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">Guardar</button>
+  </div>
+</app-modal>
+
+<app-modal [open]="detalleAbierto" title="Detalle de cotización" size="lg" (closed)="detalleAbierto = false">
+  <div *ngIf="detalle">
+    <p>{{ detalle.clienteNombre || 'Sin cliente' }} · {{ detalle.origen || detalle.estado }} · {{ detalle.estado }} · {{ detalle.total | pen }}</p>
+    <div class="cluster">
+      <button type="button" class="btn btn-ghost btn-sm" (click)="descargar(detalle, 'pdf')"><app-icon name="file"></app-icon> Descargar PDF</button>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="descargar(detalle, 'xlsx')"><app-icon name="chart"></app-icon> Descargar Excel</button>
+    </div>
+    <table class="table table-compact"><thead><tr><th>Ítem</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead>
+      <tbody><tr *ngFor="let linea of detalle.lineas"><td>{{ linea.productoNombre || linea.servicioNombre }}</td><td>{{ linea.cantidad }}</td><td>{{ linea.precioUnitarioConIgv | pen }}</td><td>{{ linea.subtotal | pen }}</td></tr></tbody>
+    </table>
+    <table class="table table-compact" *ngIf="detalle.cargos">
+      <tbody>
+        <tr><td>Materiales</td><td>{{ detalle.cargos.subtotalMateriales | pen }}</td></tr>
+        <tr><td>Utilidad {{ detalle.cargos.utilidadPorcentaje }}%</td><td>{{ detalle.cargos.utilidadMonto | pen }}</td></tr>
+        <tr><td>Movilidad {{ detalle.cargos.distrito }}</td><td>{{ detalle.cargos.movilidadMonto | pen }}</td></tr>
+        <tr><td>Otros cargos</td><td>{{ detalle.cargos.otrosMonto | pen }}</td></tr>
+        <tr *ngIf="detalle.cargos.otrosDetalle"><td colspan="2">{{ detalle.cargos.otrosDetalle }}</td></tr>
+      </tbody>
+    </table>
+    <div *ngIf="detalle.cargos?.modificada" class="alert">La empresa modificó esta cotización. {{ detalle.cargos?.notaCambio }}</div>
+    <form *ngIf="puedeAjustar()" class="form-grid" [formGroup]="ajuste">
+      <p class="span-2">Si el cálculo no cuadra, ajusta utilidad, pasaje u otros cargos y escribe qué cambió.</p>
+      <app-form-field label="Utilidad %" inputId="cot-util"><input id="cot-util" class="input" type="number" min="0" max="100" step="0.01" formControlName="utilidadPorcentaje" /></app-form-field>
+      <app-form-field label="Movilidad S/" inputId="cot-mov"><input id="cot-mov" class="input" type="number" min="0" step="0.01" formControlName="movilidadMonto" /></app-form-field>
+      <app-form-field label="Otros cargos S/" inputId="cot-otros"><input id="cot-otros" class="input" type="number" min="0" step="0.01" formControlName="otrosMonto" /></app-form-field>
+      <app-form-field class="span-2" label="Detalle de otros cargos" inputId="cot-odet"><textarea id="cot-odet" class="textarea" formControlName="otrosDetalle"></textarea></app-form-field>
+      <app-form-field class="span-2" label="Qué cambió" inputId="cot-nota" [required]="true"><textarea id="cot-nota" class="textarea" formControlName="notaCambio"></textarea></app-form-field>
+    </form>
+  </div>
+  <div modalFooter *ngIf="puedeAjustar()">
+    <button type="button" class="btn btn-primary" (click)="guardarCargos()" [disabled]="guardando || ajuste.invalid">Guardar cambio</button>
+  </div>
+</app-modal>
+
+<app-modal [open]="convertirAbierto" title="Convertir a venta" (closed)="convertirAbierto = false">
+  <div *ngIf="!cajaAbierta" class="alert">Para convertir la cotización en venta abre la caja. <a routerLink="/modules/turnos-caja">Ir a Caja</a></div>
+  <form class="form-grid" [formGroup]="convertir">
+    <app-form-field label="Almacén" inputId="cot-c-alm" [required]="true"><app-select inputId="cot-c-alm" [options]="almacenes" placeholder="Almacén" formControlName="almacenId" [clearable]="false"></app-select></app-form-field>
+    <app-form-field label="Turno de caja" inputId="cot-c-turno" [required]="true" hint="Usa el turno abierto en Caja."><input id="cot-c-turno" class="input" formControlName="turnoCajaId" /></app-form-field>
+    <app-form-field label="Comprobante" inputId="cot-c-tipo"><select id="cot-c-tipo" class="select" formControlName="tipoComprobante"><option value="BOLETA">Boleta</option><option value="FACTURA">Factura</option></select></app-form-field>
+    <app-form-field label="Canal" inputId="cot-c-canal"><select id="cot-c-canal" class="select" formControlName="canalVenta"><option value="LOCAL">Local</option><option value="ONLINE">Online</option></select></app-form-field>
+    <app-form-field label="Método" inputId="cot-c-met"><select id="cot-c-met" class="select" formControlName="metodoPago"><option value="EFECTIVO">Efectivo</option><option value="YAPE">Yape</option><option value="PLIN">Plin</option><option value="TARJETA">Tarjeta</option><option value="TRANSFERENCIA">Transferencia</option></select></app-form-field>
+    <app-form-field label="Monto" inputId="cot-c-mon" [required]="true"><input id="cot-c-mon" class="input" type="number" min="0.01" step="0.01" formControlName="monto" /></app-form-field>
+  </form>
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="convertirAbierto = false">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="convertirVenta()" [disabled]="convertir.invalid || guardando || !cajaAbierta">Convertir</button>
+  </div>
+</app-modal>
+
+<app-modal [open]="rechazarAbierto" title="Rechazar cotización" size="sm" (closed)="rechazarAbierto = false">
+  <app-form-field label="Motivo" inputId="cot-motivo" [required]="true"><textarea id="cot-motivo" class="textarea" [formControl]="rechazo.controls.motivo"></textarea></app-form-field>
+  <div modalFooter><button type="button" class="btn btn-ghost" (click)="rechazarAbierto = false">Cancelar</button><button type="button" class="btn btn-danger" (click)="rechazar()" [disabled]="rechazo.invalid || guardando">Rechazar</button></div>
+</app-modal>
+<app-confirm-dialog [open]="confirmar" title="Eliminar cotización" message="Se eliminará la cotización emitida." confirmLabel="Eliminar" [loading]="eliminando" (confirm)="eliminar()" (cancel)="confirmar = false"></app-confirm-dialog>

@@ -1,0 +1,40 @@
+<div class="login-split">
+  <section class="login-story" aria-hidden="true">
+    <img class="story-logo" [src]="marca.logoSrc()" [alt]="marca.nombre()" (error)="marca.usarRespaldo()" />
+    <p class="story-kicker">Sistema de gestión</p>
+    <h1>{{ marca.nombre() }}</h1>
+    <p>Ventas, inventario, compras y finanzas en un solo acceso.</p>
+  </section>
+
+  <section class="login-pane">
+    <form class="login-card" (ngSubmit)="onSubmit()">
+      <header>
+        <h2>Iniciar sesión</h2>
+        <p>Usa el correo que te asignó el administrador.</p>
+      </header>
+
+      <label class="field-login" for="email">
+        <span>Correo</span>
+        <input id="email" type="email" name="email" [(ngModel)]="email" required autocomplete="email" [disabled]="isLoading" />
+      </label>
+
+      <div class="field-login">
+        <label for="password">Contraseña</label>
+        <div class="password-row">
+          <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required autocomplete="current-password" [disabled]="isLoading" />
+          <button type="button" class="toggle-password" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword">
+            <app-icon [name]="showPassword ? 'eyeOff' : 'eye'"></app-icon>
+          </button>
+        </div>
+      </div>
+
+      <p *ngIf="notice" class="error-message">{{ notice }}</p>
+      <p *ngIf="error" class="error-message" role="alert">{{ error }}</p>
+
+      <button type="submit" class="btn-login" [disabled]="isLoading">
+        {{ isLoading ? 'Procesando...' : 'Iniciar sesión' }}
+      </button>
+      <p class="support-text">La contraseña la restablece un administrador desde Usuarios.</p>
+    </form>
+  </section>
+</div>

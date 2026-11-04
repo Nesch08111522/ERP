@@ -1,0 +1,3 @@
+<nav class="app-navbar" aria-label="Accesos rápidos">
+  <a *ngFor="let link of links" [routerLink]="link.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: link.path === '/inicio' }">{{ link.label }}</a>
+</nav>

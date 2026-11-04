@@ -1,0 +1,22 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import 'tailwindcss';
+
+@theme {
+  --color-cream: #f3f6fb;
+  --color-paper: #ffffff;
+  --color-ink: #122033;
+  --color-line: #d7e1ec;
+  --font-sans: "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+@media print {
+  body * { visibility: hidden !important; }
+  .ticket-print-area, .ticket-print-area * { visibility: visible !important; }
+  .ticket-print-area { position: absolute !important; inset: 0 auto auto 0 !important; width: 80mm !important; max-width: 80mm !important; margin: 0 !important; padding: 4mm !important; border: 0 !important; border-radius: 0 !important; font-size: 10pt !important; }
+  .ticket-actions, .copiar-mensaje { display: none !important; }
+  @page { size: 80mm auto; margin: 0; }
+}

@@ -1,0 +1,44 @@
+:host { display: block; }
+.ticket-paper {
+  width: min(100%, 34rem);
+  margin: 0 auto;
+  padding: 1.5rem;
+  color: #172033;
+  background: #fff;
+  border: 1px solid #dfe5ec;
+  border-radius: 12px;
+  font-size: 0.875rem;
+}
+.empresa { text-align: center; }
+.empresa img { display: block; width: 4.5rem; height: 4.5rem; object-fit: contain; margin: 0 auto 0.5rem; }
+.empresa h2 { margin: 0; font-size: 1.15rem; }
+.empresa p { margin: 0.2rem 0 0; color: #566273; }
+.ticket-title { display: grid; gap: 0.25rem; margin: 1rem 0; padding: 0.8rem 0; text-align: center; border-block: 1px dashed #aab4c2; }
+.ticket-title strong { font-size: 1rem; }
+.ticket-title small, .codigo small { color: #566273; }
+.datos, .totales { display: grid; gap: 0.4rem; margin: 0; }
+.datos div, .totales div { display: flex; justify-content: space-between; gap: 1rem; }
+.datos dt, .totales dt { color: #566273; }
+.datos dd, .totales dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.lineas { margin: 1rem 0; border-block: 1px solid #aab4c2; }
+.linea { display: grid; grid-template-columns: minmax(0, 1fr) 3rem 5rem 5rem; gap: 0.4rem; padding: 0.5rem 0; border-bottom: 1px dashed #dfe5ec; }
+.linea span:first-child { overflow-wrap: anywhere; }
+.linea span:nth-child(n + 2), .linea strong { text-align: right; }
+.linea.encabezado { font-weight: 700; border-bottom: 1px solid #aab4c2; }
+.totales { max-width: 18rem; margin-left: auto; }
+.totales .total { margin-top: 0.4rem; padding-top: 0.5rem; border-top: 1px solid #aab4c2; font-size: 1.1rem; font-weight: 700; }
+.pagos { margin-top: 1rem; }
+.pagos h3 { margin: 0 0 0.35rem; font-size: 0.9rem; }
+.pagos div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.2rem 0; }
+.pagos small { color: #566273; }
+.codigo { display: grid; justify-items: center; gap: 0.25rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #aab4c2; text-align: center; }
+.codigo img { width: 9rem; height: 9rem; }
+.codigo strong { overflow-wrap: anywhere; font-size: 1.05rem; letter-spacing: 0.06em; }
+.qr-error { color: #a3212a; }
+.ticket-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.copiar-mensaje { min-height: 1.2rem; margin: 0.4rem 0 0; color: #236742; text-align: right; }
+
+@media (max-width: 520px) {
+  .ticket-paper { padding: 1rem; }
+  .linea { grid-template-columns: minmax(0, 1fr) 2.5rem 4rem 4rem; gap: 0.25rem; font-size: 0.75rem; }
+}

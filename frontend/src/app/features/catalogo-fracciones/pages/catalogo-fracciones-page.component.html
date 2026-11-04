@@ -1,0 +1,108 @@
+<section class="module-page fracciones-page">
+  <app-page-header title="Catálogo de Fracciones" subtitle="Configura medidas y precios de venta. Los factores se descuentan automáticamente del stock y se usan en el POS y las cotizaciones."></app-page-header>
+
+  <div class="fracciones-layout">
+    <aside class="card productos-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Productos</h2>
+          <p>Selecciona un producto para configurar sus medidas.</p>
+        </div>
+        <span class="contador">{{ productosVisibles.length }}</span>
+      </div>
+      <label class="busqueda">
+        <app-icon name="search"></app-icon>
+        <input type="search" [(ngModel)]="busqueda" placeholder="Nombre o SKU del producto" aria-label="Buscar producto" />
+      </label>
+      <div class="filtros-producto" role="group" aria-label="Filtrar productos">
+        <button type="button" [class.activo]="filtro === 'TODOS'" (click)="filtro = 'TODOS'">Todos</button>
+        <button type="button" [class.activo]="filtro === 'FRACCIONABLES'" (click)="filtro = 'FRACCIONABLES'">Fraccionables</button>
+        <button type="button" [class.activo]="filtro === 'NORMALES'" (click)="filtro = 'NORMALES'">Sin fraccionar</button>
+      </div>
+      <p *ngIf="cargando" class="estado">Cargando productos…</p>
+      <p *ngIf="!cargando && !productosVisibles.length" class="estado">No hay productos que coincidan con el filtro.</p>
+      <div class="lista-productos" *ngIf="!cargando">
+        <button
+          type="button"
+          class="producto-opcion"
+          *ngFor="let producto of productosVisibles"
+          [class.seleccionado]="productoSeleccionado?.id === producto.id"
+          [disabled]="guardando"
+          (click)="seleccionar(producto)">
+          <span class="producto-icono"><app-icon name="box"></app-icon></span>
+          <span class="producto-datos">
+            <strong>{{ producto.nombre }}</strong>
+            <small>{{ producto.codigoSku || 'Sin SKU' }} · {{ producto.unidad || 'UNID' }}</small>
+          </span>
+          <span class="estado-fraccion" [class.on]="producto.esFraccionable">{{ producto.activo === false ? 'Inactivo' : producto.esFraccionable ? 'Habilitado' : 'Entero' }}</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="card configuracion-panel">
+      <p *ngIf="error" class="alert alert-error">{{ error }}</p>
+      <div *ngIf="!productoSeleccionado" class="estado-vacio">
+        <span class="vacio-icono"><app-icon name="box"></app-icon></span>
+        <h2>Configura la venta fraccionada</h2>
+        <p>Elige un producto de la lista para establecer las medidas disponibles y sus precios.</p>
+      </div>
+      <ng-container *ngIf="productoSeleccionado as producto">
+        <p *ngIf="cargandoProducto" class="estado">Cargando configuración del producto…</p>
+        <ng-container *ngIf="!cargandoProducto">
+          <header class="producto-resumen">
+            <div>
+              <p class="eyebrow">{{ producto.codigoSku || 'Producto' }} · {{ producto.unidad || 'UNID' }}</p>
+              <h2>{{ producto.nombre }}</h2>
+              <p>{{ producto.descripcion || 'Configura los cortes disponibles para este producto.' }}</p>
+            </div>
+            <div class="precio-base">
+              <span>Precio por unidad completa</span>
+              <strong>S/ {{ precioBase | number:'1.2-2' }}</strong>
+            </div>
+          </header>
+
+          <div class="fraccion-switch">
+            <div>
+              <strong>Habilitar venta fraccionada</strong>
+              <p>Las fracciones activas aparecerán en el POS y las cotizaciones.</p>
+            </div>
+            <label class="switch-control">
+              <input type="checkbox" [(ngModel)]="fraccionable" (ngModelChange)="cambiarFraccionable($event)" aria-label="Habilitar venta fraccionada" />
+              <span aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <section class="matriz" [class.desactivada]="!fraccionable">
+            <div class="matriz-titulo">
+              <div>
+                <h3>Medidas y precios</h3>
+                <p>El factor indica cuánto stock base se descuenta por unidad vendida.</p>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" (click)="restaurarPreciosSugeridos()" [disabled]="!fraccionable">Usar precios proporcionales</button>
+            </div>
+            <div class="nivel" *ngFor="let nivel of niveles; let i = index">
+              <label class="nivel-activo">
+                <input type="checkbox" [(ngModel)]="nivel.activo" [name]="'nivel-activo-' + i" [disabled]="!fraccionable" />
+                <span>{{ nivel.nombreFraccion }}</span>
+                <small>{{ nivel.factorDescuentoKardex | number:'1.2-2' }} del stock</small>
+              </label>
+              <label class="precio-control">
+                <span>Precio de venta</span>
+                <span class="precio-input"><span>S/</span><input type="number" min="0" step="0.01" [(ngModel)]="nivel.precioVenta" [name]="'precio-fraccion-' + i" [disabled]="!fraccionable" /></span>
+              </label>
+              <span class="precio-sugerido" *ngIf="nivel.factorDescuentoKardex < 1">Proporcional: S/ {{ sugerido(nivel.factorDescuentoKardex) | number:'1.2-2' }}</span>
+              <span class="precio-sugerido" *ngIf="nivel.factorDescuentoKardex === 1">Unidad completa</span>
+            </div>
+            <p class="nota">La venta descuenta del almacén: 0.25 por 1/4, 0.50 por 1/2, 0.75 por 3/4 y 1.00 por la unidad completa.</p>
+          </section>
+
+          <footer class="acciones">
+            <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando || cargandoProducto">
+              {{ guardando ? 'Guardando…' : 'Guardar configuración' }}
+            </button>
+          </footer>
+        </ng-container>
+      </ng-container>
+    </main>
+  </div>
+</section>

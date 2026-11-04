@@ -1,0 +1,26 @@
+:host { display: block; min-width: 0; }
+.venta-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; min-width: 14rem; }
+.venta-acciones .btn { white-space: nowrap; }
+.resumen-venta { display: grid; gap: 1.15rem; }
+.resumen-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-bg-subtle); }
+.resumen-etiqueta { color: var(--color-primary); font-size: var(--text-xs); font-weight: var(--weight-bold); letter-spacing: 0.06em; text-transform: uppercase; }
+.resumen-cabecera h3 { margin: 0.25rem 0; font-size: 1.25rem; }
+.resumen-cabecera p { margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.resumen-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+.resumen-datos > div { display: grid; gap: 0.2rem; min-width: 0; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.resumen-datos span { color: var(--color-text-muted); font-size: var(--text-xs); }
+.resumen-datos strong { overflow-wrap: anywhere; }
+.resumen-tabla { border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.resumen-tabla .table { margin: 0; }
+.resumen-pie { display: grid; grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.7fr); gap: 1.5rem; align-items: start; }
+.resumen-pagos h4 { margin: 0 0 0.5rem; }
+.resumen-pagos p, .resumen-totales div { display: flex; justify-content: space-between; gap: 1rem; margin: 0; padding: 0.35rem 0; }
+.resumen-pagos small { color: var(--color-text-muted); }
+.resumen-totales { margin: 0; }
+.resumen-totales dt { color: var(--color-text-muted); }
+.resumen-totales dd { margin: 0; text-align: right; }
+.resumen-totales .total { margin-top: 0.4rem; padding-top: 0.6rem; border-top: 1px solid var(--color-border); font-size: 1.15rem; font-weight: var(--weight-bold); }
+@media (max-width: 640px) {
+  .venta-acciones { min-width: 0; }
+  .resumen-datos, .resumen-pie { grid-template-columns: 1fr; }
+}

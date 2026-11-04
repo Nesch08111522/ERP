@@ -1,0 +1,14 @@
+<footer class="app-footer">
+  <div class="footer-brand">
+    <img [src]="marca.logoSrc()" [alt]="marca.nombre()" (error)="marca.usarRespaldo()" />
+    <div>
+      <strong>{{ marca.nombre() }}</strong>
+      <span>Sistema de gestión</span>
+    </div>
+  </div>
+  <p>Ventas, inventario, compras y finanzas</p>
+  <div class="footer-meta">
+    <span>© {{ year }}</span>
+    <span>Versión {{ version }}</span>
+  </div>
+</footer>

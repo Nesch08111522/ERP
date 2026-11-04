@@ -1,0 +1,81 @@
+<section class="module-page">
+  <app-page-header title="Roles" subtitle="Configura permisos dentro de los roles predefinidos de Administrador y Multifuncional."></app-page-header>
+
+  <div *ngIf="state.error" class="alert alert-error">
+    <div>
+      <strong>No se pudieron cargar los roles</strong>
+      <p>{{ state.error }}</p>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" (click)="cargar()">Reintentar</button>
+  </div>
+
+  <app-loader *ngIf="state.loading && !state.rows.length && !state.error"></app-loader>
+
+  <app-empty-state *ngIf="!state.loading && !state.error && !state.rows.length" title="No hay roles" message="Los roles predefinidos no están inicializados. Revisa la configuración del sistema."></app-empty-state>
+
+  <section class="table-wrap" *ngIf="state.rows.length" [class.is-refreshing]="state.loading">
+    <div class="table-scroll">
+      <table class="table table-roles">
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Permisos activos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rol of state.rows">
+            <td>
+              <div class="rol-cabeza">
+                <div>
+                  <strong class="rol-nombre">{{ nombreVisible(rol.nombre) }}</strong>
+                  <p class="rol-detalle">{{ descripcion(rol.nombre) }}</p>
+                </div>
+                <div class="rol-acciones">
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="abrirEditar(rol)">Editar</button>
+                </div>
+              </div>
+            </td>
+            <td class="roles-permisos">
+              <div class="rol-grupos" *ngIf="gruposDe(rol).length; else sinPermisos">
+                <div class="rol-grupo" *ngFor="let grupo of gruposDe(rol)">
+                  <span class="rol-modulo">{{ grupo.label }}</span>
+                  <span class="permiso-chip" *ngFor="let accion of grupo.acciones">{{ accion }}</span>
+                </div>
+              </div>
+              <ng-template #sinPermisos><span class="rol-detalle">Sin permisos activos</span></ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
+
+<app-modal [closable]="!guardando" [open]="modal" [size]="'lg'" [title]="'Editar permisos del rol'" (closed)="modal = false">
+  <form class="stack" [formGroup]="form">
+    <div *ngIf="errorFormulario" class="alert alert-error">{{ errorFormulario }}</div>
+    <app-form-field label="Rol" inputId="rol-nombre">
+      <select id="rol-nombre" class="select" formControlName="nombre" [disabled]="true">
+        <option value="ROLE_ADMIN">Administrador</option>
+        <option value="ROLE_MULTIFUNCIONAL">Multifuncional</option>
+      </select>
+    </app-form-field>
+    <fieldset class="permiso-editor">
+      <legend>Permisos</legend>
+      <p class="rol-detalle">Los permisos limitan las acciones de este rol y nunca conceden privilegios de otro rol. Lo que quede sin marcar queda desactivado.</p>
+      <fieldset class="permiso-bloque" *ngFor="let grupo of editor">
+        <legend>{{ grupo.label }}</legend>
+        <div class="permiso-opciones">
+          <label class="permiso-opcion" *ngFor="let accion of grupo.acciones">
+            <input class="checkbox" type="checkbox" [checked]="accion.activo" (change)="alternar(accion, casillaMarcada($event))">
+            <span>{{ accion.label }}</span>
+          </label>
+        </div>
+      </fieldset>
+    </fieldset>
+  </form>
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="modal = false" [disabled]="guardando">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
+  </div>
+</app-modal>

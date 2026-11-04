@@ -1,0 +1,121 @@
+<section class="module-page">
+  <app-page-header title="Historial de ventas" subtitle="Consulta las ventas registradas, sus tickets internos y el estado de emisión electrónica." actionLabel="Registrar venta" (action)="abrirCrear()">
+    <app-export-buttons modulo="ventas"></app-export-buttons>
+  </app-page-header>
+  <p class="mb-3"><a routerLink="/ventas/pos" class="btn btn-ghost btn-sm">Abrir punto de venta</a></p>
+  <app-filter-bar>
+    <app-form-field label="Sede" inputId="ven-sede"><app-select inputId="ven-sede" [options]="sedes" placeholder="Todas" [formControl]="filtros.controls.sedeId"></app-select></app-form-field>
+    <app-form-field label="Cliente" inputId="ven-cli"><app-select inputId="ven-cli" [options]="clientes" placeholder="Todos" [formControl]="filtros.controls.clienteId"></app-select></app-form-field>
+    <app-form-field label="Estado" inputId="ven-est"><select id="ven-est" class="select" [formControl]="filtros.controls.estado"><option value="">Todos</option><option value="COMPLETADA">Completada</option><option value="ANULADA">Anulada</option></select></app-form-field>
+    <app-form-field label="Canal" inputId="ven-canal"><select id="ven-canal" class="select" [formControl]="filtros.controls.canal"><option value="">Todos</option><option value="LOCAL">Local</option><option value="ONLINE">Online</option></select></app-form-field>
+    <app-form-field label="Desde" inputId="ven-desde"><input id="ven-desde" class="input" type="date" [formControl]="filtros.controls.desde" /></app-form-field>
+    <app-form-field label="Hasta" inputId="ven-hasta"><input id="ven-hasta" class="input" type="date" [formControl]="filtros.controls.hasta" /></app-form-field>
+    <div class="filter-actions"><button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button><button type="button" class="btn btn-ghost" (click)="limpiar()">Limpiar</button></div>
+  </app-filter-bar>
+  <app-data-table [columns]="columns" [rows]="state.rows" [loading]="state.loading" [error]="state.error" [status]="state.status" [page]="state.page" [size]="state.size" [totalElements]="state.totalElements" [totalPages]="state.totalPages" [sortField]="state.sort.split(',')[0]" [sortDirection]="state.sort.endsWith('desc') ? 'desc' : 'asc'" emptyTitle="No hay ventas" emptyMessage="Registra una venta o usa el punto de venta." emptyAction="Registrar venta" (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (sortChange)="ordenar($event)" (retry)="cargar()" (empty)="abrirCrear()">
+    <ng-template #rowActions let-row>
+      <div class="venta-acciones">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="verResumen(row)">Ver resumen</button>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="verTicket(row)">Ver ticket</button>
+        <button type="button" class="btn btn-danger btn-sm" *ngIf="puedeAnular(row)" (click)="abrirAnular(row)">Anular</button>
+      </div>
+    </ng-template>
+  </app-data-table>
+</section>
+
+<app-modal [closable]="!guardando" [open]="modal" title="Registrar venta" size="lg" (closed)="modal = false">
+  <form class="form-grid" [formGroup]="form">
+    <div *ngIf="!cajaAbierta" class="alert span-2">Para registrar una venta abre la caja de esta sede. <a routerLink="/modules/turnos-caja">Ir a Caja</a></div>
+    <div *ngIf="errorFormulario" class="alert alert-error span-2">{{ errorFormulario }}</div>
+    <app-form-field label="Sede" inputId="ven-f-sede" [required]="true" [error]="errorDe('sedeId')"><app-select inputId="ven-f-sede" [options]="sedes" placeholder="Sede" formControlName="sedeId" [clearable]="false"></app-select></app-form-field>
+    <app-form-field label="Almacén" inputId="ven-f-alm" [required]="true" [error]="errorDe('almacenId')"><app-select inputId="ven-f-alm" [options]="almacenes" placeholder="Almacén" formControlName="almacenId" [clearable]="false"></app-select></app-form-field>
+    <app-form-field label="Turno de caja" inputId="ven-f-turno" [required]="true" [error]="errorDe('turnoCajaId')" hint="Se completa con el turno abierto en Caja."><input id="ven-f-turno" class="input" formControlName="turnoCajaId" /></app-form-field>
+    <app-form-field label="Cliente" inputId="ven-f-cli"><app-select inputId="ven-f-cli" [options]="clientes" placeholder="Opcional" formControlName="clienteId"></app-select></app-form-field>
+    <app-form-field label="Comprobante" inputId="ven-f-tipo" [required]="true"><select id="ven-f-tipo" class="select" formControlName="tipoComprobante"><option value="BOLETA">Boleta</option><option value="FACTURA">Factura</option></select></app-form-field>
+    <app-form-field label="Canal" inputId="ven-f-canal"><select id="ven-f-canal" class="select" formControlName="canalVenta"><option value="LOCAL">Local</option><option value="ONLINE">Online</option></select></app-form-field>
+    <div class="span-2" formArrayName="lineas">
+      <h3>Líneas</h3>
+      <div class="form-grid" *ngFor="let linea of lineas.controls; let i = index" [formGroupName]="i">
+        <app-form-field label="Producto" [inputId]="'ven-prod-' + i"><app-select [inputId]="'ven-prod-' + i" [options]="productos" placeholder="Producto" formControlName="productoId"></app-select></app-form-field>
+        <app-form-field label="Fracción" [inputId]="'ven-frac-' + i" hint="Obligatoria si el producto se vende por fracción."><app-select [inputId]="'ven-frac-' + i" [options]="fraccionesLinea[i] || []" placeholder="Sin fracción" formControlName="fraccionId"></app-select></app-form-field>
+        <app-form-field label="Servicio" [inputId]="'ven-srv-' + i" hint="Producto o servicio, uno de los dos."><app-select [inputId]="'ven-srv-' + i" [options]="servicios" placeholder="Servicio" formControlName="servicioId"></app-select></app-form-field>
+        <app-form-field label="Cantidad" [inputId]="'ven-cant-' + i" [required]="true"><input class="input" type="number" min="0.0001" step="0.0001" formControlName="cantidad" /></app-form-field>
+        <div class="filter-actions"><button type="button" class="btn btn-ghost btn-sm" (click)="quitarLinea(i)" [disabled]="lineas.length === 1">Quitar</button></div>
+        <p *ngIf="linea.errors?.['linea'] && linea.touched" class="field-error span-2">Indica un producto o un servicio.</p>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="agregarLinea()">Agregar línea</button>
+    </div>
+    <div class="span-2" formArrayName="pagos">
+      <h3>Pagos</h3>
+      <div class="form-grid" *ngFor="let pago of pagos.controls; let i = index" [formGroupName]="i">
+        <app-form-field label="Método" [inputId]="'ven-met-' + i" [required]="true"><select class="select" formControlName="metodoPago"><option value="EFECTIVO">Efectivo</option><option value="YAPE">Yape</option><option value="PLIN">Plin</option><option value="TARJETA">Tarjeta</option><option value="TRANSFERENCIA">Transferencia</option><option value="SIP_AGORA">SIP/Agora</option></select></app-form-field>
+        <app-form-field label="Monto" [inputId]="'ven-mon-' + i" [required]="true"><input class="input" type="number" min="0.01" step="0.01" formControlName="monto" /></app-form-field>
+        <app-form-field label="Referencia" [inputId]="'ven-ref-' + i"><input class="input" formControlName="referencia" /></app-form-field>
+        <div class="filter-actions"><button type="button" class="btn btn-ghost btn-sm" (click)="quitarPago(i)" [disabled]="pagos.length === 1">Quitar</button></div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="agregarPago()">Agregar pago</button>
+      <p class="span-2">Total estimado {{ totalEstimado | pen }}. <button type="button" class="btn btn-ghost btn-sm" (click)="usarTotal()">Igualar el primer pago</button></p>
+    </div>
+  </form>
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="modal = false" [disabled]="guardando">Cancelar</button>
+    <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando || !cajaAbierta">{{ guardando ? 'Guardando…' : 'Registrar' }}</button>
+  </div>
+</app-modal>
+
+<app-modal [open]="detalleAbierto" title="Resumen de venta" size="lg" (closed)="detalleAbierto = false">
+  <div *ngIf="detalle" class="resumen-venta">
+    <header class="resumen-cabecera">
+      <div>
+        <span class="resumen-etiqueta">{{ detalle.tipoComprobante }} · {{ detalle.canalVenta }}</span>
+        <h3>{{ detalle.serieCorrelativo }}</h3>
+        <p>{{ detalle.createdAt | date:'medium' }} · {{ detalle.sedeNombre || 'Sede' }}</p>
+      </div>
+      <span class="badge" [class.badge-success]="detalle.estado === 'COMPLETADA'" [class.badge-danger]="detalle.estado === 'ANULADA'">{{ detalle.estado }}</span>
+    </header>
+    <div class="resumen-datos">
+      <div><span>Cliente</span><strong>{{ detalle.clienteNombre || 'Cliente ocasional' }}</strong></div>
+      <div><span>Documento</span><strong>{{ detalle.clienteDocumento || 'No registrado' }}</strong></div>
+      <div><span>Ticket interno</span><strong>{{ detalle.ticketRegistro || 'No disponible' }}</strong></div>
+      <div><span>Estado SUNAT</span><strong>{{ detalle.estadoSunat || 'PENDIENTE' }}</strong></div>
+    </div>
+    <div class="table-scroll resumen-tabla">
+      <table class="table table-compact">
+        <thead><tr><th>Producto o servicio</th><th>Cantidad</th><th>Precio unitario</th><th class="align-end">Importe</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let linea of detalle.lineas">
+            <td>{{ linea.productoNombre || linea.servicioNombre || linea.fraccionNombre || 'Ítem' }}</td>
+            <td>{{ linea.cantidad }}</td>
+            <td>{{ linea.precioUnitarioConIgv | pen }}</td>
+            <td class="align-end">{{ linea.subtotal | pen }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="resumen-pie">
+      <div class="resumen-pagos">
+        <h4>Pagos</h4>
+        <p *ngFor="let pago of detalle.pagos"><span>{{ pago.metodoPago }}<small *ngIf="pago.referencia"> · {{ pago.referencia }}</small></span><strong>{{ pago.monto | pen }}</strong></p>
+      </div>
+      <dl class="resumen-totales">
+        <div><dt>Neto</dt><dd>{{ detalle.subtotalNeto | pen }}</dd></div>
+        <div><dt>IGV</dt><dd>{{ detalle.totalIgv | pen }}</dd></div>
+        <div class="total"><dt>Total</dt><dd>{{ detalle.total | pen }}</dd></div>
+      </dl>
+    </div>
+  </div>
+  <div modalFooter><button type="button" class="btn btn-ghost" (click)="detalleAbierto = false">Cerrar</button></div>
+</app-modal>
+
+<app-modal [open]="ticketAbierto" title="Ticket de venta" size="lg" (closed)="ticketAbierto = false">
+  <app-venta-ticket *ngIf="ticket" [venta]="ticket"></app-venta-ticket>
+  <div modalFooter><button type="button" class="btn btn-ghost" (click)="ticketAbierto = false">Cerrar</button></div>
+</app-modal>
+
+<app-modal [open]="anularAbierto" title="Anular venta" size="sm" (closed)="anularAbierto = false">
+  <app-form-field label="Motivo" inputId="ven-motivo" [required]="true" [error]="errorMotivo()"><textarea id="ven-motivo" class="textarea" [formControl]="anulacion.controls.motivo"></textarea></app-form-field>
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="anularAbierto = false">Cancelar</button>
+    <button type="button" class="btn btn-danger" (click)="anular()" [disabled]="anulacion.invalid || guardando">Anular</button>
+  </div>
+</app-modal>

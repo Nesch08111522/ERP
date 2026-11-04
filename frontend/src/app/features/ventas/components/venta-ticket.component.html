@@ -1,0 +1,61 @@
+<article class="ticket-paper ticket-print-area">
+  <header class="empresa">
+    <img [src]="marca.logoSrc()" [alt]="'Logo de ' + marca.nombre()" (error)="marca.usarRespaldo()" />
+    <h2>{{ empresa?.razonSocial || marca.nombre() }}</h2>
+    <p *ngIf="empresa?.nombreComercial && empresa?.nombreComercial !== empresa?.razonSocial">{{ empresa?.nombreComercial }}</p>
+    <p>RUC: {{ empresa?.ruc || 'No configurado' }}</p>
+    <p *ngIf="empresa?.direccionFiscal">{{ empresa?.direccionFiscal }}</p>
+    <p *ngIf="empresa?.ubigeo">Ubigeo: {{ empresa?.ubigeo }}</p>
+    <p *ngIf="empresa?.telefono || empresa?.email">{{ empresa?.telefono }}<span *ngIf="empresa?.telefono && empresa?.email"> · </span>{{ empresa?.email }}</p>
+  </header>
+  <p *ngIf="empresaError" class="qr-error">{{ empresaError }} Verifica los datos en Configuración.</p>
+
+  <div class="ticket-title">
+    <strong>REGISTRO DE VENTA · {{ venta.tipoComprobante || 'COMPROBANTE' }}</strong>
+    <span>{{ venta.serieCorrelativo || 'Serie local no disponible' }}</span>
+    <small>Documento interno del ERP · No reemplaza el comprobante electrónico SUNAT</small>
+  </div>
+
+  <dl class="datos">
+    <div><dt>Fecha</dt><dd>{{ fecha(venta.createdAt) }}</dd></div>
+    <div *ngIf="venta.sedeNombre"><dt>Sede</dt><dd>{{ venta.sedeNombre }}</dd></div>
+    <div><dt>Cliente</dt><dd>{{ venta.clienteNombre || 'Cliente ocasional' }}</dd></div>
+    <div *ngIf="venta.clienteDocumento"><dt>Documento</dt><dd>{{ venta.clienteDocumento }}</dd></div>
+    <div *ngIf="venta.usuarioNombre"><dt>Atendido por</dt><dd>{{ venta.usuarioNombre }}</dd></div>
+    <div><dt>Estado</dt><dd>{{ venta.estado || 'COMPLETADA' }} · SUNAT {{ venta.estadoSunat || 'PENDIENTE' }}</dd></div>
+  </dl>
+
+  <div class="lineas">
+    <div class="linea encabezado"><span>Descripción</span><span>Cant.</span><span>Precio</span><span>Total</span></div>
+    <div class="linea" *ngFor="let linea of venta.lineas">
+      <span>{{ linea.descripcion }}</span><span>{{ linea.cantidad }}</span>
+      <span>{{ linea.precioUnitario | pen }}</span><strong>{{ linea.subtotal | pen }}</strong>
+    </div>
+  </div>
+
+  <dl class="totales">
+    <div><dt>Subtotal</dt><dd>{{ venta.subtotalNeto | pen }}</dd></div>
+    <div><dt>IGV</dt><dd>{{ venta.totalIgv | pen }}</dd></div>
+    <div class="total"><dt>Total</dt><dd>{{ venta.total | pen }}</dd></div>
+  </dl>
+
+  <section class="pagos">
+    <h3>Pago</h3>
+    <div *ngFor="let pago of venta.pagos"><span>{{ pago.metodo }}<small *ngIf="pago.referencia"> · {{ pago.referencia }}</small></span><strong>{{ pago.monto | pen }}</strong></div>
+  </section>
+
+  <footer class="codigo">
+    <img *ngIf="qrImagen" [src]="qrImagen" alt="Código QR para abrir esta venta en el historial del ERP" />
+    <small *ngIf="qrCargando">Generando código QR…</small>
+    <p *ngIf="qrError" class="qr-error">{{ qrError }}</p>
+    <span>Ticket interno</span>
+    <strong>{{ venta.ticketRegistro || venta.id }}</strong>
+    <small>Escanea el QR para abrir esta venta en el historial del ERP.</small>
+  </footer>
+
+  <div class="ticket-actions">
+    <button type="button" class="btn btn-ghost" (click)="copiarCodigo()">Copiar código</button>
+    <button type="button" class="btn btn-primary" (click)="imprimir()" [disabled]="qrCargando || empresaCargando || !qrImagen">Imprimir ticket</button>
+  </div>
+  <p class="copiar-mensaje" aria-live="polite">{{ copiarMensaje }}</p>
+</article>

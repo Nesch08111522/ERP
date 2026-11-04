@@ -1,0 +1,50 @@
+package com.policalum.erp.infrastructure.controller;
+
+import com.policalum.erp.application.dto.response.NotificacionResponseDTO;
+import com.policalum.erp.application.service.serviceImpl.NotificacionServiceImpl;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Tag(name = "Notificaciones")
+@RestController
+@PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'notificaciones', 'leer')")
+@RequestMapping("/api/v1/notificaciones")
+@RequiredArgsConstructor
+public class NotificacionController {
+
+    private final NotificacionServiceImpl service;
+
+    @GetMapping
+    public ResponseEntity<List<NotificacionResponseDTO>> listar() {
+        return ResponseEntity.ok(service.listar());
+    }
+
+    @PostMapping("/{id}/leida")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'notificaciones', 'gestionar')")
+    public ResponseEntity<NotificacionResponseDTO> leida(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.marcarLeida(id));
+    }
+
+    @PostMapping("/leer-todas")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'notificaciones', 'gestionar')")
+    public ResponseEntity<Map<String, Integer>> leerTodas() {
+        return ResponseEntity.ok(Map.of("marcadas", service.marcarTodasLeidas()));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'notificaciones', 'gestionar')")
+    public ResponseEntity<NotificacionResponseDTO> archivar(@PathVariable UUID id) {
+        return ResponseEntity.ok(service.archivar(id));
+    }
+}
