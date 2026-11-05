@@ -169,6 +169,26 @@ export class PosComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  
+  /**
+   * Navega dentro de la misma vista del Punto de Venta.
+   * No cambia rutas ni modifica la sesión del usuario.
+   */
+  irASeccion(id: string): void {
+    const elemento = document.getElementById(id);
+
+    if (!elemento) {
+      console.warn(`No se encontró la sección del POS: ${id}`);
+      return;
+    }
+
+    elemento.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+
+
   @HostListener('window:keydown', ['$event'])
   atajo(event: KeyboardEvent): void {
     const escribe = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement;

@@ -57,15 +57,19 @@
 <section class="section">
   <div class="section-head">
     <div>
-      <p class="kicker">{{ obrasReales() ? 'Trabajos' : 'Obras' }}</p>
-      <h2>{{ obrasReales() ? 'Proyectos publicados' : 'Así se usa el material' }}</h2>
+      <p class="kicker">Trabajos</p>
+      <h2>Proyectos publicados</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/portafolio">Ver proyectos</a>
   </div>
-  <div class="works">
+  @if (obrasCargando()) { <p class="muted" role="status">Cargando proyectos…</p> }
+  @if (obrasError()) { <p class="alert" role="alert">No se pudo cargar el portafolio: {{ obrasError() }}</p> }
+  @if (!obrasCargando() && !obrasError() && !obras().length) { <p class="muted">Próximamente compartiremos nuestros proyectos.</p> }
+  @if (!obrasCargando() && !obrasError() && obras().length) {
+    <div class="works">
     @for (obra of obras().slice(0, 3); track obra.id; let i = $index) {
-      <article class="work">
-        @if (foto(obra); as imagen) { <img [src]="imagen" [alt]="obra.titulo" /> }
+      <article class="work" [class.sin-imagen]="!foto(obra)">
+        @if (foto(obra); as imagen) { <img [src]="imagen" [alt]="'Proyecto: ' + obra.titulo" loading="lazy" decoding="async" (error)="imagenFallida($event)" /> }
         <div class="veil"></div>
         <div>
           <h3>{{ obra.titulo }}</h3>
@@ -74,7 +78,8 @@
         </div>
       </article>
     }
-  </div>
+    </div>
+  }
 </section>
 
 <section class="section">

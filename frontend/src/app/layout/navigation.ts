@@ -38,7 +38,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'clientes', label: 'Clientes', path: '/modules/clientes', icon: 'users' },
       { id: 'mensajes-web', label: 'Mensajes Web (Leads)', path: '/modules/mensajes-web', icon: 'mail' },
-      { id: 'portafolio-web', label: 'Portafolio Web', path: '/modules/portafolio-web', icon: 'image', roles: admin },
+      { id: 'portafolio-web', label: 'Portafolio Web', path: '/modules/portafolio-web', icon: 'image', roles: ['ROLE_ADMIN', 'ROLE_MULTIFUNCIONAL'] },
       { id: 'gestor-web', label: 'Ajustes del Sitio Web', path: '/modules/gestor-web', icon: 'settings', roles: admin },
     ],
   },

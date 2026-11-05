@@ -1,38 +1,169 @@
+
 <article class="sunat-card">
+
+  <!-- ENCABEZADO -->
   <header class="sunat-head">
-    <div>
+    <div class="sunat-heading">
       <h2>Facturación electrónica SUNAT - RUC {{ rucVisible }}</h2>
-      <p class="sunat-kicker">{{ marca.nombre() }} · Los comprobantes mostrados son registros locales; la emisión electrónica aún no está conectada.</p>
+      <p class="sunat-kicker">
+        {{ marca.nombre() }} · Los comprobantes mostrados son registros locales; la emisión electrónica aún no está conectada.
+      </p>
     </div>
-    <a routerLink="/modules/facturacion-electronica" class="text-sm">Indicadores</a>
+
+    <a routerLink="/modules/facturacion-electronica" class="sunat-link">
+      Indicadores
+    </a>
   </header>
-  <p *ngIf="error" class="alert alert-error">{{ error }} <button type="button" class="btn btn-ghost btn-sm" (click)="cargar()">Reintentar</button></p>
+
+  <!-- ERRORES -->
+  <p *ngIf="error" class="alert alert-error">
+    {{ error }}
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm"
+      (click)="cargar()">
+      Reintentar
+    </button>
+  </p>
+
+  <!-- CONTENIDO -->
   <div class="sunat-grid" *ngIf="panel">
-    <section>
+
+    <!-- ESTADO DE COMPROBANTES -->
+    <section class="sunat-section sunat-status">
+
       <h3>Estado de envío de comprobantes</h3>
-      <div class="count-line"><span>Boletas</span><strong>{{ panel.boletas ?? 0 }}</strong></div>
-      <div class="count-line"><span>Facturas</span><strong>{{ panel.facturas ?? 0 }}</strong></div>
-      <div class="count-line"><span>Notas de crédito</span><strong>{{ panel.notasCredito ?? 0 }}</strong></div>
-      <div class="sunat-mark">SUNAT</div>
-      <div class="count-line"><span>Aceptados</span><strong>{{ panel.aceptados ?? 0 }}</strong></div>
-      <div class="count-line"><span>Con observación</span><strong>{{ panel.conObservacion ?? 0 }}</strong></div>
-      <p class="enlace"><span class="dot" [class.activo]="panel.enlaceCodigo === 'ACTIVO'"></span> Enlace síncrono SUNAT: {{ panel.enlaceCodigo === 'ACTIVO' ? 'Activo' : 'Pendiente de API' }}</p>
-    </section>
-    <section>
-      <div class="sunat-block-head"><h3>Historial de transacciones de facturación</h3></div>
-      <div class="cdr-row text-xs"><span>Nro. comprobante</span><span>RUC/DNI cliente</span><span>Estado de CDR</span></div>
-      <p *ngIf="!panel.historial?.length" class="sunat-note">Todavía no hay comprobantes locales.</p>
-      <div class="cdr-row" *ngFor="let row of panel.historial">
-        <span>{{ row.serie || '—' }}</span>
-        <span>{{ row.documentoCliente || '—' }}</span>
-        <strong class="estado" [ngClass]="estadoClase(row.estadoCdr)">{{ row.estadoCdr === 'ACEPTADO' ? 'Aceptado' : row.estadoCdr === 'RECHAZADO' ? 'Rechazado' : row.estadoCdr === 'ANULADO' ? 'Anulado' : 'Pendiente' }}</strong>
-        <strong [class]="montoClase(row)">{{ row.monto | pen }}</strong>
+
+      <div class="count-list">
+        <div class="count-line">
+          <span>Boletas</span>
+          <strong>{{ panel.boletas ?? 0 }}</strong>
+        </div>
+
+        <div class="count-line">
+          <span>Facturas</span>
+          <strong>{{ panel.facturas ?? 0 }}</strong>
+        </div>
+
+        <div class="count-line">
+          <span>Notas de crédito</span>
+          <strong>{{ panel.notasCredito ?? 0 }}</strong>
+        </div>
       </div>
+
+      <div class="sunat-mark">SUNAT</div>
+
+      <div class="count-list count-list-bottom">
+        <div class="count-line">
+          <span>Aceptados</span>
+          <strong>{{ panel.aceptados ?? 0 }}</strong>
+        </div>
+
+        <div class="count-line">
+          <span>Con observación</span>
+          <strong>{{ panel.conObservacion ?? 0 }}</strong>
+        </div>
+      </div>
+
+      <p class="enlace">
+        <span
+          class="dot"
+          [class.activo]="panel.enlaceCodigo === 'ACTIVO'">
+        </span>
+
+        <span>
+          Enlace síncrono SUNAT:
+          <strong>
+            {{ panel.enlaceCodigo === 'ACTIVO' ? 'Activo' : 'Pendiente de API' }}
+          </strong>
+        </span>
+      </p>
+
     </section>
-    <section>
+
+    <!-- HISTORIAL -->
+    <section class="sunat-section sunat-history">
+
+      <div class="sunat-block-head">
+        <h3>Historial de transacciones de facturación</h3>
+      </div>
+
+      <p *ngIf="!panel.historial?.length" class="sunat-note">
+        Todavía no hay comprobantes locales.
+      </p>
+
+      <div
+        class="cdr-table"
+        *ngIf="panel.historial?.length">
+
+        <!-- ENCABEZADOS -->
+        <div class="cdr-row cdr-header">
+          <span>Comprobante</span>
+          <span>RUC/DNI cliente</span>
+          <span>Estado</span>
+          <span class="text-right">Monto</span>
+        </div>
+
+        <!-- REGISTROS -->
+        <div
+          class="cdr-row"
+          *ngFor="let row of panel.historial">
+
+          <span class="cdr-document" [title]="row.serie || '—'">
+            {{ row.serie || '—' }}
+          </span>
+
+          <span class="cdr-client">
+            {{ row.documentoCliente || '—' }}
+          </span>
+
+          <strong
+            class="estado"
+            [ngClass]="estadoClase(row.estadoCdr)">
+
+            {{ row.estadoCdr === 'ACEPTADO'
+              ? 'Aceptado'
+              : row.estadoCdr === 'RECHAZADO'
+                ? 'Rechazado'
+                : row.estadoCdr === 'ANULADO'
+                  ? 'Anulado'
+                  : 'Pendiente' }}
+
+          </strong>
+
+          <strong
+            class="cdr-amount"
+            [class]="montoClase(row)">
+
+            {{ row.monto | pen }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- EMISIÓN ELECTRÓNICA -->
+    <section class="sunat-section sunat-emission">
+
       <h3>Emisión electrónica</h3>
-      <p class="sunat-note">{{ panel.enlaceMensaje }}</p>
-      <p class="sunat-note">Selecciona un proveedor de facturación y configura sus credenciales en el servidor para emitir y consultar comprobantes.</p>
+
+      <div class="emission-content">
+
+        <p class="sunat-note">
+          {{ panel.enlaceMensaje }}
+        </p>
+
+        <p class="sunat-note">
+          Selecciona un proveedor de facturación y configura sus credenciales en el servidor para emitir y consultar comprobantes.
+        </p>
+
+      </div>
+
     </section>
+
   </div>
+
 </article>

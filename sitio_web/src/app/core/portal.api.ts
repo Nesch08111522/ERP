@@ -152,6 +152,6 @@ export function pen(valor: number | null | undefined): string {
 
 export function mensajeError(error: unknown): string {
   const fallo = error as { status?: number; error?: { message?: string } };
-  if (fallo?.status === 0) return 'No hay conexión con el ERP. El catálogo sale de la base ERPpoli.';
+  if (fallo?.status === 0) return 'No hay conexión con el ERP. Inténtalo nuevamente más tarde.';
   return fallo?.error?.message || 'No se pudo completar la solicitud. Intenta de nuevo.';
 }

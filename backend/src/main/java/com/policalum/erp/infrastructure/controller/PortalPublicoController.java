@@ -4,7 +4,7 @@ import com.policalum.erp.application.dto.response.CategoriaPublicaDTO;
 import com.policalum.erp.application.dto.response.EmpresaPublicaDTO;
 import com.policalum.erp.application.dto.response.PaginaPublicaDTO;
 import com.policalum.erp.application.dto.response.ProductoPublicoDTO;
-import com.policalum.erp.application.dto.response.ProyectoPortafolioResponseDTO;
+import com.policalum.erp.application.dto.response.ProyectoPortafolioPublicoDTO;
 import com.policalum.erp.application.dto.response.SedePublicaDTO;
 import com.policalum.erp.application.dto.response.ServicioPublicoDTO;
 import com.policalum.erp.application.service.serviceImpl.PortalPublicoService;
@@ -103,8 +103,8 @@ public class PortalPublicoController {
     }
 
     @GetMapping("/portafolio")
-    public ResponseEntity<List<ProyectoPortafolioResponseDTO>> portafolio() {
-        return ResponseEntity.ok(portal.portafolio());
+    public ResponseEntity<List<ProyectoPortafolioPublicoDTO>> portafolio() {
+        return fresco(portal.portafolio());
     }
 
     private static <T> ResponseEntity<T> fresco(T cuerpo) {

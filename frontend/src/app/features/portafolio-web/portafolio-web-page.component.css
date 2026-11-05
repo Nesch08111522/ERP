@@ -1,2 +1,9 @@
 .form-grid { margin-bottom: 1.5rem; }
 .textarea { min-height: 6rem; }
+.portfolio-state { padding: 1.5rem; color: var(--text-muted, #667085); text-align: center; }
+.portfolio-error { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--danger, #dc2626); border-radius: .75rem; }
+.form-error { margin: 0; color: var(--danger, #b42318); font-size: .875rem; }
+.portfolio-table { min-width: 760px; }
+.portfolio-thumbnail { width: 4rem; height: 3rem; border-radius: .375rem; object-fit: cover; background: var(--surface-muted, #eef1f4); }
+.portfolio-description { display: -webkit-box; max-width: 36rem; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.portfolio-actions { display: flex; gap: .5rem; }

@@ -34,6 +34,7 @@ export class CmsStore {
   private readonly http = inject(HttpClient);
   readonly paquete = signal<CmsPublico | null>(null);
   readonly revision = signal(0);
+  readonly cambiosPublicos = signal(0);
   private eventos?: EventSource;
 
   constructor() {
@@ -55,7 +56,10 @@ export class CmsStore {
   private escuchar(): void {
     if (typeof EventSource === 'undefined') return;
     this.eventos = new EventSource(`${environment.apiUrl}/api/v1/public/cms/eventos`);
-    this.eventos.addEventListener('cms', () => this.cargar());
+    this.eventos.addEventListener('cms', () => {
+      this.cambiosPublicos.update((valor) => valor + 1);
+      this.cargar();
+    });
     this.eventos.onerror = () => undefined;
   }
 

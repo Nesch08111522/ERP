@@ -1,6 +1,14 @@
-/* Design tokens de POLICALUM ERP.
-   El tema oscuro es el predeterminado para conservar la marca.
-   El tema claro se activa con [data-theme="light"] en <html>. */
+
+/* ============================================================
+   POLICALUM ERP — DESIGN SYSTEM
+   Responsive: XS / S / M / L / XL
+   Temas: Dark (predeterminado) / Light
+   ============================================================ */
+
+
+/* ============================================================
+   1. COLORES PRINCIPALES DE MARCA
+   ============================================================ */
 
 :root {
   --color-primary-50: #e7f6fc;
@@ -12,33 +20,56 @@
   --color-primary-contrast: #062033;
 
   --color-secondary: #3d4d63;
+
   --color-success: #1f9d62;
   --color-success-bg: rgba(31, 157, 98, 0.16);
+
   --color-danger: #e15b64;
   --color-danger-bg: rgba(225, 91, 100, 0.16);
+
   --color-warning: #e3a008;
   --color-warning-bg: rgba(227, 160, 8, 0.16);
+
   --color-info: #61d4e8;
   --color-info-bg: rgba(97, 212, 232, 0.14);
 
+
+  /* ==========================================================
+     2. TEMA OSCURO — PREDETERMINADO
+     ========================================================== */
+
   --color-bg: #1A1C2B;
   --color-bg-subtle: #151726;
+
   --color-surface: #232538;
   --color-surface-raised: #2c2f46;
+
   --color-input: #151726;
+
   --color-text: #f4f7fb;
   --color-text-muted: #a9b7c9;
-  --color-border: rgba(255, 255, 255, 0.1);
+  --color-disabled: #778397;
+
+  --color-border: rgba(255, 255, 255, 0.10);
   --color-border-strong: rgba(255, 255, 255, 0.18);
+
   --color-overlay: rgba(6, 10, 16, 0.72);
+
+
+  /* ==========================================================
+     3. COLORES NEUTROS
+     ========================================================== */
 
   --color-neutral-0: #ffffff;
   --color-neutral-100: #e8eef5;
   --color-neutral-500: #8b9bb0;
   --color-neutral-900: #10151f;
 
-  /* Escala fija en rem: el zoom del navegador la agranda o reduce de forma pareja.
-     xs < 30rem, sm < 40rem, md < 54rem, lg < 75rem, xl >= 80rem. */
+
+  /* ==========================================================
+     4. ESPACIADOS RESPONSIVE
+     ========================================================== */
+
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -46,24 +77,58 @@
   --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-7: 2rem;
+  --space-8: 2.5rem;
 
-  --font-sans: "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --layout-gap: clamp(0.625rem, 1.2vw, 1.25rem);
+  --layout-padding: clamp(0.65rem, 1.5vw, 1.5rem);
+
+
+  /* ==========================================================
+     5. TIPOGRAFÍA
+     ========================================================== */
+
+  --font-sans:
+    "Segoe UI",
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+
   --font-display: var(--font-sans);
-  --color-line: var(--color-border);
-  --color-line-strong: var(--color-border-strong);
-  --font-mono: "Cascadia Code", "Segoe UI Mono", ui-monospace, monospace;
+
+  --font-mono:
+    "Cascadia Code",
+    "Segoe UI Mono",
+    ui-monospace,
+    monospace;
+
   --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
   --text-md: 0.9375rem;
   --text-lg: 1.0625rem;
   --text-xl: 1.25rem;
   --text-2xl: 1.5rem;
+
+  /* Escalas fluidas para títulos. */
+  --heading-xs: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+  --heading-sm: clamp(1.125rem, 1rem + 0.35vw, 1.375rem);
+  --heading-md: clamp(1.25rem, 1.05rem + 0.6vw, 1.75rem);
+  --heading-lg: clamp(1.5rem, 1.15rem + 1vw, 2.25rem);
+
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
+
   --leading-tight: 1.25;
   --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+
+  /* ==========================================================
+     6. BORDES Y RADIOS
+     ========================================================== */
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -71,79 +136,230 @@
   --radius-xl: 20px;
   --radius-full: 999px;
 
+
+  /* ==========================================================
+     7. SOMBRAS
+     ========================================================== */
+
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
   --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.38);
   --shadow-xl: 0 28px 70px rgba(0, 0, 0, 0.48);
 
+
+  /* ==========================================================
+     8. TRANSICIONES
+     ========================================================== */
+
   --transition-fast: 120ms ease;
   --transition-base: 180ms ease;
   --transition-slow: 280ms ease;
 
+
+  /* ==========================================================
+     9. CAPAS Y PROFUNDIDAD
+     ========================================================== */
+
   --z-dropdown: 30;
   --z-sticky: 40;
+  --z-sidebar-backdrop: 39;
   --z-modal: 60;
   --z-toast: 80;
   --z-tooltip: 90;
 
-  --sidebar-width: 18rem;
-  --sidebar-collapsed: 4.25rem;
-  --header-height: 3rem;
-  --modal-sm: clamp(16rem, 88vw, 26rem);
-  --modal-md: clamp(18rem, 92vw, 40rem);
-  --modal-lg: clamp(18rem, 94vw, 65rem);
 
-  color-scheme: dark;
+  /* ==========================================================
+     10. DIMENSIONES DEL SISTEMA
+     ========================================================== */
+
+  --sidebar-width: clamp(15rem, 18vw, 18rem);
+  --sidebar-collapsed: 4.25rem;
+
+  --header-height: 3.5rem;
+
+  --content-max-width: 100%;
+
+  --modal-sm: min(26rem, calc(100vw - 2rem));
+  --modal-md: min(40rem, calc(100vw - 2rem));
+  --modal-lg: min(65rem, calc(100vw - 2rem));
+
+  --modal-max-height: min(88dvh, 56rem);
+
+
+  /* ==========================================================
+     11. SCROLLBARS
+     ========================================================== */
+
   --scrollbar-size: 8px;
   --scrollbar-thumb: rgba(179, 193, 205, 0.42);
   --scrollbar-thumb-hover: #61d4e8;
   --scrollbar-track: transparent;
 
-  /* Alias usados por pantallas anteriores al design system. */
+
+  /* ==========================================================
+     12. ALIAS DE COMPATIBILIDAD
+     ========================================================== */
+
+  --color-line: var(--color-border);
+  --color-line-strong: var(--color-border-strong);
+
   --color-logo-bright: #ffffff;
   --color-cyan-light: var(--color-info);
+
   --color-blue-medium: var(--color-primary-500);
   --color-blue-dark: var(--color-primary-700);
+
   --color-bg-gray: var(--color-text-muted);
+
   --color-text-primary: var(--color-text);
   --color-text-secondary: var(--color-text-muted);
+
   --color-bg-light: var(--color-bg);
   --color-bg-card: var(--color-surface);
   --color-bg-overlay: var(--color-overlay);
+
   --shadow-light: var(--shadow-sm);
   --shadow-medium: var(--shadow-md);
+
+
+  /* ==========================================================
+     13. CONFIGURACIÓN DEL NAVEGADOR
+     ========================================================== */
+
+  color-scheme: dark;
 }
 
+
+/* ============================================================
+   14. TEMA CLARO
+   ============================================================ */
+
 [data-theme="light"] {
-  --color-primary: #075591;
+
+  --color-primary-50: #e8f1ff;
+  --color-primary-100: #d1e2ff;
+  --color-primary-500: #175cd3;
   --color-primary-600: #064472;
+  --color-primary-700: #073b78;
+
+  --color-primary: #075591;
   --color-primary-contrast: #ffffff;
+
   --color-secondary: #4b5d73;
+
   --color-success: #0f7b4c;
   --color-success-bg: #e7f6ee;
+
   --color-danger: #b42318;
   --color-danger-bg: #fdeceb;
+
   --color-warning: #b54708;
   --color-warning-bg: #fff4e5;
+
   --color-info: #175cd3;
   --color-info-bg: #e8f1ff;
+
+
   --color-bg: #f3f6fb;
   --color-bg-subtle: #e7eef6;
+
   --color-surface: #ffffff;
   --color-surface-raised: #f8fafc;
+
   --color-input: #ffffff;
+
   --color-text: #122033;
   --color-text-muted: #5c6d82;
+  --color-disabled: #8795a7;
+
   --color-border: #d7e1ec;
   --color-border-strong: #c2d0de;
-  --color-overlay: rgba(16, 24, 38, 0.48);
-  --shadow-sm: 0 1px 2px rgba(16, 32, 51, 0.05), 0 10px 24px rgba(16, 32, 51, 0.06);
-  --shadow-md: 0 12px 32px rgba(16, 32, 51, 0.1);
-  --shadow-lg: 0 20px 48px rgba(16, 32, 51, 0.14);
-  --shadow-xl: 0 28px 70px rgba(16, 32, 51, 0.18);
 
-  color-scheme: light;
+  --color-overlay: rgba(16, 24, 38, 0.48);
+
+
+  /* Sombras adaptadas al tema claro. */
+
+  --shadow-sm:
+    0 1px 2px rgba(16, 32, 51, 0.05),
+    0 4px 12px rgba(16, 32, 51, 0.04);
+
+  --shadow-md:
+    0 8px 24px rgba(16, 32, 51, 0.08);
+
+  --shadow-lg:
+    0 16px 40px rgba(16, 32, 51, 0.12);
+
+  --shadow-xl:
+    0 24px 60px rgba(16, 32, 51, 0.16);
+
+
+  /* Scrollbar modo claro. */
+
   --scrollbar-thumb: rgba(18, 32, 51, 0.32);
   --scrollbar-thumb-hover: #075591;
   --scrollbar-track: transparent;
+
+
+  color-scheme: light;
+}
+
+
+/* ============================================================
+   15. BREAKPOINTS DEL SISTEMA
+   ============================================================ */
+
+:root {
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 375px;
+  --breakpoint-md: 640px;
+  --breakpoint-lg: 768px;
+  --breakpoint-xl: 1024px;
+  --breakpoint-2xl: 1440px;
+}
+
+
+/* XS: móviles compactos */
+
+@media (max-width: 374px) {
+  :root {
+    --header-height: 3rem;
+    --layout-padding: 0.65rem;
+  }
+}
+
+
+/* S: móviles */
+
+@media (min-width: 375px) and (max-width: 639px) {
+  :root {
+    --layout-padding: 0.75rem;
+  }
+}
+
+
+/* M: tablets pequeñas */
+
+@media (min-width: 640px) and (max-width: 767px) {
+  :root {
+    --layout-padding: 0.85rem;
+  }
+}
+
+
+/* L: tablets */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --layout-padding: 1rem;
+  }
+}
+
+
+/* XL: escritorio */
+
+@media (min-width: 1024px) {
+  :root {
+    --layout-padding: 1.25rem;
+  }
 }

@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080',
-  sitioWebUrl: 'http://localhost:4201',
+  apiUrl: 'http://192.168.100.11:8080',      // <-- Debe usar la IP, no localhost
+  sitioWebUrl: 'http://192.168.100.11:4201',   // <-- Debe usar la IP, no localhost
 };

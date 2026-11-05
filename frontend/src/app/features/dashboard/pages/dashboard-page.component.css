@@ -1,99 +1,463 @@
-:host { display: block; min-width: 0; }
 
-.panel { display: grid; gap: 14px; }
-.panel-title { display: flex; align-items: center; justify-content: space-between; }
-.panel-title h1 { margin: 0; font-size: var(--text-xl); }
+/* =========================================================
+   POLICALUM ERP - PANEL RESPONSIVE
+   Adaptación: XS / S / M / L / XL / XXL
+   ========================================================= */
+
+/* 1. CONTROL GENERAL */
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+:host *,
+:host *::before,
+:host *::after {
+  box-sizing: border-box;
+}
+
+.panel {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.panel-title h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+  overflow-wrap: anywhere;
+}
+
+/* 2. GRID PRINCIPAL */
 
 .panel-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr) minmax(0, 1fr);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  grid-template-columns:
+    minmax(0, 1.35fr)
+    minmax(0, 0.9fr)
+    minmax(0, 1fr);
+
   grid-template-areas:
     "utilidad inventario ventas"
     "rendimiento kardex atajos"
     "analitica analitica analitica"
     "sunat sunat sunat";
-  gap: 12px;
+
+  gap: 14px;
+  align-items: stretch;
 }
-.tile-utilidad { grid-area: utilidad; }
-.tile-rendimiento { grid-area: rendimiento; }
-.tile-kardex { grid-area: kardex; }
-.tile-atajos { grid-area: atajos; }
-.tile-analitica { grid-area: analitica; }
-.tile-sunat { grid-area: sunat; }
-.analitica-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.ranking { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-.ranking li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
-.ranking small { color: var(--color-text-muted); }
-.panel-grid > .tile:nth-child(2) { grid-area: inventario; }
-.panel-grid > .tile:nth-child(3) { grid-area: ventas; }
+
+/* Evita que cualquier tarjeta expanda el grid */
+.panel-grid > *,
+.tile,
+.analitica-grid > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tile-utilidad {
+  grid-area: utilidad;
+}
+
+.panel-grid > .tile:nth-child(2) {
+  grid-area: inventario;
+}
+
+.panel-grid > .tile:nth-child(3) {
+  grid-area: ventas;
+}
+
+.tile-rendimiento {
+  grid-area: rendimiento;
+}
+
+.tile-kardex {
+  grid-area: kardex;
+}
+
+.tile-atajos {
+  grid-area: atajos;
+}
+
+.tile-analitica {
+  grid-area: analitica;
+}
+
+.tile-sunat {
+  grid-area: sunat;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  display: block;
+}
+
+/* 3. TARJETAS */
 
 .tile {
-  padding: 14px 16px;
+  padding: 16px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
-  min-width: 0;
+  overflow: hidden;
 }
-.tile-head, .rendimiento, .fila, .atajos a {
+
+.tile-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 10px;
+  min-width: 0;
+  margin-bottom: 10px;
 }
-.tile h2, .tile p { margin: 0; }
-.tile-head p, .text-xs, .mini small, .fila small, .atajos small { color: var(--color-text-muted); }
+
+.tile-head > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tile h2 {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.tile p {
+  margin: 0;
+}
+
+.tile-head p,
+.text-xs,
+.mini small,
+.fila small,
+.atajos small {
+  color: var(--color-text-muted);
+}
+
 .chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
   padding: 4px 8px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
-.legend { display: flex; align-items: center; gap: 8px; margin: 10px 0; color: var(--color-text-muted); font-size: var(--text-xs); }
-.swatch { width: 18px; height: 3px; border-radius: var(--radius-full); }
-.swatch.ingreso { background: var(--color-info); }
-.swatch.gasto { background: var(--color-danger); }
-.grafica { display: grid; grid-template-columns: 52px 1fr; gap: 6px; align-items: stretch; height: 120px; margin-top: 8px; }
-.grafica.gasto { height: 88px; }
-.eje-y { display: flex; flex-direction: column; justify-content: space-between; color: var(--color-text-muted); font-size: 10px; text-align: right; }
-.grafica svg { width: 100%; height: 100%; }
-.linea { fill: none; stroke-width: 1.8; vector-effect: non-scaling-stroke; }
-.linea.ingreso { stroke: var(--color-info); }
-.linea.gasto { stroke: var(--color-danger); }
-.area.ingreso { fill: var(--color-info-bg); stroke: none; }
-.eje { display: flex; justify-content: space-between; color: var(--color-text-muted); font-size: var(--text-xs); }
-.eje-nota { margin-top: 8px; color: var(--color-text-muted); font-size: var(--text-xs); }
 
-.producto { margin-top: 12px; color: var(--color-text-muted); font-size: var(--text-xs); }
-.producto-nombre { margin-bottom: 10px; font-weight: var(--weight-semibold); }
-.fraccion { display: grid; grid-template-columns: 72px 1fr; gap: 8px; align-items: center; margin-top: 8px; font-size: var(--text-sm); }
-.barra { height: 8px; border-radius: var(--radius-full); background: var(--color-bg-subtle); overflow: hidden; }
-.barra i { display: block; height: 100%; border-radius: inherit; background: var(--color-info); }
+/* 4. GRÁFICAS */
 
-.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.mini, .atajos a, .fila {
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.swatch {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 3px;
+  border-radius: var(--radius-full);
+}
+
+.swatch.ingreso {
+  background: var(--color-info);
+}
+
+.swatch.gasto {
+  background: var(--color-danger);
+}
+
+.grafica {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 6px;
+  align-items: stretch;
+  width: 100%;
+  height: 120px;
+  margin-top: 8px;
+  min-width: 0;
+}
+
+.grafica.gasto {
+  height: 88px;
+}
+
+.eje-y {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  text-align: right;
+  min-width: 0;
+}
+
+.grafica svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.linea {
+  fill: none;
+  stroke-width: 1.8;
+  vector-effect: non-scaling-stroke;
+}
+
+.linea.ingreso {
+  stroke: var(--color-info);
+}
+
+.linea.gasto {
+  stroke: var(--color-danger);
+}
+
+.area.ingreso {
+  fill: var(--color-info-bg);
+  stroke: none;
+}
+
+.eje {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.eje-nota {
+  margin-top: 8px !important;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+/* 5. INVENTARIO FRACCIONADO */
+
+.producto {
+  margin-top: 12px !important;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.producto-nombre {
+  margin-bottom: 10px !important;
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.fraccion {
+  display: grid;
+  grid-template-columns: minmax(65px, 85px) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: var(--text-sm);
+}
+
+.fraccion > span {
+  overflow-wrap: anywhere;
+}
+
+.barra {
+  width: 100%;
+  min-width: 0;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  overflow: hidden;
+}
+
+.barra i {
+  display: block;
+  max-width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-info);
+}
+
+/* 6. VENTAS Y MINI TARJETAS */
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.mini,
+.atajos a,
+.fila {
+  min-width: 0;
+  max-width: 100%;
   padding: 10px;
   border-radius: var(--radius-md);
   background: var(--color-bg-subtle);
   color: inherit;
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
-.mini { display: grid; gap: 2px; }
-.mini strong, .rendimiento strong, .fila strong { font-size: 1.15rem; }
-.mini .abierta, .rendimiento .ok { color: var(--color-success); }
-.mini .cerrada, .rendimiento .bad { color: var(--color-danger); }
-.fila, .atajos a { margin-top: 8px; }
-.atajos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.atajos a { display: grid; justify-content: stretch; margin-top: 0; }
-.rendimiento { align-items: stretch; }
-.rendimiento div { display: grid; gap: 4px; }
-.rendimiento span, .fila span, .atajos span { color: var(--color-text-muted); font-size: var(--text-xs); }
 
-@media (max-width: 1280px) {
+.mini {
+  display: grid;
+  gap: 4px;
+}
+
+.mini strong,
+.rendimiento strong,
+.fila strong {
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.mini .abierta,
+.rendimiento .ok {
+  color: var(--color-success);
+}
+
+.mini .cerrada,
+.rendimiento .bad {
+  color: var(--color-danger);
+}
+
+/* 7. RENDIMIENTO */
+
+.rendimiento {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.rendimiento div {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+}
+
+.rendimiento span,
+.fila span,
+.atajos span {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+/* 8. KARDEX Y ATAJOS */
+
+.fila,
+.atajos a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fila {
+  margin-top: 8px;
+}
+
+.atajos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.atajos a {
+  display: grid;
+  align-content: center;
+  justify-content: stretch;
+  margin: 0;
+}
+
+/* 9. ANALÍTICA */
+
+.analitica-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+.ranking {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.ranking li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ranking li span,
+.ranking li strong,
+.ranking li small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ranking small {
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+/* =========================================================
+   10. BREAKPOINTS
+   ========================================================= */
+
+/* XL: 1024px - 1279px */
+@media (max-width: 1279px) {
   .panel-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
       "utilidad utilidad"
       "inventario ventas"
@@ -103,11 +467,154 @@
       "sunat sunat";
   }
 }
-@media (max-width: 720px) {
-  .panel-grid {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "utilidad" "inventario" "ventas" "rendimiento" "kardex" "atajos" "analitica" "sunat";
+
+/* L: 768px - 1023px */
+@media (max-width: 1023px) {
+  .panel {
+    gap: 12px;
   }
-  .mini-grid, .rendimiento, .atajos, .analitica-grid { grid-template-columns: 1fr; }
+
+  .panel-grid {
+    gap: 12px;
+  }
+
+  .tile {
+    padding: 14px;
+  }
+
+  .rendimiento {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .analitica-grid {
+    gap: 14px;
+  }
+}
+
+/* M: 576px - 767px */
+@media (max-width: 767px) {
+  .panel-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "utilidad"
+      "inventario"
+      "ventas"
+      "rendimiento"
+      "kardex"
+      "atajos"
+      "analitica"
+      "sunat";
+  }
+
+  .analitica-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rendimiento {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tile {
+    padding: 14px;
+  }
+}
+
+/* S: 376px - 575px */
+@media (max-width: 575px) {
+  .panel-grid {
+    gap: 10px;
+  }
+
+  .tile {
+    padding: 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .tile-head {
+    align-items: flex-start;
+  }
+
+  .mini-grid,
+  .atajos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rendimiento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grafica {
+    grid-template-columns: 36px minmax(0, 1fr);
+    height: 105px;
+  }
+
+  .grafica.gasto {
+    height: 75px;
+  }
+
+  .ranking li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .ranking li small {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
+
+/* XS: 320px - 375px */
+@media (max-width: 375px) {
+  .panel {
+    gap: 10px;
+  }
+
+  .tile {
+    padding: 10px;
+  }
+
+  .tile h2 {
+    font-size: 0.95rem;
+  }
+
+  .panel-title h1 {
+    font-size: 1.15rem;
+  }
+
+  .mini-grid,
+  .atajos,
+  .rendimiento {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fraccion {
+    grid-template-columns: 65px minmax(0, 1fr);
+  }
+
+  .grafica {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .legend {
+    font-size: 0.7rem;
+  }
+
+  .ranking li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .tile-head {
+    gap: 6px;
+  }
+}
+
+/* CONTROL FINAL DE DESBORDAMIENTO */
+.panel,
+.panel-grid,
+.tile,
+.tile-sunat,
+.analitica-grid,
+.ranking {
+  overflow-wrap: anywhere;
 }

@@ -1,49 +1,439 @@
-.filtros-avisos { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
-.filtros-avisos button {
-  min-height: 2.15rem;
-  padding: 0 0.8rem;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
+
+/* ============================================================
+   POLICALUM ERP — NOTIFICACIONES
+   Diseño profesional | Responsive | Tema claro y oscuro
+   No modifica la estructura ni lógica de Angular
+   ============================================================ */
+
+
+/* 1. CONTENEDOR PRINCIPAL
+============================================================ */
+
+.module-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 1440px;
+  min-width: 0;
+  margin-inline: auto;
 }
-.filtros-avisos button.activo { background: var(--color-primary); border-color: transparent; color: var(--color-primary-contrast); }
-.filtros-avisos button:disabled { opacity: 0.55; cursor: not-allowed; }
-.filtros-avisos button span {
-  display: inline-grid;
-  min-width: 1.4rem;
-  min-height: 1.4rem;
-  place-items: center;
-  margin-left: 0.25rem;
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, currentColor 14%, transparent);
-  font-size: var(--text-xs);
-}
-.filtros-avisos button.accion { margin-left: auto; }
-.aviso-card {
+
+
+/* 2. FILTROS Y BARRA DE ACCIONES
+============================================================ */
+
+.filtros-avisos {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-  padding: var(--space-4);
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  padding: 14px 16px;
+
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+}
+
+
+/* Botones de filtros */
+
+.filtros-avisos > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  min-height: 36px;
+  padding: 0 14px;
+
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+
+/* Hover */
+
+.filtros-avisos > button:hover:not(:disabled) {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+
+/* Filtro activo */
+
+.filtros-avisos > button.activo {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-color: var(--color-primary);
+}
+
+
+/* Contador del filtro */
+
+.filtros-avisos > button span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 20px;
+  height: 20px;
+  padding-inline: 5px;
+
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+}
+
+
+/* Botón eliminar visibles */
+
+.filtros-avisos > button.btn-danger {
+  margin-left: auto;
+}
+
+
+/* Acción marcar leídas */
+
+.filtros-avisos > button.accion {
+  background: transparent;
+  color: var(--color-primary);
+  border-color: transparent;
+  font-weight: var(--weight-semibold);
+}
+
+.filtros-avisos > button.accion:hover:not(:disabled) {
+  background: var(--color-bg-subtle);
+  color: var(--color-primary);
+}
+
+
+/* Botones deshabilitados */
+
+.filtros-avisos > button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+/* Accesibilidad */
+
+.filtros-avisos > button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+
+/* 3. ESTADOS DE CARGA Y VACÍO
+============================================================ */
+
+.module-page > p.text-muted {
+  margin: 0;
+  padding: 22px 20px;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+
+/* 4. TARJETAS DE NOTIFICACIONES
+============================================================ */
+
+.aviso-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+
+  width: 100%;
+  min-width: 0;
+  padding: 20px;
+
   background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
-.aviso-card.pasada { opacity: 0.82; }
-.aviso-card p { color: var(--color-text); }
-.aviso-card > div:first-child { min-width: 0; flex: 1 1 20rem; }
-.aviso-card h2, .aviso-card p { overflow-wrap: anywhere; }
-.aviso-card .cluster { align-items: center; justify-content: flex-end; }
-@media (max-width: 40rem) {
-  .filtros-avisos button.accion { margin-left: 0; }
-  .aviso-card { flex-direction: column; }
+
+
+/* Hover de tarjeta */
+
+.aviso-card:hover {
+  background: var(--color-surface-raised);
+  border-color: var(--color-border-strong);
 }
-.tipo { margin: 0; color: var(--color-primary); font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-h2 { margin: 0.2rem 0; font-size: var(--text-lg); }
-.fecha { color: var(--color-text-muted); font-size: var(--text-xs); }
+
+
+/* Notificaciones leídas o eliminadas */
+
+.aviso-card.pasada {
+  border-left-color: var(--color-border-strong);
+}
+
+.aviso-card.pasada .tipo {
+  opacity: 0.8;
+}
+
+
+/* 5. INFORMACIÓN DE NOTIFICACIÓN
+============================================================ */
+
+.aviso-card > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+
+/* Tipo de notificación */
+
+.aviso-card .tipo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+
+  margin: 0;
+
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+
+/* Título */
+
+.aviso-card h2 {
+  margin: 0;
+
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* Descripción */
+
+.aviso-card > div:first-child > p:not(.tipo):not(.fecha) {
+  margin: 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.65;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* Fecha */
+
+.aviso-card .fecha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  margin: 3px 0 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* 6. ACCIONES DE CADA NOTIFICACIÓN
+============================================================ */
+
+.aviso-card .cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+
+  min-width: 0;
+}
+
+
+/* Evitar que los botones se deformen */
+
+.aviso-card .cluster button {
+  white-space: nowrap;
+}
+
+
+/* 7. ENLACE INFERIOR
+============================================================ */
+
+.module-page > p.text-sm.text-muted {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  margin: 0;
+  padding: 4px 2px;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.module-page > p.text-sm.text-muted a {
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.module-page > p.text-sm.text-muted a:hover {
+  text-decoration: underline;
+}
+
+
+/* 8. TABLETS
+============================================================ */
+
+@media (max-width: 1024px) {
+
+  .aviso-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .aviso-card .cluster {
+    justify-content: flex-start;
+  }
+
+  .filtros-avisos > button.btn-danger {
+    margin-left: 0;
+  }
+
+}
+
+
+/* 9. MÓVILES
+============================================================ */
+
+@media (max-width: 640px) {
+
+  .module-page {
+    gap: var(--space-3);
+  }
+
+  .filtros-avisos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .filtros-avisos > button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding-inline: 7px;
+    font-size: var(--text-xs);
+  }
+
+  .filtros-avisos > button.btn-danger,
+  .filtros-avisos > button.accion {
+    grid-column: 1 / -1;
+    margin-left: 0;
+  }
+
+  .aviso-card {
+    padding: 15px;
+    gap: 14px;
+  }
+
+  .aviso-card h2 {
+    font-size: var(--text-md);
+  }
+
+  .aviso-card .cluster {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .aviso-card .cluster button {
+    width: 100%;
+    min-height: 38px;
+  }
+
+}
+
+
+/* 10. MÓVILES COMPACTOS
+============================================================ */
+
+@media (max-width: 380px) {
+
+  .filtros-avisos {
+    padding: 9px;
+    gap: 6px;
+  }
+
+  .filtros-avisos > button {
+    padding-inline: 5px;
+    font-size: 11px;
+  }
+
+  .aviso-card {
+    padding: 12px;
+  }
+
+  .aviso-card .tipo {
+    font-size: 10px;
+  }
+
+  .aviso-card h2 {
+    font-size: 14px;
+  }
+
+}
+
+
+/* 11. ACCESIBILIDAD Y MOVIMIENTO
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .filtros-avisos > button,
+  .aviso-card,
+  .module-page > p.text-sm.text-muted a {
+    transition: none;
+  }
+
+}

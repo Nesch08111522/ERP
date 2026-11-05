@@ -5,7 +5,7 @@ import com.policalum.erp.application.dto.response.EmpresaPublicaDTO;
 import com.policalum.erp.application.dto.response.FraccionPublicaDTO;
 import com.policalum.erp.application.dto.response.PaginaPublicaDTO;
 import com.policalum.erp.application.dto.response.ProductoPublicoDTO;
-import com.policalum.erp.application.dto.response.ProyectoPortafolioResponseDTO;
+import com.policalum.erp.application.dto.response.ProyectoPortafolioPublicoDTO;
 import com.policalum.erp.application.dto.response.SedePublicaDTO;
 import com.policalum.erp.application.dto.response.ServicioPublicoDTO;
 import com.policalum.erp.domain.model.CatalogoFraccion;
@@ -122,13 +122,13 @@ public class PortalPublicoService {
                 empresa == null ? null : empresa.getRazonSocial());
     }
 
-    public List<ProyectoPortafolioResponseDTO> portafolio() {
+    public List<ProyectoPortafolioPublicoDTO> portafolio() {
         return portafolioRepository.findByPublicadoTrueOrderByOrdenAscTituloAsc().stream().map(this::proyecto).toList();
     }
 
-    private ProyectoPortafolioResponseDTO proyecto(ProyectoPortafolio proyecto) {
-        return new ProyectoPortafolioResponseDTO(proyecto.getId(), proyecto.getTitulo(), proyecto.getDescripcion(),
-                proyecto.getImagenUrl(), proyecto.getOrden(), proyecto.getPublicado(), proyecto.getCreatedAt(), proyecto.getCliente());
+    private ProyectoPortafolioPublicoDTO proyecto(ProyectoPortafolio proyecto) {
+        return new ProyectoPortafolioPublicoDTO(proyecto.getId(), proyecto.getTitulo(), proyecto.getDescripcion(),
+                proyecto.getImagenUrl(), proyecto.getOrden(), proyecto.getCliente());
     }
 
     private Map<UUID, BigDecimal> saldos(List<Producto> productos) {

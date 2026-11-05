@@ -1,78 +1,618 @@
-:host { display: block; min-width: 0; }
+
+/* ==========================================================
+   POLICALUM ERP
+   FACTURACIÓN ELECTRÓNICA SUNAT
+   RESPONSIVE XS / S / M / L / XL / XXL
+   ========================================================== */
+
+/* ==========================================================
+   1. CONTROL GENERAL
+   ========================================================== */
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+:host *,
+:host *::before,
+:host *::after {
+  box-sizing: border-box;
+}
 
 .sunat-card {
   display: grid;
-  gap: 16px;
-  padding: 16px 18px 18px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  gap: 18px;
+
+  padding: 18px;
+
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+
   background: var(--color-surface);
   box-shadow: var(--shadow-sm);
+
+  overflow: hidden;
 }
-.sunat-head, .sunat-block-head, .cdr-row, .access-link, .count-line {
+
+/* ==========================================================
+   2. ENCABEZADO
+   ========================================================== */
+
+.sunat-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.sunat-heading {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.sunat-head h2 {
+  margin: 0;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.sunat-kicker {
+  margin: 5px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.sunat-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+  max-width: 100%;
+
+  padding: 7px 12px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+}
+
+.sunat-link:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-subtle);
+}
+
+/* ==========================================================
+   3. GRID PRINCIPAL
+   ========================================================== */
+
+.sunat-grid {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(0, 1.4fr)
+    minmax(0, 0.9fr);
+
+  gap: 18px;
+  align-items: stretch;
+}
+
+.sunat-section {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+
+  padding: 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  background: var(--color-bg-subtle);
+
+  overflow: hidden;
+}
+
+.sunat-section h3 {
+  margin: 0 0 12px;
+
+  font-size: 0.95rem;
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================
+   4. ESTADÍSTICAS DE COMPROBANTES
+   ========================================================== */
+
+.count-list {
+  display: grid;
+  width: 100%;
+  gap: 2px;
+}
+
+.count-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-.sunat-head h2, .sunat-block h3 { margin: 0; font-size: 1rem; }
-.sunat-kicker { margin: 2px 0 0; color: var(--color-text-muted); font-size: var(--text-xs); }
-.sunat-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(0, 0.9fr);
-  gap: 16px;
-}
-.sunat-mark {
-  width: 72px;
-  height: 72px;
-  display: grid;
-  place-items: center;
-  margin: 8px auto 0;
-  border-radius: var(--radius-md);
-  background: var(--color-bg-subtle);
-  color: var(--color-text);
-  font-weight: var(--weight-bold);
-  letter-spacing: 0.04em;
-}
-.count-line { padding: 4px 0; color: var(--color-text-muted); font-size: var(--text-sm); }
-.count-line strong { color: var(--color-text); }
-.cdr-table { display: grid; gap: 6px; }
-.cdr-row {
-  padding: 6px 0;
+
+  gap: 10px;
+  min-width: 0;
+
+  padding: 8px 0;
+
   border-bottom: 1px solid var(--color-border);
-  font-size: var(--text-sm);
-}
-.cdr-row span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.estado { font-weight: var(--weight-semibold); }
-.estado.ACEPTADO { color: var(--color-success); }
-.estado.RECHAZADO, .estado.ANULADO { color: var(--color-danger); }
-.estado.PENDIENTE { color: var(--color-warning); }
-.monto-ok { color: var(--color-success); }
-.monto-bad { color: var(--color-danger); }
-.access-link {
-  width: 100%;
-  margin-top: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-subtle);
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-}
-.access-link:hover { border-color: var(--color-primary); }
-.enlace {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
-.dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-warning); }
-.dot.activo { background: var(--color-success); }
-.sunat-note { margin: 8px 0 0; color: var(--color-text-muted); font-size: var(--text-xs); }
 
-@media (max-width: 1280px) {
-  .sunat-grid { grid-template-columns: 1fr; }
+.count-line span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.count-line strong {
+  flex: 0 0 auto;
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+}
+
+.sunat-mark {
+  display: grid;
+  place-items: center;
+
+  width: 76px;
+  height: 76px;
+  flex: 0 0 auto;
+
+  margin: 16px auto;
+
+  border-radius: var(--radius-lg);
+
+  background: var(--color-bg);
+  color: var(--color-text);
+
+  font-size: 1.15rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+}
+
+.count-list-bottom {
+  margin-top: 2px;
+}
+
+/* ==========================================================
+   5. ESTADO DE CONEXIÓN SUNAT
+   ========================================================== */
+
+.enlace {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+
+  margin: 16px 0 0;
+
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
+}
+
+.enlace > span:last-child {
+  min-width: 0;
+}
+
+.enlace strong {
+  color: var(--color-text);
+}
+
+.dot {
+  display: block;
+  flex: 0 0 9px;
+
+  width: 9px;
+  height: 9px;
+
+  margin-top: 5px;
+
+  border-radius: 50%;
+  background: var(--color-warning);
+}
+
+.dot.activo {
+  background: var(--color-success);
+}
+
+/* ==========================================================
+   6. HISTORIAL DE TRANSACCIONES
+   ========================================================== */
+
+.sunat-history {
+  min-width: 0;
+  width: 100%;
+}
+
+.sunat-block-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: 8px;
+}
+
+.sunat-block-head h3 {
+  margin: 0;
+}
+
+/* Contenedor del historial */
+
+.cdr-table {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 0;
+}
+
+/* Distribución de las cuatro columnas */
+
+.cdr-row {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.25fr)
+    minmax(0, 1fr)
+    minmax(0, 0.85fr)
+    minmax(0, 0.85fr);
+
+  align-items: center;
+
+  gap: 10px;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: 11px 0;
+
+  border-bottom: 1px solid var(--color-border);
+
+  font-size: var(--text-sm);
+}
+
+/* Encabezados */
+
+.cdr-header {
+  padding-top: 8px;
+  padding-bottom: 10px;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+/* Todas las celdas */
+
+.cdr-row > span,
+.cdr-row > strong {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Número de comprobante */
+
+.cdr-document {
+  color: var(--color-text);
+  font-weight: var(--weight-medium, 500);
+}
+
+/* Documento del cliente */
+
+.cdr-client {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Estado del CDR */
+
+.estado {
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+}
+
+.estado.ACEPTADO {
+  color: var(--color-success);
+}
+
+.estado.RECHAZADO,
+.estado.ANULADO {
+  color: var(--color-danger);
+}
+
+.estado.PENDIENTE {
+  color: var(--color-warning);
+}
+
+/* Montos */
+
+.cdr-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.monto-ok {
+  color: var(--color-success);
+}
+
+.monto-bad {
+  color: var(--color-danger);
+}
+
+/* ==========================================================
+   7. EMISIÓN ELECTRÓNICA
+   ========================================================== */
+
+.sunat-emission {
+  min-width: 0;
+}
+
+.emission-content {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sunat-note {
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: var(--text-sm);
+  line-height: 1.65;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ==========================================================
+   8. ALERTAS
+   ========================================================== */
+
+.alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  gap: 10px;
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================
+   9. TABLET Y PANTALLAS MEDIANAS
+   768px - 1279px
+   ========================================================== */
+
+@media (max-width: 1279px) {
+  .sunat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "status status"
+      "history history"
+      "emission emission";
+  }
+
+  .sunat-status {
+    grid-area: status;
+  }
+
+  .sunat-history {
+    grid-area: history;
+  }
+
+  .sunat-emission {
+    grid-area: emission;
+  }
+
+  .sunat-mark {
+    width: 64px;
+    height: 64px;
+    margin: 12px auto;
+  }
+}
+
+/* ==========================================================
+   10. MÓVILES
+   576px - 767px
+   ========================================================== */
+
+@media (max-width: 767px) {
+  .sunat-card {
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .sunat-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    grid-template-areas:
+      "status"
+      "history"
+      "emission";
+  }
+
+  .sunat-section {
+    padding: 12px;
+  }
+
+  .sunat-head {
+    align-items: flex-start;
+  }
+
+  .sunat-history {
+    overflow: hidden;
+  }
+
+  .cdr-row {
+    gap: 8px;
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================
+   11. MÓVILES PEQUEÑOS
+   376px - 575px
+   ========================================================== */
+
+@media (max-width: 575px) {
+  .sunat-card {
+    padding: 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .sunat-head {
+    flex-direction: column;
+  }
+
+  .sunat-link {
+    align-self: flex-start;
+  }
+
+  .sunat-head h2 {
+    font-size: 0.98rem;
+  }
+
+  .sunat-kicker {
+    font-size: 0.72rem;
+  }
+
+  .sunat-section {
+    padding: 11px;
+  }
+
+  .sunat-section h3 {
+    font-size: 0.9rem;
+  }
+
+  .cdr-row {
+    grid-template-columns:
+      minmax(0, 1.2fr)
+      minmax(0, 1fr)
+      minmax(0, 0.85fr);
+
+    gap: 7px;
+    padding: 10px 0;
+  }
+
+  /* El monto pasa a una segunda línea */
+
+  .cdr-amount {
+    grid-column: 1 / -1;
+    text-align: left;
+    padding-top: 2px;
+  }
+
+  .cdr-header .text-right {
+    display: none;
+  }
+
+  .sunat-note {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==========================================================
+   12. XS
+   320px - 375px
+   ========================================================== */
+
+@media (max-width: 375px) {
+  .sunat-card {
+    padding: 9px;
+    gap: 11px;
+  }
+
+  .sunat-section {
+    padding: 9px;
+  }
+
+  .sunat-head h2 {
+    font-size: 0.92rem;
+  }
+
+  .sunat-section h3 {
+    font-size: 0.85rem;
+  }
+
+  .count-line {
+    font-size: var(--text-xs);
+    gap: 6px;
+  }
+
+  .cdr-row {
+    grid-template-columns:
+      minmax(0, 1.1fr)
+      minmax(0, 0.9fr)
+      minmax(0, 0.8fr);
+
+    gap: 5px;
+    font-size: 0.7rem;
+  }
+
+  .cdr-header {
+    font-size: 0.65rem;
+  }
+
+  .sunat-mark {
+    width: 56px;
+    height: 56px;
+    font-size: 1rem;
+  }
+
+  .enlace {
+    font-size: var(--text-xs);
+  }
 }

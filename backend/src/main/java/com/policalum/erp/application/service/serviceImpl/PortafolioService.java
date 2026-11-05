@@ -5,6 +5,8 @@ import com.policalum.erp.application.dto.response.ProyectoPortafolioResponseDTO;
 import com.policalum.erp.domain.model.ProyectoPortafolio;
 import com.policalum.erp.exception.ResourceNotFoundException;
 import com.policalum.erp.infrastructure.repository.ProyectoPortafolioRepository;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -69,8 +71,17 @@ public class PortafolioService {
     private static String url(String valor) {
         if (valor == null || valor.isBlank()) return null;
         String limpio = valor.trim();
-        if (!limpio.startsWith("https://") && !limpio.startsWith("http://")) {
-            throw new IllegalArgumentException("La imagen del proyecto debe ser una URL http(s)");
+        try {
+            URI uri = new URI(limpio);
+            String esquema = uri.getScheme();
+            if (esquema == null
+                    || (!esquema.equalsIgnoreCase("https") && !esquema.equalsIgnoreCase("http"))
+                    || uri.getHost() == null
+                    || uri.getUserInfo() != null) {
+                throw new IllegalArgumentException("La imagen del proyecto debe ser una URL HTTP o HTTPS válida");
+            }
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("La imagen del proyecto debe ser una URL HTTP o HTTPS válida", ex);
         }
         return limpio;
     }

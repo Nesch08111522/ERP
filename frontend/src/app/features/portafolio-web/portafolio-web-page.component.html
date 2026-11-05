@@ -1,30 +1,44 @@
 <section class="module-page">
   <app-page-header title="Portafolio web" subtitle="Estos proyectos aparecen en la galería del portal público."></app-page-header>
   <form class="form-grid" [formGroup]="form" *ngIf="esAdmin">
-    <app-form-field label="Título" inputId="pf-titulo" [required]="true"><input id="pf-titulo" class="input" formControlName="titulo" /></app-form-field>
-    <app-form-field label="Orden" inputId="pf-orden"><input id="pf-orden" class="input" type="number" formControlName="orden" /></app-form-field>
-    <app-form-field label="Descripción" inputId="pf-desc" class="span-2"><textarea id="pf-desc" class="textarea" formControlName="descripcion"></textarea></app-form-field>
-    <app-form-field label="Cliente" inputId="pf-cliente"><input id="pf-cliente" class="input" formControlName="cliente" /></app-form-field>
-    <app-form-field label="Imagen (URL https)" inputId="pf-img" class="span-2"><input id="pf-img" class="input" formControlName="imagenUrl" placeholder="https://" /></app-form-field>
-    <app-form-field label="Publicado" inputId="pf-pub"><input id="pf-pub" class="switch" type="checkbox" formControlName="publicado" /></app-form-field>
+    <app-form-field label="Título" inputId="pf-titulo" [required]="true"><input id="pf-titulo" class="input" maxlength="160" formControlName="titulo" /></app-form-field>
+    <app-form-field label="Orden" inputId="pf-orden"><input id="pf-orden" class="input" type="number" step="1" formControlName="orden" /></app-form-field>
+    <app-form-field label="Descripción" inputId="pf-desc" class="span-2"><textarea id="pf-desc" class="textarea" maxlength="800" rows="4" formControlName="descripcion"></textarea></app-form-field>
+    <app-form-field label="Cliente" inputId="pf-cliente"><input id="pf-cliente" class="input" maxlength="160" formControlName="cliente" /></app-form-field>
+    <app-form-field label="Imagen (URL HTTP o HTTPS)" inputId="pf-img" class="span-2"><input id="pf-img" class="input" maxlength="500" type="url" formControlName="imagenUrl" placeholder="https://" /></app-form-field>
+    <p class="form-error span-2" *ngIf="form.controls.titulo.touched && form.controls.titulo.invalid">El título es obligatorio y admite hasta 160 caracteres.</p>
+    <p class="form-error span-2" *ngIf="form.controls.descripcion.touched && form.controls.descripcion.invalid">La descripción es obligatoria y admite hasta 800 caracteres.</p>
+    <p class="form-error span-2" *ngIf="form.controls.imagenUrl.touched && form.controls.imagenUrl.invalid">Ingresa una URL HTTP o HTTPS válida.</p>
+    <p class="form-error span-2" *ngIf="form.controls.orden.touched && form.controls.orden.invalid">El orden debe ser un número entero.</p>
+    <app-form-field label="Visible en el portal" inputId="pf-pub"><input id="pf-pub" class="switch" type="checkbox" formControlName="publicado" /></app-form-field>
     <div class="filter-actions">
-      <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ editando ? 'Guardar cambios' : 'Agregar proyecto' }}</button>
+      <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Agregar proyecto' }}</button>
       <button type="button" class="btn btn-ghost" *ngIf="editando" (click)="limpiar()">Cancelar</button>
     </div>
   </form>
-  <table class="table" *ngIf="proyectos.length">
-    <thead><tr><th>Orden</th><th>Proyecto</th><th>Estado</th><th *ngIf="esAdmin"></th></tr></thead>
+  <p class="portfolio-state" *ngIf="cargando" role="status">Cargando proyectos…</p>
+  <div class="portfolio-error" *ngIf="errorCarga && !cargando" role="alert">
+    <span>No se pudieron cargar los proyectos: {{ errorCarga }}</span>
+    <button type="button" class="btn btn-ghost btn-sm" (click)="cargar()">Reintentar</button>
+  </div>
+  <table class="table portfolio-table" *ngIf="!cargando && !errorCarga && proyectos.length">
+    <thead><tr><th>Imagen</th><th>Proyecto</th><th>Cliente</th><th>Orden</th><th>Estado</th><th>Creado</th><th *ngIf="esAdmin">Acciones</th></tr></thead>
     <tbody>
       <tr *ngFor="let proyecto of proyectos">
+        <td><img *ngIf="proyecto.imagenUrl" class="portfolio-thumbnail" [src]="proyecto.imagenUrl" [alt]="'Imagen de ' + proyecto.titulo" loading="lazy" (error)="$any($event.target).hidden = true" /></td>
+        <td><strong>{{ proyecto.titulo }}</strong><br><span class="text-muted portfolio-description">{{ proyecto.descripcion }}</span></td>
+        <td>{{ proyecto.cliente || '—' }}</td>
         <td>{{ proyecto.orden }}</td>
-        <td><strong>{{ proyecto.titulo }}</strong><br><span class="text-muted">{{ proyecto.descripcion }}</span></td>
         <td><span class="badge" [class.badge-success]="proyecto.publicado" [class.badge-neutral]="!proyecto.publicado">{{ proyecto.publicado ? 'Publicado' : 'Oculto' }}</span></td>
+        <td>{{ proyecto.createdAt ? (proyecto.createdAt | date:'mediumDate') : '—' }}</td>
         <td *ngIf="esAdmin">
-          <button type="button" class="btn btn-ghost btn-sm" (click)="editar(proyecto)">Editar</button>
-          <button type="button" class="btn btn-danger btn-sm" (click)="eliminar(proyecto)">Quitar</button>
+          <div class="portfolio-actions">
+            <button type="button" class="btn btn-ghost btn-sm" (click)="editar(proyecto)" [disabled]="guardando || !!eliminandoId">Editar</button>
+            <button type="button" class="btn btn-danger btn-sm" (click)="eliminar(proyecto)" [disabled]="!!eliminandoId">{{ eliminandoId === proyecto.id ? 'Eliminando…' : 'Eliminar' }}</button>
+          </div>
         </td>
       </tr>
     </tbody>
   </table>
-  <p *ngIf="!proyectos.length">Todavía no hay proyectos. Los que agregues se ven en el portal.</p>
+  <p class="portfolio-state" *ngIf="!cargando && !errorCarga && !proyectos.length">Todavía no hay proyectos registrados.</p>
 </section>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CmsStore } from '../core/cms.store';
 import { EmpresaStore } from '../core/empresa.store';
@@ -151,8 +151,9 @@ export class FaqComponent {
       <p class="kicker">Noticias</p>
       <h1>Blog y obras</h1>
       <p class="lead">Las obras publicadas salen del portafolio del ERP. Si el servidor no responde, lo verás aquí.</p>
+      @if (cargando()) { <p class="muted" role="status">Cargando proyectos…</p> }
       @if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
-      @if (!obras().length && !error()) { <p class="muted">Todavía no hay notas publicadas.</p> }
+      @if (!cargando() && !obras().length && !error()) { <p class="muted">Todavía no hay proyectos publicados.</p> }
       <div class="product-grid">
         @for (obra of obras(); track obra.id) {
           <article class="tile">
@@ -167,13 +168,34 @@ export class FaqComponent {
 })
 export class BlogComponent implements OnInit {
   private readonly api = inject(PortalApi);
+  private readonly cms = inject(CmsStore);
   readonly obras = signal<ProyectoPublico[]>([]);
   readonly error = signal('');
+  readonly cargando = signal(true);
+
+  constructor() {
+    effect(() => {
+      if (this.cms.cambiosPublicos() > 0) this.cargar();
+    });
+  }
 
   ngOnInit(): void {
+    this.cargar();
+  }
+
+  cargar(): void {
+    this.cargando.set(true);
+    this.error.set('');
     this.api.portafolio().subscribe({
-      next: (lista) => this.obras.set(lista),
-      error: (error: unknown) => this.error.set(mensajeError(error)),
+      next: (lista) => {
+        this.obras.set(lista ?? []);
+        this.cargando.set(false);
+      },
+      error: (error: unknown) => {
+        this.obras.set([]);
+        this.error.set(mensajeError(error));
+        this.cargando.set(false);
+      },
     });
   }
 }

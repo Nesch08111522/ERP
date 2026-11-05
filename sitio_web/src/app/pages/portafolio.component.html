@@ -1,12 +1,18 @@
 <section class="section">
   <p class="kicker">Portafolio</p>
-  <h1>{{ reales() ? 'Proyectos publicados desde el ERP' : 'Así se usa el material' }}</h1>
-  <p class="lead">{{ reales() ? 'Galería administrada en el ERP.' : 'Estas líneas describen el tipo de obra. Cuando cargues proyectos en el ERP, reemplazan esta galería.' }}</p>
+  <h1>Proyectos realizados</h1>
+  <p class="lead">Trabajos publicados desde el ERP POLICALUM.</p>
 </section>
-<div class="works">
+<p class="portfolio-state" *ngIf="cargando()" role="status">Cargando proyectos…</p>
+<div class="portfolio-error" *ngIf="error()" role="alert">
+  <p>No se pudo cargar el portafolio: {{ error() }}</p>
+  <button type="button" (click)="cargar()">Reintentar</button>
+</div>
+<p class="portfolio-state" *ngIf="!cargando() && !error() && !obras().length">Próximamente compartiremos nuestros proyectos.</p>
+<div class="works" *ngIf="!cargando() && !error() && obras().length">
   @for (obra of obras(); track obra.id; let i = $index) {
-    <article class="work tone-{{ i % 4 }}">
-      @if (foto(obra); as imagen) { <img [src]="imagen" [alt]="obra.titulo" /> }
+    <article class="work tone-{{ i % 4 }}" [class.sin-imagen]="!foto(obra)">
+      @if (foto(obra); as imagen) { <img [src]="imagen" [alt]="'Proyecto: ' + obra.titulo" loading="lazy" decoding="async" (error)="imagenFallida($event)" /> }
       <div class="veil"></div>
       <div>
         <h3>{{ obra.titulo }}</h3>
