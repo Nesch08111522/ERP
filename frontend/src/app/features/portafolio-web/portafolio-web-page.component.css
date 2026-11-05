@@ -1,9 +1,1031 @@
-.form-grid { margin-bottom: 1.5rem; }
-.textarea { min-height: 6rem; }
-.portfolio-state { padding: 1.5rem; color: var(--text-muted, #667085); text-align: center; }
-.portfolio-error { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--danger, #dc2626); border-radius: .75rem; }
-.form-error { margin: 0; color: var(--danger, #b42318); font-size: .875rem; }
-.portfolio-table { min-width: 760px; }
-.portfolio-thumbnail { width: 4rem; height: 3rem; border-radius: .375rem; object-fit: cover; background: var(--surface-muted, #eef1f4); }
-.portfolio-description { display: -webkit-box; max-width: 36rem; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.portfolio-actions { display: flex; gap: .5rem; }
+
+/* =========================================================
+   POLICALUM ERP — PORTAFOLIO WEB
+   Responsive: XXS / XS / S / M / L / XL / XXL
+   Compatible con modo oscuro y modo claro
+   Basado en el Design System global
+   ========================================================= */
+
+
+/* =========================================================
+   01. VARIABLES LOCALES DE COMPATIBILIDAD
+   ========================================================= */
+
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+
+  /* Colores vinculados al tema global */
+  --pf-bg: var(--color-bg);
+  --pf-surface: var(--color-surface);
+  --pf-surface-raised: var(--color-surface-raised);
+  --pf-input: var(--color-input);
+
+  --pf-text: var(--color-text);
+  --pf-muted: var(--color-text-muted);
+  --pf-disabled: var(--color-disabled);
+
+  --pf-border: var(--color-border);
+  --pf-border-strong: var(--color-border-strong);
+
+  --pf-primary: var(--color-primary);
+  --pf-primary-hover: var(--color-primary-600);
+  --pf-primary-soft: var(--color-primary-bg, var(--color-primary-50));
+
+  --pf-success: var(--color-success);
+  --pf-success-bg: var(--color-success-bg);
+
+  --pf-danger: var(--color-danger);
+  --pf-danger-bg: var(--color-danger-bg);
+
+  --pf-warning: var(--color-warning);
+  --pf-warning-bg: var(--color-warning-bg);
+
+  --pf-shadow: var(--shadow-sm);
+  --pf-shadow-hover: var(--shadow-md);
+
+  --pf-radius-sm: var(--radius-sm);
+  --pf-radius-md: var(--radius-md);
+  --pf-radius-lg: var(--radius-lg);
+  --pf-radius-xl: var(--radius-xl);
+}
+
+.module-page,
+.module-page * {
+  box-sizing: border-box;
+}
+
+.module-page {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--pf-text);
+  font-family: var(--font-sans);
+}
+
+
+/* =========================================================
+   02. FORMULARIO
+   ========================================================= */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.15rem;
+
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+
+  color: var(--pf-text);
+  background: var(--pf-surface);
+
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius-lg);
+
+  box-shadow: var(--pf-shadow);
+
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.form-grid .span-2 {
+  grid-column: span 2;
+}
+
+/* Inputs */
+
+.module-page .input,
+.module-page .textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  color: var(--pf-text);
+  background: var(--pf-input);
+
+  border: 1px solid var(--pf-border-strong);
+  border-radius: var(--radius-md);
+
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.module-page .input {
+  min-height: 2.65rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.module-page .textarea {
+  min-height: 6rem;
+  padding: 0.75rem 0.8rem;
+  resize: vertical;
+}
+
+.module-page .input::placeholder,
+.module-page .textarea::placeholder {
+  color: var(--pf-muted);
+  opacity: 0.85;
+}
+
+.module-page .input:hover,
+.module-page .textarea:hover {
+  border-color: var(--pf-primary);
+}
+
+.module-page .input:focus,
+.module-page .textarea:focus {
+  outline: none;
+  border-color: var(--pf-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pf-primary) 18%, transparent);
+}
+
+.module-page .input:disabled,
+.module-page .textarea:disabled {
+  color: var(--pf-disabled);
+  background: var(--pf-surface-raised);
+  cursor: not-allowed;
+}
+
+/* Acciones del formulario */
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+
+  grid-column: span 2;
+  padding-top: 0.5rem;
+}
+
+.filter-actions .btn {
+  min-height: 2.65rem;
+}
+
+/* Validaciones */
+
+.form-error {
+  margin: 0;
+  color: var(--pf-danger);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+
+/* =========================================================
+   03. ESTADOS DE CARGA Y ERROR
+   ========================================================= */
+
+.portfolio-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 110px;
+  padding: 1.5rem;
+
+  color: var(--pf-muted);
+  text-align: center;
+  font-size: var(--text-md);
+}
+
+.portfolio-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  width: 100%;
+  padding: 1rem 1.2rem;
+
+  color: var(--pf-danger);
+  background: var(--pf-danger-bg);
+
+  border: 1px solid var(--pf-danger);
+  border-radius: var(--radius-lg);
+}
+
+.portfolio-error span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   04. CONTROL DE VISTAS
+   ========================================================= */
+
+.portfolio-mobile {
+  display: none;
+  width: 100%;
+  min-width: 0;
+}
+
+.portfolio-desktop {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+
+/* =========================================================
+   05. TABLA ADMINISTRATIVA
+   ========================================================= */
+
+.portfolio-table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  color: var(--pf-text);
+  background: var(--pf-surface);
+
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-lg);
+
+  box-shadow: var(--pf-shadow);
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.portfolio-table-container::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+}
+
+.portfolio-table-container::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.portfolio-table-container::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+
+.portfolio-table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.portfolio-table {
+  width: 100%;
+  min-width: 850px;
+
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: auto;
+
+  color: var(--pf-text);
+  background: var(--pf-surface);
+}
+
+.portfolio-table thead {
+  background: var(--pf-surface-raised);
+}
+
+.portfolio-table th {
+  padding: 1rem 0.9rem;
+
+  color: var(--pf-muted);
+  background: var(--pf-surface-raised);
+
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+  white-space: nowrap;
+
+  border-bottom: 1px solid var(--pf-border-strong);
+}
+
+.portfolio-table td {
+  padding: 0.9rem;
+
+  color: var(--pf-text);
+  background: transparent;
+
+  font-size: var(--text-sm);
+  vertical-align: middle;
+
+  border-bottom: 1px solid var(--pf-border);
+}
+
+.portfolio-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.portfolio-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.portfolio-table tbody tr:hover td {
+  background: var(--pf-surface-raised);
+}
+
+.portfolio-project-cell {
+  min-width: 190px;
+  max-width: 360px;
+}
+
+.portfolio-project-cell strong {
+  display: block;
+  margin-bottom: 0.35rem;
+
+  color: var(--pf-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+
+  overflow-wrap: anywhere;
+}
+
+.portfolio-description {
+  display: -webkit-box;
+  max-width: 36rem;
+  overflow: hidden;
+
+  color: var(--pf-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  overflow-wrap: anywhere;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Imágenes */
+
+.portfolio-thumbnail-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 4.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+
+  background: var(--pf-surface-raised);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-sm);
+}
+
+.portfolio-thumbnail {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portfolio-no-image {
+  padding: 0.25rem;
+
+  color: var(--pf-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+/* Acciones de tabla */
+
+.portfolio-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  min-width: max-content;
+}
+
+.portfolio-actions .btn {
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   06. ESTADOS DE PUBLICACIÓN
+   ========================================================= */
+
+.module-page .badge-success {
+  color: var(--pf-success);
+  background: var(--pf-success-bg);
+  border: 1px solid color-mix(in srgb, var(--pf-success) 35%, transparent);
+}
+
+.module-page .badge-neutral {
+  color: var(--pf-muted);
+  background: var(--pf-surface-raised);
+  border: 1px solid var(--pf-border);
+}
+
+
+/* =========================================================
+   07. TARJETAS MÓVILES
+   ========================================================= */
+
+.portfolio-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  width: 100%;
+  min-width: 0;
+}
+
+.portfolio-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+
+  color: var(--pf-text);
+  background: var(--pf-surface);
+
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-lg);
+
+  box-shadow: var(--pf-shadow);
+
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    background var(--transition-base);
+}
+
+.portfolio-card:has(.portfolio-accordion[open]) {
+  border-color: var(--pf-primary);
+  box-shadow: var(--pf-shadow-hover);
+}
+
+.portfolio-accordion {
+  width: 100%;
+}
+
+.portfolio-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+
+  min-width: 0;
+  padding: 0.85rem;
+
+  color: var(--pf-text);
+  cursor: pointer;
+  list-style: none;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.portfolio-card-header::-webkit-details-marker {
+  display: none;
+}
+
+.portfolio-card-header::marker {
+  content: "";
+}
+
+.portfolio-card-header:focus-visible {
+  outline: 2px solid var(--pf-primary);
+  outline-offset: -3px;
+  border-radius: var(--radius-md);
+}
+
+/* Imagen */
+
+.portfolio-card-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 4.2rem;
+  width: 4.2rem;
+  height: 4.2rem;
+  overflow: hidden;
+
+  background: var(--pf-surface-raised);
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-md);
+}
+
+.portfolio-card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portfolio-image-placeholder {
+  padding: 0.25rem;
+
+  color: var(--pf-muted);
+  font-size: var(--text-xs);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Información */
+
+.portfolio-card-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.portfolio-card-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.portfolio-card-top .badge {
+  font-size: var(--text-xs);
+}
+
+.portfolio-card-order {
+  color: var(--pf-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.portfolio-card-main h3 {
+  margin: 0;
+
+  color: var(--pf-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+
+  overflow-wrap: anywhere;
+}
+
+.portfolio-card-client {
+  margin: 0.25rem 0 0;
+
+  color: var(--pf-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+
+  overflow-wrap: anywhere;
+}
+
+/* Indicador acordeón */
+
+.portfolio-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 1.8rem;
+  width: 1.8rem;
+  height: 1.8rem;
+
+  color: var(--pf-muted);
+  background: var(--pf-surface-raised);
+
+  border: 1px solid var(--pf-border);
+  border-radius: var(--radius-full);
+
+  transition:
+    transform var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-base);
+}
+
+.portfolio-chevron svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.portfolio-accordion[open] .portfolio-chevron {
+  transform: rotate(180deg);
+  color: var(--pf-primary);
+  background: var(--pf-primary-soft);
+}
+
+
+/* =========================================================
+   08. DETALLES DEL ACORDEÓN
+   ========================================================= */
+
+.portfolio-card-details {
+  padding: 0.9rem;
+
+  color: var(--pf-text);
+  background: var(--pf-surface-raised);
+
+  border-top: 1px solid var(--pf-border);
+
+  animation: portfolio-expand 0.2s ease;
+}
+
+@keyframes portfolio-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.portfolio-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.portfolio-detail-label {
+  color: var(--pf-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.portfolio-detail-item p {
+  margin: 0;
+
+  color: var(--pf-text);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+
+  overflow-wrap: anywhere;
+}
+
+.portfolio-detail-item strong {
+  color: var(--pf-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.portfolio-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+
+  border-top: 1px solid var(--pf-border);
+}
+
+/* Botones móviles */
+
+.portfolio-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+
+  border-top: 1px solid var(--pf-border);
+}
+
+.portfolio-card-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.5rem;
+
+  font-size: var(--text-sm);
+  white-space: normal;
+  text-align: center;
+}
+
+
+/* =========================================================
+   09. BOTONES Y ESTADOS
+   Se conservan las clases globales del ERP.
+   ========================================================= */
+
+.module-page .btn {
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.module-page .btn:focus-visible {
+  outline: 2px solid var(--pf-primary);
+  outline-offset: 3px;
+}
+
+.module-page .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Botón secundario */
+
+.module-page .btn-ghost {
+  color: var(--pf-text);
+  background: var(--pf-surface-raised);
+  border: 1px solid var(--pf-border-strong);
+}
+
+.module-page .btn-ghost:hover:not(:disabled) {
+  color: var(--pf-primary);
+  background: var(--pf-primary-soft);
+  border-color: var(--pf-primary);
+}
+
+/* Botón peligro */
+
+.module-page .btn-danger {
+  color: #ffffff;
+  background: var(--pf-danger);
+  border: 1px solid var(--pf-danger);
+}
+
+.module-page .btn-danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+/* Botón principal: conserva el diseño global */
+
+.module-page .btn-primary {
+  color: var(--color-primary-contrast);
+  background: var(--pf-primary);
+  border: 1px solid var(--pf-primary);
+}
+
+.module-page .btn-primary:hover:not(:disabled) {
+  background: var(--pf-primary-hover);
+  border-color: var(--pf-primary-hover);
+}
+
+
+/* =========================================================
+   10. TABLETS
+   ========================================================= */
+
+@media (min-width: 768px) {
+
+  .portfolio-mobile {
+    display: none !important;
+  }
+
+  .portfolio-desktop {
+    display: block;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 1.4rem;
+  }
+
+  .portfolio-table {
+    min-width: 850px;
+  }
+}
+
+
+/* =========================================================
+   11. PANTALLAS MEDIANAS
+   ========================================================= */
+
+@media (min-width: 768px) and (max-width: 1099px) {
+
+  .form-grid {
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  .portfolio-table th,
+  .portfolio-table td {
+    padding: 0.75rem;
+  }
+
+  .portfolio-table {
+    min-width: 820px;
+  }
+
+  .portfolio-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .portfolio-actions .btn {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   12. LAPTOPS Y MONITORES
+   ========================================================= */
+
+@media (min-width: 1100px) {
+
+  .form-grid {
+    gap: 1.2rem 1.4rem;
+    padding: 1.5rem;
+  }
+
+  .portfolio-table {
+    min-width: 900px;
+  }
+
+  .portfolio-table th,
+  .portfolio-table td {
+    padding: 1rem;
+  }
+
+  .portfolio-actions {
+    flex-direction: row;
+  }
+}
+
+
+/* =========================================================
+   13. PANTALLAS GRANDES Y ULTRA WIDE
+   ========================================================= */
+
+@media (min-width: 1600px) {
+
+  .module-page {
+    max-width: 100%;
+  }
+
+  .form-grid {
+    gap: 1.4rem 1.8rem;
+    padding: 1.75rem;
+  }
+
+  .portfolio-table {
+    min-width: 100%;
+  }
+
+  .portfolio-table th,
+  .portfolio-table td {
+    padding: 1.15rem;
+    font-size: var(--text-md);
+  }
+
+  .portfolio-thumbnail-wrapper {
+    width: 5rem;
+    height: 3.8rem;
+  }
+}
+
+
+/* =========================================================
+   14. MÓVILES — XS Y S
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+  .portfolio-desktop {
+    display: none !important;
+  }
+
+  .portfolio-mobile {
+    display: block;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+
+    padding: 1rem;
+    margin-bottom: 1rem;
+
+    border-radius: var(--radius-md);
+  }
+
+  .form-grid .span-2 {
+    grid-column: 1;
+  }
+
+  .filter-actions {
+    grid-column: 1;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
+
+    padding-top: 0.35rem;
+  }
+
+  .filter-actions .btn {
+    width: 100%;
+    min-height: 2.8rem;
+  }
+
+  .portfolio-error {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 0.9rem;
+  }
+
+  .portfolio-error .btn {
+    width: 100%;
+  }
+
+  .portfolio-state {
+    min-height: 90px;
+    padding: 1rem;
+    font-size: var(--text-sm);
+  }
+}
+
+
+/* =========================================================
+   15. MÓVILES PEQUEÑOS — XXS
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .form-grid {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .portfolio-mobile-list {
+    gap: 0.65rem;
+  }
+
+  .portfolio-card {
+    border-radius: var(--radius-md);
+  }
+
+  .portfolio-card-header {
+    gap: 0.55rem;
+    padding: 0.7rem;
+  }
+
+  .portfolio-card-image {
+    flex-basis: 3.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .portfolio-card-main h3 {
+    font-size: var(--text-sm);
+  }
+
+  .portfolio-card-client {
+    font-size: var(--text-xs);
+  }
+
+  .portfolio-chevron {
+    flex-basis: 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .portfolio-card-details {
+    padding: 0.75rem;
+  }
+
+  .portfolio-detail-grid {
+    gap: 0.75rem;
+  }
+
+  .portfolio-card-actions {
+    gap: 0.45rem;
+  }
+
+  .portfolio-card-actions .btn {
+    padding: 0.5rem 0.3rem;
+    font-size: var(--text-xs);
+  }
+}
+
+
+/* =========================================================
+   16. ACCESIBILIDAD
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .module-page *,
+  .portfolio-card,
+  .portfolio-chevron,
+  .portfolio-card-details {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

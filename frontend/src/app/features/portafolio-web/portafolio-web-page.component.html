@@ -1,44 +1,620 @@
+
 <section class="module-page">
-  <app-page-header title="Portafolio web" subtitle="Estos proyectos aparecen en la galería del portal público."></app-page-header>
-  <form class="form-grid" [formGroup]="form" *ngIf="esAdmin">
-    <app-form-field label="Título" inputId="pf-titulo" [required]="true"><input id="pf-titulo" class="input" maxlength="160" formControlName="titulo" /></app-form-field>
-    <app-form-field label="Orden" inputId="pf-orden"><input id="pf-orden" class="input" type="number" step="1" formControlName="orden" /></app-form-field>
-    <app-form-field label="Descripción" inputId="pf-desc" class="span-2"><textarea id="pf-desc" class="textarea" maxlength="800" rows="4" formControlName="descripcion"></textarea></app-form-field>
-    <app-form-field label="Cliente" inputId="pf-cliente"><input id="pf-cliente" class="input" maxlength="160" formControlName="cliente" /></app-form-field>
-    <app-form-field label="Imagen (URL HTTP o HTTPS)" inputId="pf-img" class="span-2"><input id="pf-img" class="input" maxlength="500" type="url" formControlName="imagenUrl" placeholder="https://" /></app-form-field>
-    <p class="form-error span-2" *ngIf="form.controls.titulo.touched && form.controls.titulo.invalid">El título es obligatorio y admite hasta 160 caracteres.</p>
-    <p class="form-error span-2" *ngIf="form.controls.descripcion.touched && form.controls.descripcion.invalid">La descripción es obligatoria y admite hasta 800 caracteres.</p>
-    <p class="form-error span-2" *ngIf="form.controls.imagenUrl.touched && form.controls.imagenUrl.invalid">Ingresa una URL HTTP o HTTPS válida.</p>
-    <p class="form-error span-2" *ngIf="form.controls.orden.touched && form.controls.orden.invalid">El orden debe ser un número entero.</p>
-    <app-form-field label="Visible en el portal" inputId="pf-pub"><input id="pf-pub" class="switch" type="checkbox" formControlName="publicado" /></app-form-field>
+
+  <!-- =====================================================
+       01. ENCABEZADO
+       ===================================================== -->
+
+  <app-page-header
+    title="Portafolio web"
+    subtitle="Estos proyectos aparecen en la galería del portal público."
+  ></app-page-header>
+
+
+  <!-- =====================================================
+       02. FORMULARIO ADMINISTRATIVO
+       ===================================================== -->
+
+  <form
+    class="form-grid"
+    [formGroup]="form"
+    *ngIf="esAdmin"
+    (ngSubmit)="guardar()"
+  >
+
+    <!-- TÍTULO -->
+    <app-form-field
+      label="Título"
+      inputId="pf-titulo"
+      [required]="true"
+    >
+      <input
+        id="pf-titulo"
+        class="input"
+        type="text"
+        maxlength="160"
+        formControlName="titulo"
+        placeholder="Nombre del proyecto"
+      />
+    </app-form-field>
+
+
+    <!-- ORDEN -->
+    <app-form-field
+      label="Orden de presentación"
+      inputId="pf-orden"
+    >
+      <input
+        id="pf-orden"
+        class="input"
+        type="number"
+        step="1"
+        formControlName="orden"
+        placeholder="0"
+      />
+    </app-form-field>
+
+
+    <!-- DESCRIPCIÓN -->
+    <app-form-field
+      label="Descripción"
+      inputId="pf-desc"
+      class="span-2"
+    >
+      <textarea
+        id="pf-desc"
+        class="textarea"
+        maxlength="800"
+        rows="4"
+        formControlName="descripcion"
+        placeholder="Describe el proyecto realizado..."
+      ></textarea>
+    </app-form-field>
+
+
+    <!-- CLIENTE -->
+    <app-form-field
+      label="Cliente"
+      inputId="pf-cliente"
+    >
+      <input
+        id="pf-cliente"
+        class="input"
+        type="text"
+        maxlength="160"
+        formControlName="cliente"
+        placeholder="Nombre del cliente"
+      />
+    </app-form-field>
+
+
+    <!-- IMAGEN -->
+    <app-form-field
+      label="Imagen (URL HTTP o HTTPS)"
+      inputId="pf-img"
+      class="span-2"
+    >
+      <input
+        id="pf-img"
+        class="input"
+        type="url"
+        maxlength="500"
+        formControlName="imagenUrl"
+        placeholder="https://..."
+      />
+    </app-form-field>
+
+
+    <!-- VALIDACIONES -->
+    <p
+      class="form-error span-2"
+      *ngIf="form.controls.titulo.touched && form.controls.titulo.invalid"
+    >
+      El título es obligatorio y admite hasta 160 caracteres.
+    </p>
+
+    <p
+      class="form-error span-2"
+      *ngIf="form.controls.descripcion.touched && form.controls.descripcion.invalid"
+    >
+      La descripción es obligatoria y admite hasta 800 caracteres.
+    </p>
+
+    <p
+      class="form-error span-2"
+      *ngIf="form.controls.imagenUrl.touched && form.controls.imagenUrl.invalid"
+    >
+      Ingresa una URL HTTP o HTTPS válida.
+    </p>
+
+    <p
+      class="form-error span-2"
+      *ngIf="form.controls.orden.touched && form.controls.orden.invalid"
+    >
+      El orden debe ser un número entero.
+    </p>
+
+
+    <!-- PUBLICACIÓN -->
+    <app-form-field
+      label="Visible en el portal"
+      inputId="pf-pub"
+    >
+      <input
+        id="pf-pub"
+        class="switch"
+        type="checkbox"
+        formControlName="publicado"
+      />
+    </app-form-field>
+
+
+    <!-- BOTONES DEL FORMULARIO -->
     <div class="filter-actions">
-      <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Agregar proyecto' }}</button>
-      <button type="button" class="btn btn-ghost" *ngIf="editando" (click)="limpiar()">Cancelar</button>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="guardando"
+      >
+        {{
+          guardando
+            ? 'Guardando…'
+            : editando
+              ? 'Guardar cambios'
+              : 'Agregar proyecto'
+        }}
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-ghost"
+        *ngIf="editando"
+        [disabled]="guardando"
+        (click)="limpiar()"
+      >
+        Cancelar
+      </button>
+
     </div>
+
   </form>
-  <p class="portfolio-state" *ngIf="cargando" role="status">Cargando proyectos…</p>
-  <div class="portfolio-error" *ngIf="errorCarga && !cargando" role="alert">
-    <span>No se pudieron cargar los proyectos: {{ errorCarga }}</span>
-    <button type="button" class="btn btn-ghost btn-sm" (click)="cargar()">Reintentar</button>
+
+
+  <!-- =====================================================
+       03. ESTADO DE CARGA
+       ===================================================== -->
+
+  <div
+    class="portfolio-state"
+    *ngIf="cargando"
+    role="status"
+    aria-live="polite"
+  >
+    Cargando proyectos…
   </div>
-  <table class="table portfolio-table" *ngIf="!cargando && !errorCarga && proyectos.length">
-    <thead><tr><th>Imagen</th><th>Proyecto</th><th>Cliente</th><th>Orden</th><th>Estado</th><th>Creado</th><th *ngIf="esAdmin">Acciones</th></tr></thead>
-    <tbody>
-      <tr *ngFor="let proyecto of proyectos">
-        <td><img *ngIf="proyecto.imagenUrl" class="portfolio-thumbnail" [src]="proyecto.imagenUrl" [alt]="'Imagen de ' + proyecto.titulo" loading="lazy" (error)="$any($event.target).hidden = true" /></td>
-        <td><strong>{{ proyecto.titulo }}</strong><br><span class="text-muted portfolio-description">{{ proyecto.descripcion }}</span></td>
-        <td>{{ proyecto.cliente || '—' }}</td>
-        <td>{{ proyecto.orden }}</td>
-        <td><span class="badge" [class.badge-success]="proyecto.publicado" [class.badge-neutral]="!proyecto.publicado">{{ proyecto.publicado ? 'Publicado' : 'Oculto' }}</span></td>
-        <td>{{ proyecto.createdAt ? (proyecto.createdAt | date:'mediumDate') : '—' }}</td>
-        <td *ngIf="esAdmin">
-          <div class="portfolio-actions">
-            <button type="button" class="btn btn-ghost btn-sm" (click)="editar(proyecto)" [disabled]="guardando || !!eliminandoId">Editar</button>
-            <button type="button" class="btn btn-danger btn-sm" (click)="eliminar(proyecto)" [disabled]="!!eliminandoId">{{ eliminandoId === proyecto.id ? 'Eliminando…' : 'Eliminar' }}</button>
+
+
+  <!-- =====================================================
+       04. ERROR DE CARGA
+       ===================================================== -->
+
+  <div
+    class="portfolio-error"
+    *ngIf="errorCarga && !cargando"
+    role="alert"
+  >
+
+    <span>
+      No se pudieron cargar los proyectos:
+      {{ errorCarga }}
+    </span>
+
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm"
+      (click)="cargar()"
+    >
+      Reintentar
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       05. VISTA MÓVIL
+       XXS / XS / S
+       TARJETAS TIPO ACORDEÓN
+       ===================================================== -->
+
+  <div
+    class="portfolio-mobile"
+    *ngIf="!cargando && !errorCarga && proyectos.length"
+  >
+
+    <div class="portfolio-mobile-list">
+
+      <article
+        class="portfolio-card"
+        *ngFor="let proyecto of proyectos"
+      >
+
+        <details class="portfolio-accordion">
+
+          <!-- CABECERA DEL ACORDEÓN -->
+          <summary class="portfolio-card-header">
+
+            <!-- IMAGEN -->
+            <div class="portfolio-card-image">
+
+              <img
+                *ngIf="proyecto.imagenUrl"
+                [src]="proyecto.imagenUrl"
+                [alt]="'Imagen de ' + proyecto.titulo"
+                loading="lazy"
+                (error)="$any($event.target).hidden = true"
+              />
+
+              <span
+                *ngIf="!proyecto.imagenUrl"
+                class="portfolio-image-placeholder"
+              >
+                Sin imagen
+              </span>
+
+            </div>
+
+
+            <!-- INFORMACIÓN PRINCIPAL -->
+            <div class="portfolio-card-main">
+
+              <div class="portfolio-card-top">
+
+                <span
+                  class="badge"
+                  [class.badge-success]="proyecto.publicado"
+                  [class.badge-neutral]="!proyecto.publicado"
+                >
+                  {{ proyecto.publicado ? 'Publicado' : 'Oculto' }}
+                </span>
+
+                <span class="portfolio-card-order">
+                  #{{ proyecto.orden }}
+                </span>
+
+              </div>
+
+              <h3>
+                {{ proyecto.titulo }}
+              </h3>
+
+              <p class="portfolio-card-client">
+                {{ proyecto.cliente || 'Sin cliente asignado' }}
+              </p>
+
+            </div>
+
+
+            <!-- FLECHA -->
+            <span
+              class="portfolio-chevron"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m6 9 6 6 6-6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+
+          </summary>
+
+
+          <!-- CONTENIDO DESPLEGABLE -->
+          <div class="portfolio-card-details">
+
+            <!-- DESCRIPCIÓN -->
+            <div class="portfolio-detail-item">
+
+              <span class="portfolio-detail-label">
+                Descripción
+              </span>
+
+              <p>
+                {{ proyecto.descripcion }}
+              </p>
+
+            </div>
+
+
+            <!-- INFORMACIÓN ADICIONAL -->
+            <div class="portfolio-detail-grid">
+
+              <div class="portfolio-detail-item">
+
+                <span class="portfolio-detail-label">
+                  Cliente
+                </span>
+
+                <strong>
+                  {{ proyecto.cliente || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="portfolio-detail-item">
+
+                <span class="portfolio-detail-label">
+                  Orden
+                </span>
+
+                <strong>
+                  {{ proyecto.orden }}
+                </strong>
+
+              </div>
+
+
+              <div class="portfolio-detail-item">
+
+                <span class="portfolio-detail-label">
+                  Fecha de creación
+                </span>
+
+                <strong>
+                  {{
+                    proyecto.createdAt
+                      ? (proyecto.createdAt | date:'dd/MM/yyyy')
+                      : '—'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div class="portfolio-detail-item">
+
+                <span class="portfolio-detail-label">
+                  Estado de publicación
+                </span>
+
+                <strong>
+                  {{ proyecto.publicado ? 'Visible en el portal' : 'No visible' }}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <!-- ACCIONES MÓVILES -->
+            <div
+              class="portfolio-card-actions"
+              *ngIf="esAdmin"
+            >
+
+              <button
+                type="button"
+                class="btn btn-ghost"
+                (click)="editar(proyecto)"
+                [disabled]="guardando || !!eliminandoId"
+              >
+                Editar proyecto
+              </button>
+
+
+              <button
+                type="button"
+                class="btn btn-danger"
+                (click)="eliminar(proyecto)"
+                [disabled]="!!eliminandoId"
+              >
+                {{
+                  eliminandoId === proyecto.id
+                    ? 'Eliminando…'
+                    : 'Eliminar'
+                }}
+              </button>
+
+            </div>
+
           </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <p class="portfolio-state" *ngIf="!cargando && !errorCarga && !proyectos.length">Todavía no hay proyectos registrados.</p>
+
+        </details>
+
+      </article>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       06. VISTA PARA DISPOSITIVOS GRANDES
+       M / L / XL / XXL
+       TABLA ADMINISTRATIVA
+       ===================================================== -->
+
+  <div
+    class="portfolio-desktop"
+    *ngIf="!cargando && !errorCarga && proyectos.length"
+  >
+
+    <div class="portfolio-table-container">
+
+      <table class="table portfolio-table">
+
+        <!-- CABECERA -->
+        <thead>
+
+          <tr>
+
+            <th>Imagen</th>
+
+            <th>Proyecto</th>
+
+            <th>Cliente</th>
+
+            <th>Orden</th>
+
+            <th>Estado</th>
+
+            <th>Creado</th>
+
+            <th *ngIf="esAdmin">
+              Acciones
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <!-- REGISTROS -->
+        <tbody>
+
+          <tr *ngFor="let proyecto of proyectos">
+
+            <!-- IMAGEN -->
+            <td>
+
+              <div class="portfolio-thumbnail-wrapper">
+
+                <img
+                  *ngIf="proyecto.imagenUrl"
+                  class="portfolio-thumbnail"
+                  [src]="proyecto.imagenUrl"
+                  [alt]="'Imagen de ' + proyecto.titulo"
+                  loading="lazy"
+                  (error)="$any($event.target).hidden = true"
+                />
+
+                <span
+                  *ngIf="!proyecto.imagenUrl"
+                  class="portfolio-no-image"
+                >
+                  Sin imagen
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PROYECTO -->
+            <td class="portfolio-project-cell">
+
+              <strong>
+                {{ proyecto.titulo }}
+              </strong>
+
+              <span class="text-muted portfolio-description">
+                {{ proyecto.descripcion }}
+              </span>
+
+            </td>
+
+
+            <!-- CLIENTE -->
+            <td>
+              {{ proyecto.cliente || '—' }}
+            </td>
+
+
+            <!-- ORDEN -->
+            <td>
+              {{ proyecto.orden }}
+            </td>
+
+
+            <!-- ESTADO -->
+            <td>
+
+              <span
+                class="badge"
+                [class.badge-success]="proyecto.publicado"
+                [class.badge-neutral]="!proyecto.publicado"
+              >
+                {{ proyecto.publicado ? 'Publicado' : 'Oculto' }}
+              </span>
+
+            </td>
+
+
+            <!-- FECHA -->
+            <td>
+              {{
+                proyecto.createdAt
+                  ? (proyecto.createdAt | date:'dd/MM/yyyy')
+                  : '—'
+              }}
+            </td>
+
+
+            <!-- ACCIONES -->
+            <td *ngIf="esAdmin">
+
+              <div class="portfolio-actions">
+
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  (click)="editar(proyecto)"
+                  [disabled]="guardando || !!eliminandoId"
+                >
+                  Editar
+                </button>
+
+
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm"
+                  (click)="eliminar(proyecto)"
+                  [disabled]="!!eliminandoId"
+                >
+                  {{
+                    eliminandoId === proyecto.id
+                      ? 'Eliminando…'
+                      : 'Eliminar'
+                  }}
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       07. ESTADO VACÍO
+       ===================================================== -->
+
+  <div
+    class="portfolio-state"
+    *ngIf="!cargando && !errorCarga && !proyectos.length"
+  >
+
+    Todavía no hay proyectos registrados.
+
+  </div>
+
+
 </section>
