@@ -1,5 +1,7 @@
+
 package com.policalum.erp.infrastructure.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,24 +16,79 @@ import com.policalum.erp.domain.model.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    // ✅ Buscar por email
+    // Buscar por email
     Optional<User> findByEmail(String email);
 
-    @Query("SELECT u FROM User u JOIN FETCH u.rol JOIN FETCH u.sede WHERE u.email = :email")
+    // Buscar perfil con sus relaciones principales
+    @Query("""
+        SELECT u
+        FROM User u
+        JOIN FETCH u.rol
+        JOIN FETCH u.sede
+        WHERE u.email = :email
+    """)
     Optional<User> findPerfilByEmail(@Param("email") String email);
 
-    // ✅ Buscar por email SOLO si está activo
-    @Query("SELECT u FROM User u WHERE u.email = :email AND u.activo = true")
-    Optional<User> findByEmailAndActivoTrue(@Param("email") String email);
+    // Buscar usuarios activos por email
+    @Query("""
+        SELECT u
+        FROM User u
+        WHERE u.email = :email
+        AND u.activo = true
+    """)
+    Optional<User> findByEmailAndActivoTrue(String email);
 
-    @Query("SELECT u FROM User u WHERE u.email = :email")
-    Optional<User> findByEmailWithActivoCheck(@Param("email") String email);
+    @Query("""
+        SELECT u
+        FROM User u
+        WHERE u.email = :email
+    """)
+    Optional<User> findByEmailWithActivoCheck(String email);
 
-    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.email = :email AND u.activo = true")
-    boolean existsByEmailAndActivoTrue(@Param("email") String email);
+    // Verificar existencia de email activo
+    @Query("""
+        SELECT COUNT(u) > 0
+        FROM User u
+        WHERE u.email = :email
+        AND u.activo = true
+    """)
+    boolean existsByEmailAndActivoTrue(String email);
 
-    @Query("SELECT u FROM User u WHERE u.email = :email AND u.activo = true AND u.rol.nombre = :rol")
-    Optional<User> findByEmailAndRolAndActivoTrue(@Param("email") String email, @Param("rol") String rol);
+    // Buscar por email, rol y estado
+    @Query("""
+        SELECT u
+        FROM User u
+        WHERE u.email = :email
+        AND u.activo = true
+        AND u.rol.nombre = :rol
+    """)
+    Optional<User> findByEmailAndRolAndActivoTrue(
+            @Param("email") String email,
+            @Param("rol") String rol
+    );
 
-    Optional<User> findFirstByActivoTrueAndRol_NombreOrderByEmailAsc(RolNombre nombre);
+    // Buscar primer usuario activo por rol
+    Optional<User> findFirstByActivoTrueAndRol_NombreOrderByEmailAsc(
+            RolNombre nombre
+    );
+
+    // Listar usuarios cargando explícitamente rol y sede
+    @Query("""
+        SELECT u
+        FROM User u
+        LEFT JOIN FETCH u.rol
+        LEFT JOIN FETCH u.sede
+        ORDER BY u.email ASC
+    """)
+    List<User> findAllWithRelations();
+
+    // Buscar usuario por ID cargando rol y sede
+    @Query("""
+        SELECT u
+        FROM User u
+        LEFT JOIN FETCH u.rol
+        LEFT JOIN FETCH u.sede
+        WHERE u.id = :id
+    """)
+    Optional<User> findByIdWithRelations(@Param("id") UUID id);
 }
