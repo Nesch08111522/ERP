@@ -59,6 +59,21 @@ public record ProductoRequestDTO(
         String imagen,
 
         /** Null conserva el valor actual al editar. */
-        Boolean destacado
+        Boolean destacado,
+
+        String codigoProveedor,
+        Integer tiempoReposicionDias,
+        Boolean permiteStockNegativo,
+        BigDecimal precioMayorista,
+        Boolean visibleCatalogo,
+        Boolean disponibleVenta,
+
+        // Campos opcionales para ubicación y stock inicial durante el registro
+        UUID sedeId,
+        UUID almacenId,
+        BigDecimal stockInicial,
+        BigDecimal stockMinimo,
+        BigDecimal stockMaximo,
+        BigDecimal puntoReposicion
 ) {
 }

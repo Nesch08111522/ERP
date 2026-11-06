@@ -3,7 +3,6 @@ package com.policalum.erp.infrastructure.loader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -102,6 +101,14 @@ public class CatalogoSeeder implements CommandLineRunner {
             Categoria categoria = categoriaRepository.findBySlugIgnoreCase(semilla.slug())
                     .or(() -> categoriaRepository.findAll().stream().findFirst())
                     .orElseThrow();
+
+            // 28 args en el orden del record ProductoRequestDTO:
+            // categoriaId, proveedorId, codigoSku, nombre, descripcion, tipo,
+            // precioCompra, precioVentaBase, unidad, esFraccionable, activo,
+            // incluyeIgv, tipoAfectacion, fracciones, imagen, destacado,
+            // codigoProveedor, tiempoReposicionDias, permiteStockNegativo,
+            // precioMayorista, visibleCatalogo, disponibleVenta,
+            // sedeId, almacenId, stockInicial, stockMinimo, stockMaximo, puntoReposicion
             var creado = productoService.create(new ProductoRequestDTO(
                     categoria.getId(),
                     null,
@@ -118,7 +125,21 @@ public class CatalogoSeeder implements CommandLineRunner {
                     "10",
                     null,
                     semilla.imagen(),
-                    false));
+                    false,
+                    null,   // codigoProveedor
+                    null,   // tiempoReposicionDias
+                    false,  // permiteStockNegativo
+                    null,   // precioMayorista
+                    true,   // visibleCatalogo
+                    true,   // disponibleVenta
+                    null,   // sedeId
+                    null,   // almacenId
+                    null,   // stockInicial
+                    null,   // stockMinimo
+                    null,   // stockMaximo
+                    null    // puntoReposicion
+            ));
+
             if (almacen != null && operador != null && semilla.stock().signum() > 0) {
                 Producto producto = productoRepository.findById(creado.id()).orElseThrow();
                 kardexService.registrarMovimiento(new KardexMovimientoRequestDTO(
@@ -143,9 +164,23 @@ public class CatalogoSeeder implements CommandLineRunner {
         }
         List<ServicioColaboradorRequestDTO> equipo = new ArrayList<>();
         userRepository.findByEmail("empleado@policalum.com").ifPresent(usuario ->
-                equipo.add(new ServicioColaboradorRequestDTO(usuario.getId(), "INSTALO")));
+                equipo.add(new ServicioColaboradorRequestDTO(
+                        usuario.getId(),
+                        "REGISTRADO",   // tipoColaborador
+                        null,           // nombreExterno (solo para EXTERNO)
+                        "INSTALO",      // participacion
+                        null,           // costo (se calcula después, según sueldo)
+                        "NO_APLICA"     // estadoLiquidacion (REGISTRADO → NO_APLICA)
+                )));
         userRepository.findByEmail("admin@policalum.com").ifPresent(usuario ->
-                equipo.add(new ServicioColaboradorRequestDTO(usuario.getId(), "AYUDO")));
+                equipo.add(new ServicioColaboradorRequestDTO(
+                        usuario.getId(),
+                        "REGISTRADO",
+                        null,
+                        "AYUDO",
+                        null,
+                        "NO_APLICA"
+                )));
         servicioService.create(new ServicioRequestDTO(
                 "Servicio de corte",
                 "Corte de planchas de policarbonato y perfiles a medida.",
@@ -220,12 +255,26 @@ public class CatalogoSeeder implements CommandLineRunner {
         );
     }
 
-    private record Semilla(String sku, String nombre, String descripcion, String slug, BigDecimal compra,
-                           BigDecimal venta, String unidad, boolean fraccionable, BigDecimal stock, String imagen) {
+    /**
+     * Semilla con los datos de un producto del catálogo inicial.
+     * Constructor secundario recibe precios como String para legibilidad.
+     */
+    private record Semilla(
+            String sku,
+            String nombre,
+            String descripcion,
+            String slug,
+            BigDecimal compra,
+            BigDecimal venta,
+            String unidad,
+            boolean fraccionable,
+            BigDecimal stock,
+            String imagen) {
+
         Semilla(String sku, String nombre, String descripcion, String slug, String compra, String venta,
                 String unidad, boolean fraccionable, String stock) {
-            this(sku, nombre, descripcion, slug, new BigDecimal(compra), new BigDecimal(venta), unidad, fraccionable,
-                    new BigDecimal(stock), null);
+            this(sku, nombre, descripcion, slug, new BigDecimal(compra), new BigDecimal(venta),
+                    unidad, fraccionable, new BigDecimal(stock), null);
         }
     }
 }

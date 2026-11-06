@@ -33,8 +33,10 @@ import com.policalum.erp.application.dto.request.ProductoImportacionRequestDTO;
 import com.policalum.erp.application.dto.request.ProductoRequestDTO;
 import com.policalum.erp.application.dto.response.ProductoImportacionResultadoDTO;
 import com.policalum.erp.application.dto.response.ProductoResponseDTO;
+import com.policalum.erp.application.dto.response.ProductoStockResumenDTO;
 import com.policalum.erp.application.service.ProductoImportacionService;
 import com.policalum.erp.application.service.ProductoService;
+import com.policalum.erp.application.service.StockService;
 import com.policalum.erp.application.service.serviceImpl.ProductoImagenService;
 import com.policalum.erp.domain.enums.TipoProducto;
 
@@ -54,12 +56,14 @@ public class ProductoController {
     private final ProductoService productoService;
     private final ProductoImportacionService productoImportacionService;
     private final ProductoImagenService productoImagenService;
+    private final StockService stockService;
 
     /**
      * Registra un nuevo producto en el sistema.
-     *
-     * @param requestDTO Datos del producto a crear.
-     * @return Producto creado y URI en cabecera Location.
+     * <p>
+     * Si el body incluye {@code almacenId} y {@code stockInicial > 0}, además se crea
+     * la fila de Stock en ese almacén y el movimiento de apertura en el Kardex.
+     * </p>
      */
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'productos', 'crear')")
@@ -76,10 +80,6 @@ public class ProductoController {
 
     /**
      * Actualiza la información de un producto existente.
-     *
-     * @param id Identificador único del producto.
-     * @param requestDTO Datos actualizados del producto.
-     * @return Producto actualizado.
      */
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'productos', 'editar')")
@@ -101,9 +101,6 @@ public class ProductoController {
 
     /**
      * Obtiene el detalle de un producto por su ID.
-     *
-     * @param id Identificador único del producto.
-     * @return Detalle del producto encontrado.
      */
     @GetMapping("/{id}")
     public ResponseEntity<ProductoResponseDTO> findById(@PathVariable UUID id) {
@@ -111,15 +108,20 @@ public class ProductoController {
     }
 
     /**
+     * Existencias del producto con almacén + sede. Útil para el form de edición.
+     */
+    @GetMapping("/{id}/stock")
+    public ResponseEntity<List<ProductoStockResumenDTO>> findStockByProducto(@PathVariable UUID id) {
+        return ResponseEntity.ok(stockService.findResumenPorProducto(id));
+    }
+
+    /**
      * Consulta paginada y filtrada del catálogo de productos.
-     *
-     * @param searchTerm Término de búsqueda por nombre o SKU (opcional).
-     * @param categoriaId Filtro por ID de categoría (opcional).
-     * @param tipo Filtro por tipo de producto (opcional).
-     * @param activo Filtro por estado del producto (opcional).
-     * @param esFraccionable Filtro por estado de fraccionabilidad (opcional).
-     * @param pageable Configuración de paginación (page, size, sort).
-     * @return Página con los productos filtrados.
+     * <p>
+     * Si se envía {@code sedeId} o {@code almacenId}, se filtra por ubicación:
+     * un producto aparece si tiene al menos una fila de Stock en un almacén de esa sede
+     * (o en el almacén indicado). Cantidad 0 cuenta como pertenencia.
+     * </p>
      */
     @GetMapping
     public ResponseEntity<Page<ProductoResponseDTO>> search(
@@ -128,18 +130,24 @@ public class ProductoController {
             @RequestParam(required = false) TipoProducto tipo,
             @RequestParam(required = false) Boolean activo,
             @RequestParam(required = false) Boolean esFraccionable,
+            @RequestParam(required = false) UUID sedeId,
+            @RequestParam(required = false) UUID almacenId,
             @PageableDefault(size = 20) Pageable pageable) {
 
-        Page<ProductoResponseDTO> result = productoService.search(
-                searchTerm, categoriaId, tipo, activo, esFraccionable, pageable);
+        Page<ProductoResponseDTO> result;
+        if (sedeId != null || almacenId != null) {
+            result = productoService.searchPorUbicacion(
+                    searchTerm, categoriaId, tipo, activo, esFraccionable, sedeId, almacenId, pageable);
+        } else {
+            result = productoService.search(
+                    searchTerm, categoriaId, tipo, activo, esFraccionable, pageable);
+        }
 
         return ResponseEntity.ok(result);
     }
 
     /**
      * Elimina un producto por su ID.
-     *
-     * @param id Identificador único del producto a eliminar.
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'productos', 'eliminar')")
@@ -153,10 +161,6 @@ public class ProductoController {
 
     /**
      * Verifica la disponibilidad de un código SKU.
-     *
-     * @param codigoSku Código SKU a verificar.
-     * @param excludeId ID a excluir en caso de actualización (opcional).
-     * @return Map indicando si el SKU está disponible.
      */
     @GetMapping("/check-sku")
     public ResponseEntity<Map<String, Boolean>> isSkuDisponible(
@@ -169,8 +173,6 @@ public class ProductoController {
 
     /**
      * Obtiene las estadísticas globales del catálogo para el dashboard.
-     *
-     * @return Métricas resumidas del inventario.
      */
     @GetMapping("/dashboard/statistics")
     public ResponseEntity<Map<String, Object>> getDashboardStatistics() {

@@ -1,4 +1,3 @@
-
 /* ============================================================
    POLICALUM ERP — INVENTARIO / PRODUCTOS
    Responsive: XXS / XS / S / M / L / XL / XXL
@@ -1566,4 +1565,165 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+
+/* ============================================================
+   24. SECCIONES DEL MODAL Y TABLA DE UBICACIONES (nuevo)
+   ============================================================ */
+
+/* Acordeón del modal de producto */
+
+.form-grid > details.acordeon {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.form-grid > details.acordeon > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  list-style: none;
+}
+
+.form-grid > details.acordeon > summary::-webkit-details-marker {
+  display: none;
+}
+
+.form-grid > details.acordeon > summary::after {
+  content: "▸";
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  transition: transform var(--transition-fast);
+}
+
+.form-grid > details.acordeon[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.form-grid > details.acordeon[open] > summary {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.form-grid > details.acordeon > .acordeon-cuerpo {
+  padding: 1rem;
+}
+
+.form-grid > details.acordeon .acordeon-cuerpo .acordeon {
+  margin-top: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* Tabla de ubicaciones en edición */
+
+.ubicaciones {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.ubicaciones h3 {
+  margin: 0 0 0.6rem;
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.ubicaciones-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.ubicaciones-tabla th,
+.ubicaciones-tabla td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.ubicaciones-tabla th {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ubicaciones-tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 639px) {
+
+  .form-grid > details.acordeon > summary {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .form-grid > details.acordeon > .acordeon-cuerpo {
+    padding: 0.75rem;
+  }
+
+  .ubicaciones-tabla {
+    display: block;
+    overflow-x: auto;
+    font-size: 0.75rem;
+  }
+
+  .ubicaciones-tabla thead {
+    display: none;
+  }
+
+  .ubicaciones-tabla tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .ubicaciones-tabla tr {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  .ubicaciones-tabla td {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    padding: 0.3rem 0.2rem;
+    border-bottom: 1px dashed var(--color-border);
+    white-space: normal;
+  }
+
+  .ubicaciones-tabla tr td:last-child {
+    border-bottom: none;
+  }
+
+  .ubicaciones-tabla td::before {
+    color: var(--color-text-muted);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .ubicaciones-tabla td:nth-child(1)::before { content: "Sede"; }
+  .ubicaciones-tabla td:nth-child(2)::before { content: "Almacén"; }
+  .ubicaciones-tabla td:nth-child(3)::before { content: "Cantidad"; }
+  .ubicaciones-tabla td:nth-child(4)::before { content: "Mínimo"; }
+  .ubicaciones-tabla td:nth-child(5)::before { content: "Máximo"; }
+  .ubicaciones-tabla td:nth-child(6)::before { content: "Reposición"; }
 }

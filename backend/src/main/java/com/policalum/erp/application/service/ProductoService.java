@@ -25,6 +25,11 @@ public interface ProductoService {
      * Si el producto es marcado como fraccionable ({@code esFraccionable = true}),
      * se generará o procesará automáticamente su catálogo de fracciones según las reglas de negocio.
      * </p>
+     * <p>
+     * Si el request incluye {@code almacenId} y {@code stockInicial > 0}, además se crea
+     * la fila de {@code Stock} en ese almacén y el movimiento de apertura en el Kardex.
+     * El stock inicial nunca se guarda en la tabla {@code productos}.
+     * </p>
      *
      * @param requestDTO Datos del producto a crear.
      * @return {@link ProductoResponseDTO} con los datos del producto creado y sus fracciones asignadas.
@@ -38,7 +43,7 @@ public interface ProductoService {
      * Conserva el identificador de cada fracción ya guardada (ventas y compras lo referencian)
      * y recalcula el precio solo cuando seguía siendo proporcional al precio base anterior.
      * </p>
-
+     *
      * @param id Identificador único del producto a actualizar.
      * @param requestDTO Datos actualizados del producto.
      * @return {@link ProductoResponseDTO} con los datos actualizados.
@@ -57,7 +62,7 @@ public interface ProductoService {
     ProductoResponseDTO findById(UUID id);
 
     /**
-     * Consulta paginada y filtrada de productos.
+     * Consulta paginada y filtrada de productos (sin filtro de ubicación).
      *
      * @param searchTerm Término de búsqueda para coincidencia por Nombre o SKU (opcional).
      * @param categoriaId Identificador de la categoría para filtrar (opcional).
@@ -65,10 +70,25 @@ public interface ProductoService {
      * @param activo Estado lógico del producto (opcional).
      * @param esFraccionable Indicador de fraccionabilidad (opcional).
      * @param pageable Configuración de paginación y ordenamiento.
-     * @return Pauta paginada {@link Page} de {@link ProductoResponseDTO}.
+     * @return Página paginada {@link Page} de {@link ProductoResponseDTO}.
      */
     Page<ProductoResponseDTO> search(String searchTerm, UUID categoriaId, TipoProducto tipo,
                                      Boolean activo, Boolean esFraccionable, Pageable pageable);
+
+    /**
+     * Consulta paginada y filtrada de productos con filtro opcional por sede y/o almacén.
+     * <p>
+     * Un producto aparece en la sede X si tiene al menos una fila de {@code Stock}
+     * en un almacén de esa sede (incluida cantidad 0). Si ambos son null, se comporta
+     * igual que {@link #search(String, UUID, TipoProducto, Boolean, Boolean, Pageable)}.
+     * </p>
+     *
+     * @param sedeId Identificador de la sede (opcional).
+     * @param almacenId Identificador del almacén (opcional, tiene prioridad sobre sedeId).
+     */
+    Page<ProductoResponseDTO> searchPorUbicacion(String searchTerm, UUID categoriaId, TipoProducto tipo,
+                                                 Boolean activo, Boolean esFraccionable,
+                                                 UUID sedeId, UUID almacenId, Pageable pageable);
 
     /**
      * Elimina un producto sin historial. Si tiene stock, kardex o documentos, lo deja inactivo.

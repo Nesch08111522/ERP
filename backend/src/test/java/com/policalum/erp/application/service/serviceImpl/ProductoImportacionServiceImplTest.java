@@ -176,8 +176,47 @@ class ProductoImportacionServiceImplTest {
                 new BigDecimal("10.00"), new BigDecimal("20.00"), "UNID", false, true, true, "10", null, stock, almacen);
     }
 
+    /**
+     * ProductoResponseDTO tiene 29 args en el orden:
+     * id, categoria, proveedor, codigoSku, nombre, descripcion, tipo,
+     * precioCompra, precioVentaBase, unidad, esFraccionable, activo,
+     * createdAt, incluyeIgv, tipoAfectacion, fracciones, imagen, destacado,
+     * precioOferta, ofertaPorcentaje, ofertaDesde, ofertaHasta, oferta,
+     * codigoProveedor, tiempoReposicionDias, permiteStockNegativo,
+     * precioMayorista, visibleCatalogo, disponibleVenta
+     */
     private ProductoResponseDTO respuesta(UUID id) {
-        return new ProductoResponseDTO(id, null, null, "A-1", "Uno", null, TipoProducto.FISICO,
-                BigDecimal.ONE, BigDecimal.TEN, "UNID", false, true, null, true, "10", List.of(), null, false, null, null, null, null, null);
+        return new ProductoResponseDTO(
+                id,                                     // id
+                null,                                   // categoria
+                null,                                   // proveedor
+                "A-1",                                  // codigoSku
+                "Uno",                                  // nombre
+                null,                                   // descripcion
+                TipoProducto.FISICO,                    // tipo
+                BigDecimal.ONE,                         // precioCompra
+                BigDecimal.TEN,                         // precioVentaBase
+                "UNID",                                 // unidad
+                false,                                  // esFraccionable
+                true,                                   // activo
+                null,                                   // createdAt
+                true,                                   // incluyeIgv
+                "10",                                   // tipoAfectacion
+                List.of(),                              // fracciones
+                null,                                   // imagen
+                false,                                  // destacado
+                // ── 11 args nuevos que el test viejo no pasaba ──
+                null,                                   // precioOferta
+                null,                                   // ofertaPorcentaje
+                null,                                   // ofertaDesde
+                null,                                   // ofertaHasta
+                false,                                  // oferta
+                null,                                   // codigoProveedor
+                null,                                   // tiempoReposicionDias
+                false,                                  // permiteStockNegativo
+                null,                                   // precioMayorista
+                true,                                   // visibleCatalogo
+                true                                    // disponibleVenta
+        );
     }
 }

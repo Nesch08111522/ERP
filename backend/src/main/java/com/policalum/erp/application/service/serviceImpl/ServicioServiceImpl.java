@@ -131,16 +131,37 @@ public class ServicioServiceImpl implements ServicioService {
         servicio.getColaboradores().clear();
         Set<UUID> vistos = new HashSet<>();
         for (ServicioColaboradorRequestDTO pedido : pedidos) {
-            if (pedido == null || pedido.userId() == null) {
-                throw new ValidationException("Cada persona del servicio debe ser un usuario existente");
+            if (pedido == null) continue;
+            
+            String tipo = pedido.tipoColaborador() != null && !pedido.tipoColaborador().isBlank()
+                    ? pedido.tipoColaborador().trim().toUpperCase()
+                    : (pedido.userId() != null ? "REGISTRADO" : "EXTERNO");
+
+            User usuario = null;
+            String nombreExt = null;
+
+            if ("REGISTRADO".equals(tipo)) {
+                if (pedido.userId() == null) {
+                    throw new ValidationException("Cada trabajador registrado debe ser un usuario existente");
+                }
+                if (!vistos.add(pedido.userId())) {
+                    throw new ValidationException("La misma persona está repetida en el equipo del servicio");
+                }
+                usuario = userRepository.findById(pedido.userId())
+                        .orElseThrow(() -> new ValidationException("No existe el usuario indicado para el servicio"));
+            } else {
+                if (pedido.nombreExterno() == null || pedido.nombreExterno().isBlank()) {
+                    throw new ValidationException("El nombre del colaborador externo es obligatorio");
+                }
+                nombreExt = pedido.nombreExterno().trim();
             }
-            if (!vistos.add(pedido.userId())) {
-                throw new ValidationException("La misma persona está repetida en el equipo del servicio");
-            }
-            User usuario = userRepository.findById(pedido.userId())
-                    .orElseThrow(() -> new ValidationException("No existe el usuario indicado para instalar o ayudar en el servicio"));
+
             ServicioColaborador colaborador = ServicioColaborador.builder()
                     .usuario(usuario)
+                    .tipoColaborador(tipo)
+                    .nombreExterno(nombreExt)
+                    .costo(pedido.costo())
+                    .estadoLiquidacion(pedido.estadoLiquidacion())
                     .participacion(normalizarParticipacion(pedido.participacion()))
                     .build();
             colaborador.setServicio(servicio);
@@ -166,7 +187,11 @@ public class ServicioServiceImpl implements ServicioService {
                         usuario != null ? usuario.getNombre() : null,
                         usuario != null ? usuario.getApellido() : null,
                         usuario != null ? usuario.getEmail() : null,
-                        colaborador.getParticipacion()));
+                        colaborador.getParticipacion(),
+                        colaborador.getTipoColaborador(),
+                        colaborador.getNombreExterno(),
+                        colaborador.getCosto(),
+                        colaborador.getEstadoLiquidacion()));
             }
         }
         ServicioResponseDTO base = servicioMapper.toResponseDto(servicio);

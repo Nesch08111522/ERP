@@ -41,9 +41,42 @@ class ProductoServiceImplTest {
         lenient().when(productoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
     }
 
+    /**
+     * Crea un ProductoRequestDTO con los 28 args del record.
+     * Los 12 últimos son de ubicación/inventario, que este test no ejercita: van en null/false.
+     */
     private ProductoRequestDTO request(String sku, boolean fraccionable, List<CatalogoFraccionRequestDTO> fracciones) {
-        return new ProductoRequestDTO(null, null, sku, "Policarbonato 6mm", null, TipoProducto.FISICO, new BigDecimal("80.00"),
-                new BigDecimal("150.00"), "unid", fraccionable, true, true, "10", fracciones, null, null);
+        return new ProductoRequestDTO(
+                null,                                   // categoriaId
+                null,                                   // proveedorId
+                sku,                                    // codigoSku
+                "Policarbonato 6mm",                    // nombre
+                null,                                   // descripcion
+                TipoProducto.FISICO,                    // tipo
+                new BigDecimal("80.00"),                // precioCompra
+                new BigDecimal("150.00"),               // precioVentaBase
+                "unid",                                 // unidad
+                fraccionable,                           // esFraccionable
+                true,                                   // activo
+                true,                                   // incluyeIgv
+                "10",                                   // tipoAfectacion
+                fracciones,                             // fracciones
+                null,                                   // imagen
+                null,                                   // destacado
+                // ── 12 args nuevos de ubicación/inventario ──
+                null,                                   // codigoProveedor
+                null,                                   // tiempoReposicionDias
+                false,                                  // permiteStockNegativo
+                null,                                   // precioMayorista
+                true,                                   // visibleCatalogo
+                true,                                   // disponibleVenta
+                null,                                   // sedeId
+                null,                                   // almacenId
+                null,                                   // stockInicial
+                null,                                   // stockMinimo
+                null,                                   // stockMaximo
+                null                                    // puntoReposicion
+        );
     }
 
     /** El mapper es un mock: devolvemos una entidad "como la mapearía" MapStruct, sin normalizar. */

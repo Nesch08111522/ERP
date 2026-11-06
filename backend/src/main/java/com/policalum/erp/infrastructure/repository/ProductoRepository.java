@@ -20,19 +20,6 @@ import com.policalum.erp.domain.model.Producto;
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, UUID> {
 
-    /**
-     * Búsqueda paginada de productos.
-     *
-     * IMPORTANTE:
-     * - El parámetro :searchTerm se castea a STRING dentro del JPQL para que PostgreSQL
-     *   sepa que debe tratarlo como TEXT y no como BYTEA. Sin esto, cuando :searchTerm
-     *   es null, PostgreSQL intenta aplicar lower()/like sobre un bytea y falla con:
-     *       ERROR: no existe la función lower(bytea)
-     *       ERROR: no existe la función pg_catalog.btrim(bytea)
-     * - Se usa CONCAT('%', ..., '%') en lugar del operador || para que Hibernate lo
-     *   traduzca de forma segura.
-     * - El servicio normaliza "" a null antes de llamar a este método.
-     */
     @EntityGraph(attributePaths = { "categoria", "proveedor" })
     @Query("SELECT p FROM Producto p WHERE "
             + "(CAST(:searchTerm AS string) IS NULL OR "
@@ -49,6 +36,7 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
                           @Param("esFraccionable") Boolean esFraccionable,
                           Pageable pageable);
 
+
     @Query("SELECT p FROM Producto p "
             + "LEFT JOIN FETCH p.categoria "
             + "LEFT JOIN FETCH p.proveedor "
@@ -56,10 +44,6 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
             + "WHERE p.id = :id")
     Optional<Producto> findWithRelationsById(@Param("id") UUID id);
 
-    /**
-     * Catálogo del portal: solo productos activos. q ya viene sin espacios o null.
-     * soloDestacados en false no filtra el flag.
-     */
     @EntityGraph(attributePaths = { "categoria" })
     @Query(value = "SELECT p FROM Producto p WHERE p.activo = true AND "
             + "(CAST(:categoriaId AS string) IS NULL OR p.categoria.id = :categoriaId) AND "
@@ -103,10 +87,6 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
 
     long countByTipo(TipoProducto tipo);
 
-    /**
-     * El producto participa en stock, kardex, compras, ventas u otros documentos.
-     * En ese caso no se borra: se desactiva para conservar el historial.
-     */
     @Query("""
             SELECT CASE WHEN
                 EXISTS (SELECT 1 FROM KardexMovimiento k WHERE k.producto.id = :id)
@@ -122,10 +102,6 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
             """)
     boolean tieneHistorial(@Param("id") UUID id);
 
-    /**
-     * SQL nativo: el UPDATE masivo con NOT EXISTS no es fiable en JPQL y PostgreSQL
-     * compara {@code created_at} como timestamp. :desde lo calcula el servicio (ahora − 90 días).
-     */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
             UPDATE productos p SET oferta = TRUE
@@ -150,4 +126,25 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
                 AND k.created_at >= :desde)
             """, nativeQuery = true)
     int quitarOfertasConRotacion(@Param("desde") LocalDateTime desde);
+
+@EntityGraph(attributePaths = { "categoria", "proveedor" })
+@Query("SELECT p FROM Producto p WHERE "
+        + "(CAST(:searchTerm AS string) IS NULL OR "
+        + " LOWER(p.nombre) LIKE LOWER(CONCAT('%', CAST(:searchTerm AS string), '%')) OR "
+        + " LOWER(COALESCE(p.codigoSku, '')) LIKE LOWER(CONCAT('%', CAST(:searchTerm AS string), '%'))) AND "
+        + "(CAST(:categoriaId AS string) IS NULL OR p.categoria.id = :categoriaId) AND "
+        + "(CAST(:tipo AS string) IS NULL OR p.tipo = :tipo) AND "
+        + "(CAST(:activo AS boolean) IS NULL OR p.activo = :activo) AND "
+        + "(CAST(:esFraccionable AS boolean) IS NULL OR p.esFraccionable = :esFraccionable) AND "
+        + "(CAST(:almacenId AS string) IS NULL OR EXISTS (SELECT 1 FROM Stock s WHERE s.producto = p AND s.almacen.id = :almacenId)) AND "
+        + "(CAST(:sedeId AS string) IS NULL OR EXISTS (SELECT 1 FROM Stock s WHERE s.producto = p AND s.almacen.sede.id = :sedeId))")
+Page<Producto> searchPorUbicacion(@Param("searchTerm") String searchTerm,
+                                  @Param("categoriaId") UUID categoriaId,
+                                  @Param("tipo") TipoProducto tipo,
+                                  @Param("activo") Boolean activo,
+                                  @Param("esFraccionable") Boolean esFraccionable,
+                                  @Param("sedeId") UUID sedeId,
+                                  @Param("almacenId") UUID almacenId,
+                                  Pageable pageable);
+
 }

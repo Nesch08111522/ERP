@@ -103,6 +103,24 @@ public class Producto {
     @Column(name = "tipo_afectacion", length = 10)
     private String tipoAfectacion = "10";
 
+    @Column(name = "codigo_proveedor", length = 50)
+    private String codigoProveedor;
+
+    @Column(name = "tiempo_reposicion_dias")
+    private Integer tiempoReposicionDias;
+
+    @Column(name = "permite_stock_negativo")
+    private Boolean permiteStockNegativo = false;
+
+    @Column(name = "precio_mayorista", precision = 12, scale = 2)
+    private BigDecimal precioMayorista;
+
+    @Column(name = "visible_catalogo")
+    private Boolean visibleCatalogo = true;
+
+    @Column(name = "disponible_venta")
+    private Boolean disponibleVenta = true;
+
     /**
      * Ruta relativa dentro del almacén de archivos (por ejemplo productos/2026/10/uuid.jpg)
      * o una URL http(s). No se guarda el binario en la columna.

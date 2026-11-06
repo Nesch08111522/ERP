@@ -188,7 +188,15 @@ public class ProductoImportacionServiceImpl implements ProductoImportacionServic
                 ? categoria.getId()
                 : (existente != null && existente.getCategoria() != null ? existente.getCategoria().getId() : null);
         UUID proveedorId = existente != null && existente.getProveedor() != null ? existente.getProveedor().getId() : null;
+        Boolean destacado = existente != null && Boolean.TRUE.equals(existente.getDestacado());
 
+        // El record ProductoRequestDTO tiene 28 parámetros en este orden:
+        // categoriaId, proveedorId, codigoSku, nombre, descripcion, tipo,
+        // precioCompra, precioVentaBase, unidad, esFraccionable, activo,
+        // incluyeIgv, tipoAfectacion, fracciones, imagen, destacado,
+        // codigoProveedor, tiempoReposicionDias, permiteStockNegativo,
+        // precioMayorista, visibleCatalogo, disponibleVenta,
+        // sedeId, almacenId, stockInicial, stockMinimo, stockMaximo, puntoReposicion
         return new ProductoRequestDTO(
                 categoriaId,
                 proveedorId,
@@ -205,7 +213,20 @@ public class ProductoImportacionServiceImpl implements ProductoImportacionServic
                 afectacion,
                 fraccionesDe(existente, fraccionable),
                 imagen,
-                existente != null && Boolean.TRUE.equals(existente.getDestacado()));
+                destacado,
+                existente != null ? existente.getCodigoProveedor() : null,
+                existente != null ? existente.getTiempoReposicionDias() : null,
+                existente != null ? existente.getPermiteStockNegativo() : null,
+                existente != null ? existente.getPrecioMayorista() : null,
+                existente != null ? existente.getVisibleCatalogo() : null,
+                existente != null ? existente.getDisponibleVenta() : null,
+                null,   // sedeId (la importación lo maneja aparte)
+                null,   // almacenId (la importación lo maneja aparte)
+                null,   // stockInicial (la importación lo maneja aparte)
+                null,   // stockMinimo
+                null,   // stockMaximo
+                null    // puntoReposicion
+        );
     }
 
     private List<CatalogoFraccionRequestDTO> fraccionesDe(Producto existente, Boolean fraccionable) {

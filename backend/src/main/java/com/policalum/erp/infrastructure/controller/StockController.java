@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.policalum.erp.application.dto.request.StockRequestDTO;
+import com.policalum.erp.application.dto.response.ProductoStockResumenDTO;
 import com.policalum.erp.application.dto.response.StockResponseDTO;
 import com.policalum.erp.application.service.StockService;
 
@@ -54,6 +55,15 @@ public class StockController {
     @GetMapping("/producto/{productoId}")
     public ResponseEntity<List<StockResponseDTO>> getStockByProducto(@PathVariable UUID productoId) {
         return ResponseEntity.ok(stockService.findByProducto(productoId));
+    }
+
+    /**
+     * NUEVO: resumen de existencias de un producto con almacén + sede.
+     * Útil para el form de edición y para el listado multisede.
+     */
+    @GetMapping("/producto/{productoId}/resumen")
+    public ResponseEntity<List<ProductoStockResumenDTO>> getResumenByProducto(@PathVariable UUID productoId) {
+        return ResponseEntity.ok(stockService.findResumenPorProducto(productoId));
     }
 
     @PostMapping

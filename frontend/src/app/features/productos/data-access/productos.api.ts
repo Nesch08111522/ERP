@@ -9,11 +9,42 @@ import * as Api from '../../../core/api/openapi.types';
 export class ProductosApiService {
   constructor(private readonly api: BackendApiService) {}
 
-  GetApiV1Productos(params: QueryMap = {}): Observable<Api.PageProductoResponseDTO> { return this.api.execute<Api.PageProductoResponseDTO>(ENDPOINT_BY_ID["GET_api_v1_productos"], params, params); }
-  PostApiV1Productos(params: QueryMap = {}, body: Api.ProductoRequestDTO): Observable<Api.ProductoResponseDTO> { return this.api.execute<Api.ProductoResponseDTO>(ENDPOINT_BY_ID["POST_api_v1_productos"], params, params, body); }
-  GetApiV1ProductosCheckSku(params: QueryMap = {}): Observable<Record<string, unknown>> { return this.api.execute<Record<string, unknown>>(ENDPOINT_BY_ID["GET_api_v1_productos_check_sku"], params, params); }
-  GetApiV1ProductosDashboardStatistics(params: QueryMap = {}): Observable<Record<string, unknown>> { return this.api.execute<Record<string, unknown>>(ENDPOINT_BY_ID["GET_api_v1_productos_dashboard_statistics"], params, params); }
-  DeleteApiV1ProductosId(params: QueryMap = {}): Observable<unknown> { return this.api.execute<unknown>(ENDPOINT_BY_ID["DELETE_api_v1_productos_id"], params, params); }
-  GetApiV1ProductosId(params: QueryMap = {}): Observable<Api.ProductoResponseDTO> { return this.api.execute<Api.ProductoResponseDTO>(ENDPOINT_BY_ID["GET_api_v1_productos_id"], params, params); }
-  PutApiV1ProductosId(params: QueryMap = {}, body: Api.ProductoRequestDTO): Observable<Api.ProductoResponseDTO> { return this.api.execute<Api.ProductoResponseDTO>(ENDPOINT_BY_ID["PUT_api_v1_productos_id"], params, params, body); }
+  GetApiV1Productos(params: QueryMap = {}): Observable<Api.PageProductoResponseDTO> {
+    return this.api.execute<Api.PageProductoResponseDTO>(ENDPOINT_BY_ID["GET_api_v1_productos"], params, params);
+  }
+
+  PostApiV1Productos(params: QueryMap = {}, body: Api.ProductoRequestDTO): Observable<Api.ProductoResponseDTO> {
+    return this.api.execute<Api.ProductoResponseDTO>(ENDPOINT_BY_ID["POST_api_v1_productos"], params, params, body);
+  }
+
+  GetApiV1ProductosCheckSku(params: QueryMap = {}): Observable<Record<string, unknown>> {
+    return this.api.execute<Record<string, unknown>>(ENDPOINT_BY_ID["GET_api_v1_productos_check_sku"], params, params);
+  }
+
+  GetApiV1ProductosDashboardStatistics(params: QueryMap = {}): Observable<Record<string, unknown>> {
+    return this.api.execute<Record<string, unknown>>(ENDPOINT_BY_ID["GET_api_v1_productos_dashboard_statistics"], params, params);
+  }
+
+  DeleteApiV1ProductosId(params: QueryMap = {}): Observable<unknown> {
+    return this.api.execute<unknown>(ENDPOINT_BY_ID["DELETE_api_v1_productos_id"], params, params);
+  }
+
+  GetApiV1ProductosId(params: QueryMap = {}): Observable<Api.ProductoResponseDTO> {
+    return this.api.execute<Api.ProductoResponseDTO>(ENDPOINT_BY_ID["GET_api_v1_productos_id"], params, params);
+  }
+
+  PutApiV1ProductosId(params: QueryMap = {}, body: Api.ProductoRequestDTO): Observable<Api.ProductoResponseDTO> {
+    return this.api.execute<Api.ProductoResponseDTO>(ENDPOINT_BY_ID["PUT_api_v1_productos_id"], params, params, body);
+  }
+
+  /** NUEVO: existencias del producto con almacén + sede. Para el form de edición. */
+  GetApiV1ProductosIdStock(params: QueryMap = {}): Observable<Api.ProductoStockResumenDTO[]> {
+    const id = String(params['id'] ?? '');
+    const { id: _ignored, ...rest } = params;
+    return this.api.execute<Api.ProductoStockResumenDTO[]>(
+      ENDPOINT_BY_ID["GET_api_v1_productos_id_stock"],
+      { ...rest, id },
+      { id },
+    );
+  }
 }

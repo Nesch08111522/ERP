@@ -31,6 +31,12 @@ public record ProductoResponseDTO(
         BigDecimal ofertaPorcentaje,
         LocalDate ofertaDesde,
         LocalDate ofertaHasta,
-        Boolean oferta
+        Boolean oferta,
+        String codigoProveedor,
+        Integer tiempoReposicionDias,
+        Boolean permiteStockNegativo,
+        BigDecimal precioMayorista,
+        Boolean visibleCatalogo,
+        Boolean disponibleVenta
 ) {
 }

@@ -46,7 +46,10 @@ public class ProductoImagenService {
         return fileStorageService.guardar(archivo, "productos");
     }
 
-    /** Si llega un archivo, guarda la ruta relativa. Si no, conserva la URL o la ruta que ya trae el DTO. */
+    /**
+     * Si llega un archivo, guarda la ruta relativa. Si no, conserva la URL o la
+     * ruta que ya trae el DTO.
+     */
     public ProductoRequestDTO aplicar(ProductoRequestDTO dto, MultipartFile archivo) {
         if (archivo == null || archivo.isEmpty()) {
             return dto;
@@ -68,7 +71,19 @@ public class ProductoImagenService {
                 dto.tipoAfectacion(),
                 dto.fracciones(),
                 ruta,
-                dto.destacado());
+                dto.destacado(),
+                dto.codigoProveedor(),
+                dto.tiempoReposicionDias(),
+                dto.permiteStockNegativo(),
+                dto.precioMayorista(),
+                dto.visibleCatalogo(),
+                dto.disponibleVenta(),
+                dto.sedeId(),
+                dto.almacenId(),
+                dto.stockInicial(),
+                dto.stockMinimo(),
+                dto.stockMaximo(),
+                dto.puntoReposicion());
     }
 
     public Resource cargar(String ruta) {

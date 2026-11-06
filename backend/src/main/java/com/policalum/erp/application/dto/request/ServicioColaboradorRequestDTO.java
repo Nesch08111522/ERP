@@ -1,12 +1,14 @@
 package com.policalum.erp.application.dto.request;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
-import jakarta.validation.constraints.NotNull;
-
 public record ServicioColaboradorRequestDTO(
-        @NotNull(message = "El usuario del equipo es requerido")
         UUID userId,
-        String participacion
+        String participacion,
+        String tipoColaborador,
+        String nombreExterno,
+        BigDecimal costo,
+        String estadoLiquidacion
 ) {
 }

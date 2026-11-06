@@ -14,6 +14,9 @@
           <app-form-field label="Sede" inputId="prod-sede">
             <app-select inputId="prod-sede" [options]="sedes" placeholder="Todas las sedes" [formControl]="filtros.controls.sedeId"></app-select>
           </app-form-field>
+          <app-form-field label="Almacén" inputId="prod-alm">
+            <app-select inputId="prod-alm" [options]="almacenesFiltro" placeholder="Todos los almacenes" [formControl]="filtros.controls.almacenId"></app-select>
+          </app-form-field>
           <div class="stock-filtro">
             <span>Stock</span>
             <div class="chips" role="group" aria-label="Filtrar por stock">
@@ -150,63 +153,186 @@
 <app-modal [closable]="!guardando" [open]="modal" [title]="editando ? 'Editar producto' : 'Nuevo producto'" size="lg" (closed)="modal = false">
   <form class="form-grid" [formGroup]="form">
     <div *ngIf="errorFormulario" class="alert alert-error span-2">{{ errorFormulario }}</div>
-    <app-form-field label="Nombre" inputId="prod-nombre" [required]="true" [error]="errorDe('nombre')"><input id="prod-nombre" class="input" formControlName="nombre" /></app-form-field>
-    <app-form-field label="SKU" inputId="prod-sku"><input id="prod-sku" class="input" formControlName="codigoSku" /></app-form-field>
-    <app-form-field label="Categoría" inputId="prod-categoria"><app-select inputId="prod-categoria" [options]="categorias" placeholder="Sin categoría" formControlName="categoriaId"></app-select></app-form-field>
-    <app-form-field label="Proveedor" inputId="prod-prov"><app-select inputId="prod-prov" [options]="proveedores" placeholder="Sin proveedor" formControlName="proveedorId"></app-select></app-form-field>
-    <app-form-field label="Tipo" inputId="prod-tipo-f" [required]="true"><select id="prod-tipo-f" class="select" formControlName="tipo"><option value="FISICO">Físico</option><option value="SERVICIO">Servicio</option></select></app-form-field>
-    <app-form-field label="Unidad" inputId="prod-unidad"><input id="prod-unidad" class="input" formControlName="unidad" /></app-form-field>
-    <app-form-field label="Precio de compra" inputId="prod-compra" [required]="true" [error]="errorDe('precioCompra')"><input id="prod-compra" class="input" type="number" min="0" step="0.01" formControlName="precioCompra" /></app-form-field>
-    <app-form-field label="Precio de venta" inputId="prod-venta" [required]="true" [error]="errorDe('precioVentaBase')"><input id="prod-venta" class="input" type="number" min="0" step="0.01" formControlName="precioVentaBase" /></app-form-field>
-    <div class="span-2 acordeon">
-      <details [open]="form.controls.enOferta.value">
-        <summary>Oferta en el sitio web</summary>
-        <div class="acordeon-cuerpo">
-          <label class="check-row"><input class="checkbox" type="checkbox" formControlName="enOferta" /> Poner este producto en oferta</label>
-          <div class="form-grid" *ngIf="form.controls.enOferta.value">
-            <app-form-field label="Descuento %" inputId="prod-desc-oferta" hint="Al cambiar el porcentaje se calcula el precio nuevo.">
-              <input id="prod-desc-oferta" class="input" type="number" min="0.01" max="99.99" step="0.01" formControlName="ofertaPorcentaje" />
-            </app-form-field>
-            <app-form-field label="Precio de oferta" inputId="prod-precio-oferta" hint="También puedes escribir el precio. El porcentaje se ajusta solo.">
-              <input id="prod-precio-oferta" class="input" type="number" min="0.01" step="0.01" formControlName="precioOferta" />
-            </app-form-field>
-            <app-form-field label="Días desde hoy" inputId="prod-dias-oferta" hint="Al guardar, el plazo empieza hoy y termina al cabo de estos días.">
-              <input id="prod-dias-oferta" class="input" type="number" min="1" max="365" step="1" formControlName="ofertaDias" />
-            </app-form-field>
-            <p class="ganancia" [class.baja]="gananciaOferta < 0">
-              Antes {{ form.controls.precioVentaBase.value | pen }}. Ahora {{ form.controls.precioOferta.value | pen }}.
-              Ganancia por unidad {{ gananciaOferta | pen }}: precio de oferta menos precio de compra.
-            </p>
+
+    <!-- ═══════════ 01. INFORMACIÓN GENERAL ═══════════ -->
+    <details class="acordeon span-2" open>
+      <summary>01. Información general</summary>
+      <div class="acordeon-cuerpo">
+        <div class="form-grid">
+          <app-form-field label="Nombre" inputId="prod-nombre" [required]="true" [error]="errorDe('nombre')">
+            <input id="prod-nombre" class="input" formControlName="nombre" />
+          </app-form-field>
+          <app-form-field label="SKU" inputId="prod-sku">
+            <input id="prod-sku" class="input" formControlName="codigoSku" />
+          </app-form-field>
+          <app-form-field label="Categoría" inputId="prod-categoria">
+            <app-select inputId="prod-categoria" [options]="categorias" placeholder="Sin categoría" formControlName="categoriaId"></app-select>
+          </app-form-field>
+          <app-form-field label="Tipo" inputId="prod-tipo-f" [required]="true">
+            <select id="prod-tipo-f" class="select" formControlName="tipo">
+              <option value="FISICO">Físico</option>
+              <option value="SERVICIO">Servicio</option>
+            </select>
+          </app-form-field>
+          <app-form-field label="Unidad" inputId="prod-unidad">
+            <input id="prod-unidad" class="input" formControlName="unidad" />
+          </app-form-field>
+          <app-form-field label="Incluye IGV" inputId="prod-igv">
+            <input id="prod-igv" class="switch" type="checkbox" formControlName="incluyeIgv" />
+          </app-form-field>
+          <app-form-field class="span-2" label="Descripción" inputId="prod-desc">
+            <textarea id="prod-desc" class="textarea" formControlName="descripcion"></textarea>
+          </app-form-field>
+          <div class="span-2 imagen-bloque">
+            <span class="imagen-titulo">Imagen</span>
+            <div class="chips" role="group" aria-label="Modo de imagen">
+              <button type="button" [class.active]="modoImagen === 'archivo'" (click)="usarModoImagen('archivo')">Subir archivo</button>
+              <button type="button" [class.active]="modoImagen === 'url'" (click)="usarModoImagen('url')">Pegar URL</button>
+            </div>
+            <label *ngIf="modoImagen === 'archivo'" class="file-field" for="prod-archivo">
+              <input id="prod-archivo" class="file-input" type="file" accept="image/png,image/jpeg,image/webp" (change)="elegirImagen($event)" />
+              <span>{{ archivoPendiente ? archivoPendiente.name : 'Elegir imagen PNG, JPG o WEBP' }}</span>
+            </label>
+            <input *ngIf="modoImagen === 'url'" id="prod-imagen-url" class="input" type="url" formControlName="imagen" placeholder="https://…" (input)="actualizarVistaUrl()" />
+            <img *ngIf="vistaPrevia" class="vista-previa" [src]="vistaPrevia" alt="Vista previa de la imagen del producto" />
+            <p class="ayuda" *ngIf="modoImagen === 'archivo'">El archivo queda en el servidor. En la base solo se guarda la ruta.</p>
+            <p class="ayuda" *ngIf="modoImagen === 'url'">Pega un enlace http(s). El servidor no descarga la imagen.</p>
           </div>
         </div>
-      </details>
-    </div>
-    <app-form-field class="span-2" label="Descripción" inputId="prod-desc"><textarea id="prod-desc" class="textarea" formControlName="descripcion"></textarea></app-form-field>
-    <div class="span-2 imagen-bloque">
-      <span class="imagen-titulo">Imagen</span>
-      <div class="chips" role="group" aria-label="Modo de imagen">
-        <button type="button" [class.active]="modoImagen === 'archivo'" (click)="usarModoImagen('archivo')">Subir archivo</button>
-        <button type="button" [class.active]="modoImagen === 'url'" (click)="usarModoImagen('url')">Pegar URL</button>
       </div>
-      <label *ngIf="modoImagen === 'archivo'" class="file-field" for="prod-archivo">
-        <input id="prod-archivo" class="file-input" type="file" accept="image/png,image/jpeg,image/webp" (change)="elegirImagen($event)" />
-        <span>{{ archivoPendiente ? archivoPendiente.name : 'Elegir imagen PNG, JPG o WEBP' }}</span>
-      </label>
-      <input *ngIf="modoImagen === 'url'" id="prod-imagen-url" class="input" type="url" formControlName="imagen" placeholder="https://…" (input)="actualizarVistaUrl()" />
-      <img *ngIf="vistaPrevia" class="vista-previa" [src]="vistaPrevia" alt="Vista previa de la imagen del producto" />
-      <p class="ayuda" *ngIf="modoImagen === 'archivo'">El archivo queda en el servidor. En la base solo se guarda la ruta.</p>
-      <p class="ayuda" *ngIf="modoImagen === 'url'">Pega un enlace http(s). El servidor no descarga la imagen.</p>
-    </div>
-    <app-form-field label="Activo" inputId="prod-act"><input id="prod-act" class="switch" type="checkbox" formControlName="activo" /></app-form-field>
-    <app-form-field label="Fraccionable" inputId="prod-esfrac"><input id="prod-esfrac" class="switch" type="checkbox" formControlName="esFraccionable" /></app-form-field>
-    <app-form-field label="Destacado en la web" inputId="prod-dest" hint="Aparece en la portada del portal público."><input id="prod-dest" class="switch" type="checkbox" formControlName="destacado" /></app-form-field>
-    <app-form-field label="Incluye IGV" inputId="prod-igv"><input id="prod-igv" class="switch" type="checkbox" formControlName="incluyeIgv" /></app-form-field>
+    </details>
+
+    <!-- ═══════════ 02. ABASTECIMIENTO ═══════════ -->
+    <details class="acordeon span-2">
+      <summary>02. Abastecimiento</summary>
+      <div class="acordeon-cuerpo">
+        <div class="form-grid">
+          <app-form-field class="span-2" label="Proveedor principal" inputId="prod-prov">
+            <app-select inputId="prod-prov" [options]="proveedores" placeholder="Sin proveedor" formControlName="proveedorId"></app-select>
+          </app-form-field>
+        </div>
+      </div>
+    </details>
+
+    <!-- ═══════════ 03. UBICACIÓN E INVENTARIO (solo FISICO) ═══════════ -->
+    <details class="acordeon span-2" *ngIf="form.controls.tipo.value !== 'SERVICIO'" [open]="editando">
+      <summary>03. Ubicación e inventario</summary>
+      <div class="acordeon-cuerpo">
+        <div class="form-grid">
+          <app-form-field label="Sede" inputId="prod-sede-f">
+            <app-select inputId="prod-sede-f" [options]="sedes" placeholder="Sin sede" formControlName="sedeId"></app-select>
+          </app-form-field>
+          <app-form-field label="Almacén" inputId="prod-alm-f">
+            <app-select inputId="prod-alm-f" [options]="almacenes" placeholder="Sin almacén" formControlName="almacenId"></app-select>
+          </app-form-field>
+          <app-form-field label="Stock inicial" inputId="prod-stock-ini">
+            <input id="prod-stock-ini" class="input" type="number" min="0" step="0.01" formControlName="stockInicial" />
+          </app-form-field>
+          <app-form-field label="Stock mínimo" inputId="prod-stock-min">
+            <input id="prod-stock-min" class="input" type="number" min="0" step="0.01" formControlName="stockMinimo" />
+          </app-form-field>
+          <app-form-field label="Stock máximo" inputId="prod-stock-max">
+            <input id="prod-stock-max" class="input" type="number" min="0" step="0.01" formControlName="stockMaximo" />
+          </app-form-field>
+          <app-form-field label="Punto de reposición" inputId="prod-repo-punto">
+            <input id="prod-repo-punto" class="input" type="number" min="0" step="0.01" formControlName="puntoReposicion" />
+          </app-form-field>
+          <app-form-field label="Fraccionable" inputId="prod-esfrac">
+            <input id="prod-esfrac" class="switch" type="checkbox" formControlName="esFraccionable" />
+          </app-form-field>
+        </div>
+
+        <div class="ubicaciones" *ngIf="editando && (stockUbicaciones.length || cargandoStock)">
+          <h3>Ubicaciones registradas</h3>
+          <p class="ayuda" *ngIf="cargandoStock">Cargando ubicaciones…</p>
+          <table class="table ubicaciones-tabla" *ngIf="!cargandoStock && stockUbicaciones.length">
+            <thead>
+              <tr>
+                <th>Sede</th>
+                <th>Almacén</th>
+                <th>Cantidad</th>
+                <th>Mínimo</th>
+                <th>Máximo</th>
+                <th>Punto reposición</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let u of stockUbicaciones">
+                <td>{{ u.sedeNombre || '—' }}</td>
+                <td>{{ u.almacenNombre || '—' }}</td>
+                <td>{{ u.cantidad | number:'1.0-2' }}</td>
+                <td>{{ u.stockMinimo | number:'1.0-2' }}</td>
+                <td>{{ u.stockMaximo | number:'1.0-2' }}</td>
+                <td>{{ u.puntoReposicion | number:'1.0-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="ayuda" *ngIf="!cargandoStock && !stockUbicaciones.length">Sin ubicaciones registradas.</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- ═══════════ 04. PRECIOS E IMPUESTOS ═══════════ -->
+    <details class="acordeon span-2" open>
+      <summary>04. Precios e impuestos</summary>
+      <div class="acordeon-cuerpo">
+        <div class="form-grid">
+          <app-form-field label="Precio de compra" inputId="prod-compra" [required]="true" [error]="errorDe('precioCompra')">
+            <input id="prod-compra" class="input" type="number" min="0" step="0.01" formControlName="precioCompra" />
+          </app-form-field>
+          <app-form-field label="Precio de venta" inputId="prod-venta" [required]="true" [error]="errorDe('precioVentaBase')">
+            <input id="prod-venta" class="input" type="number" min="0" step="0.01" formControlName="precioVentaBase" />
+          </app-form-field>
+          <p class="ganancia span-2" [class.baja]="gananciaOferta < 0">
+            Ganancia por unidad {{ gananciaOferta | pen }} (precio de venta menos precio de compra).
+          </p>
+        </div>
+        <details class="acordeon" [open]="form.controls.enOferta.value">
+          <summary>Oferta en el sitio web</summary>
+          <div class="acordeon-cuerpo">
+            <label class="check-row"><input class="checkbox" type="checkbox" formControlName="enOferta" /> Poner este producto en oferta</label>
+            <div class="form-grid" *ngIf="form.controls.enOferta.value">
+              <app-form-field label="Descuento %" inputId="prod-desc-oferta" hint="Al cambiar el porcentaje se calcula el precio nuevo.">
+                <input id="prod-desc-oferta" class="input" type="number" min="0.01" max="99.99" step="0.01" formControlName="ofertaPorcentaje" />
+              </app-form-field>
+              <app-form-field label="Precio de oferta" inputId="prod-precio-oferta" hint="También puedes escribir el precio. El porcentaje se ajusta solo.">
+                <input id="prod-precio-oferta" class="input" type="number" min="0.01" step="0.01" formControlName="precioOferta" />
+              </app-form-field>
+              <app-form-field label="Días desde hoy" inputId="prod-dias-oferta" hint="Al guardar, el plazo empieza hoy y termina al cabo de estos días.">
+                <input id="prod-dias-oferta" class="input" type="number" min="1" max="365" step="1" formControlName="ofertaDias" />
+              </app-form-field>
+              <p class="ganancia span-2" [class.baja]="gananciaOferta < 0">
+                Antes {{ form.controls.precioVentaBase.value | pen }}. Ahora {{ form.controls.precioOferta.value | pen }}.
+                Ganancia por unidad {{ gananciaOferta | pen }}: precio de oferta menos precio de compra.
+              </p>
+            </div>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <!-- ═══════════ 05. PUBLICACIÓN Y ESTADO ═══════════ -->
+    <details class="acordeon span-2">
+      <summary>05. Publicación y estado</summary>
+      <div class="acordeon-cuerpo">
+        <div class="form-grid">
+          <app-form-field label="Activo" inputId="prod-act">
+            <input id="prod-act" class="switch" type="checkbox" formControlName="activo" />
+          </app-form-field>
+          <app-form-field label="Destacado en la web" inputId="prod-dest" hint="Aparece en la portada del portal público.">
+            <input id="prod-dest" class="switch" type="checkbox" formControlName="destacado" />
+          </app-form-field>
+        </div>
+      </div>
+    </details>
   </form>
+
   <div modalFooter>
     <button type="button" class="btn btn-ghost" (click)="modal = false" [disabled]="guardando">Cancelar</button>
     <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
   </div>
 </app-modal>
+
 <app-modal [closable]="!importando" [open]="modalImportar" title="Importar productos" size="lg" (closed)="modalImportar = false">
   <div class="importar">
     <p>El archivo se lee en el navegador y se envía como JSON. Si una fila falla, no se guarda ninguna.</p>
@@ -230,4 +356,5 @@
     <button type="button" class="btn btn-ghost" (click)="modalImportar = false" [disabled]="importando">Cerrar</button>
   </div>
 </app-modal>
+
 <app-confirm-dialog [open]="confirmar" [title]="accion === 'desactivar' ? 'Desactivar producto' : 'Eliminar producto'" [message]="accion === 'desactivar' ? 'El producto dejará de estar activo en el catálogo.' : 'Si ' + (seleccionado?.nombre || 'este producto') + ' no tiene movimientos, se elimina. Si tiene kardex o ventas, se conserva inactivo.'" [confirmLabel]="accion === 'desactivar' ? 'Desactivar' : 'Eliminar'" [loading]="eliminando" (confirm)="confirmarAccion()" (cancel)="confirmar = false"></app-confirm-dialog>

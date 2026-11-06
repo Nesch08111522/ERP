@@ -21,8 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "servicio_colaboradores",
-        uniqueConstraints = @UniqueConstraint(name = "uq_servicio_usuario", columnNames = {"servicio_id", "user_id"}))
+@Table(name = "servicio_colaboradores")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -40,9 +39,25 @@ public class ServicioColaborador {
     @JoinColumn(name = "servicio_id", nullable = false)
     private Servicio servicio;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "user_id", nullable = true)
     private User usuario;
+
+    /** REGISTRADO o EXTERNO */
+    @Column(name = "tipo_colaborador", nullable = false, length = 20)
+    private String tipoColaborador;
+
+    /** Nombre de la persona externa si tipoColaborador == EXTERNO */
+    @Column(name = "nombre_externo", length = 150)
+    private String nombreExterno;
+
+    /** Costo imputado para el servicio o tarifa externa */
+    @Column(precision = 12, scale = 2)
+    private java.math.BigDecimal costo;
+
+    /** PENDIENTE, PAGADO, NO_APLICA */
+    @Column(name = "estado_liquidacion", length = 20)
+    private String estadoLiquidacion;
 
     /** INSTALO o AYUDO. Quien trabajó la instalación del servicio. */
     @Column(nullable = false, length = 20)
@@ -52,6 +67,12 @@ public class ServicioColaborador {
     void prePersist() {
         if (this.participacion == null || this.participacion.isBlank()) {
             this.participacion = "AYUDO";
+        }
+        if (this.tipoColaborador == null || this.tipoColaborador.isBlank()) {
+            this.tipoColaborador = this.usuario != null ? "REGISTRADO" : "EXTERNO";
+        }
+        if (this.estadoLiquidacion == null || this.estadoLiquidacion.isBlank()) {
+            this.estadoLiquidacion = "REGISTRADO".equalsIgnoreCase(this.tipoColaborador) ? "NO_APLICA" : "PENDIENTE";
         }
     }
 }

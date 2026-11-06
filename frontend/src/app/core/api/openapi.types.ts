@@ -2917,3 +2917,39 @@ export interface VentasResumenDTO {
   total?: number;
   totalMenosDevoluciones?: number;
 }
+
+export interface ProductoRequestDTO {
+  activo: boolean;
+  categoriaId?: string;
+  codigoSku?: string;
+  descripcion?: string;
+  esFraccionable: boolean;
+  fracciones?: Array<CatalogoFraccionRequestDTO>;
+  incluyeIgv?: boolean;
+  nombre: string;
+  precioCompra: number;
+  precioVentaBase: number;
+  proveedorId?: string;
+  tipo: "FISICO" | "SERVICIO";
+  tipoAfectacion?: string;
+  unidad?: string;
+  imagen?: string;
+  destacado?: boolean;
+  sedeId?: string;
+  almacenId?: string;
+  stockInicial?: number;
+  stockMinimo?: number;
+  stockMaximo?: number;
+  puntoReposicion?: number;
+}
+export interface ProductoStockResumenDTO {
+  stockId?: string;
+  almacenId?: string;
+  almacenNombre?: string;
+  sedeId?: string;
+  sedeNombre?: string;
+  cantidad?: number;
+  stockMinimo?: number;
+  stockMaximo?: number;
+  puntoReposicion?: number;
+}

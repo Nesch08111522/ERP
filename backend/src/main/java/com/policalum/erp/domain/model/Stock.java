@@ -50,6 +50,12 @@ public class Stock {
     @Column(name = "stock_minimo", precision = 12, scale = 4)
     private BigDecimal stockMinimo = BigDecimal.ZERO;
 
+    @Column(name = "stock_maximo", precision = 12, scale = 4)
+    private BigDecimal stockMaximo;
+
+    @Column(name = "punto_reposicion", precision = 12, scale = 4)
+    private BigDecimal puntoReposicion;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 

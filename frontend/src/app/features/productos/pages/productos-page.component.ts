@@ -1,4 +1,3 @@
-
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import {
@@ -45,6 +44,7 @@ import { SelectComponent } from '../../../shared/components/select/select.compon
 import { SelectOption } from '../../../shared/models/ui.models';
 import { PenPipe } from '../../../shared/pipes/format.pipes';
 
+import { AlmacenService } from '../../../shared/services/almacen.service';
 import { InventarioSyncService } from '../../../shared/services/inventario-sync.service';
 import { LookupService } from '../../../shared/services/lookup.service';
 import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
@@ -142,6 +142,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
   private readonly inventario = inject(InventarioSyncService);
   private readonly sedeFiltro = inject(SedeFiltroService);
+  private readonly almacenService = inject(AlmacenService);
 
   readonly state = new PageState<Api.ProductoResponseDTO>();
 
@@ -162,6 +163,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     searchTerm: [''],
     categoriaId: [''],
     sedeId: [''],
+    almacenId: [''],
     tipo: [''],
     activo: [''],
     esFraccionable: [''],
@@ -193,6 +195,13 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     ofertaPorcentaje: [0],
     precioOferta: [0],
     ofertaDias: [7],
+    /* ── Ubicación e inventario ── */
+    sedeId: [''],
+    almacenId: [''],
+    stockInicial: [0, [Validators.min(0)]],
+    stockMinimo: [0, [Validators.min(0)]],
+    stockMaximo: [0, [Validators.min(0)]],
+    puntoReposicion: [0, [Validators.min(0)]],
   });
 
   /* =========================================================
@@ -202,6 +211,11 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   categorias: SelectOption[] = [];
   proveedores: SelectOption[] = [];
   sedes: SelectOption[] = [];
+  almacenes: SelectOption[] = [];
+  almacenesFiltro: SelectOption[] = [];
+
+  stockUbicaciones: Api.ProductoStockResumenDTO[] = [];
+  cargandoStock = false;
 
   dashboard: Api.StockDashboardDTO | null = null;
   alertas: Api.SaldoKardexDTO[] = [];
@@ -284,31 +298,23 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
     this.state.sort = 'nombre,asc';
 
-    /* Actualización automática de catálogos. */
     effect(() => {
       this.lookup.revision();
-
       untracked(() => this.cargarCombos());
     });
 
-    /* Sincronización de sede global con el filtro local. */
     effect(() => {
       const sede = this.sedeFiltro.sedeId();
-
       untracked(() => {
         if (this.filtros.controls.sedeId.value === sede) return;
-
         this.filtros.controls.sedeId.setValue(sede);
       });
     });
 
-    /* Actualización automática cuando cambia el inventario. */
     effect(() => {
       const revision = this.inventario.revision();
-
       untracked(() => {
         if (!revision || revision === this.omitirRevision) return;
-
         this.cargar();
       });
     });
@@ -321,7 +327,6 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.cargar();
 
-    /* Búsqueda con debounce. */
     this.buscar$
       .pipe(
         map((valor) => valor.trim()),
@@ -331,55 +336,52 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       )
       .subscribe((valor) => {
         if (this.filtros.controls.searchTerm.value === valor) return;
-
-        this.filtros.controls.searchTerm.setValue(valor, {
-          emitEvent: false,
-        });
-
+        this.filtros.controls.searchTerm.setValue(valor, { emitEvent: false });
         this.filtrar();
       });
 
-    /* Categoría. */
     this.filtros.controls.categoriaId.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-      )
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => this.filtrar());
 
-    /* Sede. */
+    /* Sede del filtro → recarga almacenes y filtra. */
     this.filtros.controls.sedeId.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-      )
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((sedeId) => {
+        this.filtros.controls.almacenId.setValue('', { emitEvent: false });
+        this.cargarAlmacenesFiltro(sedeId);
+        this.filtrar();
+      });
+
+    /* Almacén del filtro → filtra. */
+    this.filtros.controls.almacenId.valueChanges
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => this.filtrar());
 
-    /* Tipo de producto. */
     this.filtros.controls.tipo.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-      )
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => this.filtrar());
 
-    /* Estado activo/inactivo. */
     this.filtros.controls.activo.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-      )
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => this.filtrar());
 
-    /* Productos fraccionables. */
     this.filtros.controls.esFraccionable.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-      )
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => this.filtrar());
+
+    /* Sede del form → recarga almacenes del form. */
+    this.form.controls.sedeId.valueChanges
+      .pipe(distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((sedeId) => {
+        this.form.controls.almacenId.setValue('', { emitEvent: false });
+        this.cargarAlmacenesForm(sedeId);
+      });
 
     this.enlazarOferta();
+
+    const sedeInicial = this.filtros.controls.sedeId.value;
+    if (sedeInicial) this.cargarAlmacenesFiltro(sedeInicial);
   }
 
   ngOnDestroy(): void {
@@ -387,9 +389,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
 
     for (const url of this.vistas.values()) {
-      if (url.startsWith('blob:')) {
-        URL.revokeObjectURL(url);
-      }
+      if (url.startsWith('blob:')) URL.revokeObjectURL(url);
     }
 
     if (this.vistaPrevia?.startsWith('blob:')) {
@@ -404,103 +404,59 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   get filas(): FilaCatalogo[] {
     if (this.stockFiltro && this.stockFilas) {
       const inicio = this.state.page * this.state.size;
-
       return this.filtrarFilasStock(this.stockFilas).slice(
         inicio,
         inicio + this.state.size,
       );
     }
-
     const filas = this.state.rows.map((producto) => this.fila(producto));
-
     return this.filtrarFilasStock(filas);
   }
-
-  /* =========================================================
-     FILTROS DE STOCK
-  ========================================================= */
 
   private filtrarFilasStock(filas: FilaCatalogo[]): FilaCatalogo[] {
     switch (this.stockFiltro) {
       case 'CON':
         return filas.filter((fila) => fila.cantidad > 0);
-
       case 'BAJO':
-        return filas.filter(
-          (fila) => fila.cantidad > 0 && fila.bajo,
-        );
-
+        return filas.filter((fila) => fila.cantidad > 0 && fila.bajo);
       case 'SIN':
         return filas.filter((fila) => fila.cantidad <= 0);
-
       default:
         return filas;
     }
   }
 
   /* =========================================================
-     CARGA COMPLETA DE PRODUCTOS
+     CARGA COMPLETA DE PRODUCTOS / SALDOS
   ========================================================= */
 
-  private productosCompletos(
-    query: QueryMap,
-  ): Observable<Api.ProductoResponseDTO[]> {
-
-    const params = {
-      ...query,
-      page: 0,
-      size: 200,
-    };
-
+  private productosCompletos(query: QueryMap): Observable<Api.ProductoResponseDTO[]> {
+    const params = { ...query, page: 0, size: 200 };
     return this.api.GetApiV1Productos(params).pipe(
       expand((pagina) => {
         const siguiente = (pagina.number ?? 0) + 1;
-
         return siguiente < (pagina.totalPages ?? 1)
-          ? this.api.GetApiV1Productos({
-              ...params,
-              page: siguiente,
-            })
+          ? this.api.GetApiV1Productos({ ...params, page: siguiente })
           : EMPTY;
       }),
-
       reduce(
-        (productos, pagina) =>
-          productos.concat(pagina.content ?? []),
+        (productos, pagina) => productos.concat(pagina.content ?? []),
         [] as Api.ProductoResponseDTO[],
       ),
     );
   }
 
-  /* =========================================================
-     CARGA COMPLETA DE SALDOS
-  ========================================================= */
-
-  private saldosCompletos(
-    sedeId: string,
-  ): Observable<Api.SaldoKardexDTO[]> {
-
-    const params = {
-      ...(sedeId ? { sedeId } : {}),
-      page: 0,
-      size: 200,
-    };
-
+  private saldosCompletos(sedeId: string): Observable<Api.SaldoKardexDTO[]> {
+    const params = { ...(sedeId ? { sedeId } : {}), page: 0, size: 200 };
     return this.kardex.GetApiV1KardexSaldos(params).pipe(
       expand((pagina) => {
         const siguiente = (pagina.number ?? 0) + 1;
-
         return siguiente < (pagina.totalPages ?? 1)
-          ? this.kardex.GetApiV1KardexSaldos({
-              ...params,
-              page: siguiente,
-            })
+          ? this.kardex.GetApiV1KardexSaldos({ ...params, page: siguiente })
           : EMPTY;
       }),
-
       reduce(
-        (saldos, pagina) =>
-          saldos.concat(pagina.content ?? []),
+        (saldos, pagina) => saldos.concat(pagina.content ?? []),
         [] as Api.SaldoKardexDTO[],
       ),
     );
@@ -517,8 +473,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       .subscribe((rows) => {
         this.categorias = this.lookup.options(
           rows,
-          (row) =>
-            (row as Api.CategoriaResponseDTO).nombre ?? 'Categoría',
+          (row) => (row as Api.CategoriaResponseDTO).nombre ?? 'Categoría',
         );
       });
 
@@ -528,8 +483,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       .subscribe((rows) => {
         this.proveedores = this.lookup.options(
           rows,
-          (row) =>
-            (row as Api.ProveedorResponseDTO).nombreRazon ?? 'Proveedor',
+          (row) => (row as Api.ProveedorResponseDTO).nombreRazon ?? 'Proveedor',
         );
       });
 
@@ -539,9 +493,98 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       .subscribe((rows) => {
         this.sedes = this.lookup.options(
           rows,
-          (row) =>
-            (row as Api.SedeResponseDTO).nombre ?? 'Sede',
+          (row) => (row as Api.SedeResponseDTO).nombre ?? 'Sede',
         );
+      });
+  }
+
+  /* =========================================================
+     ALMACENES (FORM + FILTRO)
+  ========================================================= */
+
+  private cargarAlmacenesFiltro(sedeId: string): void {
+    if (!sedeId) {
+      this.almacenesFiltro = [];
+      return;
+    }
+    this.almacenService
+      .findBySede(sedeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.almacenesFiltro = this.lookup.options(
+            rows,
+            (row) => (row as Api.AlmacenResponseDTO).nombre ?? 'Almacén',
+          );
+          this.pintar();
+        },
+        error: () => {
+          this.almacenesFiltro = [];
+        },
+      });
+  }
+
+  private cargarAlmacenesForm(sedeId: string): void {
+    if (!sedeId) {
+      this.almacenes = [];
+      return;
+    }
+    this.almacenService
+      .findBySede(sedeId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.almacenes = this.lookup.options(
+            rows,
+            (row) => (row as Api.AlmacenResponseDTO).nombre ?? 'Almacén',
+          );
+          this.pintar();
+        },
+        error: () => {
+          this.almacenes = [];
+        },
+      });
+  }
+
+  /* =========================================================
+     STOCK UBICACIONES (edición) — HttpClient directo
+  ========================================================= */
+
+  private cargarStockUbicaciones(productoId: string): void {
+    this.cargandoStock = true;
+    this.stockUbicaciones = [];
+
+    this.http
+      .get<Api.ProductoStockResumenDTO[]>(
+        `${environment.apiUrl}/api/v1/productos/${productoId}/stock`,
+      )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows) => {
+          this.stockUbicaciones = rows ?? [];
+          this.cargandoStock = false;
+
+          const primera = this.stockUbicaciones[0];
+          if (primera?.sedeId) {
+            this.form.controls.sedeId.setValue(primera.sedeId, { emitEvent: false });
+            this.cargarAlmacenesForm(primera.sedeId);
+            if (primera.almacenId) {
+              setTimeout(() => {
+                this.form.controls.almacenId.setValue(primera.almacenId ?? '', {
+                  emitEvent: false,
+                });
+                this.pintar();
+              }, 200);
+            }
+          }
+
+          this.pintar();
+        },
+        error: () => {
+          this.stockUbicaciones = [];
+          this.cargandoStock = false;
+          this.pintar();
+        },
       });
   }
 
@@ -558,12 +601,10 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       tipo: extra.tipo,
       activo: extra.activo,
       esFraccionable: extra.esFraccionable,
+      sedeId: extra.sedeId || undefined,
+      almacenId: extra.almacenId || undefined,
     });
 
-    /*
-     * Para filtrar stock se necesita disponer de todos
-     * los productos que coincidan con los filtros.
-     */
     if (this.stockFiltro) {
       query['page'] = 0;
       query['size'] = 200;
@@ -573,13 +614,8 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
     this.state.loading = true;
     this.state.error = null;
-
     this.stockFilas = null;
 
-    /*
-     * Se cargan los saldos completos incluso en la vista
-     * normal para no depender de una única página del Kardex.
-     */
     const lectura$: Observable<CargaCatalogo> = this.stockFiltro
       ? forkJoin({
           productos: this.productosCompletos(query),
@@ -602,85 +638,52 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           })),
         );
 
-    lectura$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: ({ productos, saldos, pagina }) => {
-          /*
-           * Evita que una consulta anterior sobrescriba
-           * los resultados de una consulta más reciente.
-           */
-          if (token !== this.carga) return;
+    lectura$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ productos, saldos, pagina }) => {
+        if (token !== this.carga) return;
 
-          if (pagina) {
-            this.state.apply(pagina);
-          } else {
-            this.state.rows = productos;
-            this.state.totalElements = productos.length;
-            this.state.totalPages = productos.length
-              ? Math.ceil(productos.length / this.state.size)
-              : 0;
+        if (pagina) {
+          this.state.apply(pagina);
+        } else {
+          this.state.rows = productos;
+          this.state.totalElements = productos.length;
+          this.state.totalPages = productos.length
+            ? Math.ceil(productos.length / this.state.size)
+            : 0;
+          this.state.loading = false;
+          this.state.error = null;
+          this.state.status = null;
+        }
 
-            this.state.loading = false;
-            this.state.error = null;
-            this.state.status = null;
-          }
+        this.saldos = new Map();
 
-          /* Reconstruir saldos por producto. */
-          this.saldos = new Map();
+        for (const row of saldos) {
+          const id = row.productoId ?? '';
+          if (!id) continue;
+          const lista = this.saldos.get(id) ?? [];
+          lista.push(row);
+          this.saldos.set(id, lista);
+        }
 
-          for (const row of saldos) {
-            const id = row.productoId ?? '';
+        if (this.stockFiltro) {
+          const filasStock = productos.map((producto) => this.fila(producto));
+          this.stockFilas = filasStock;
+          const filtradas = this.filtrarFilasStock(filasStock);
+          this.state.totalElements = filtradas.length;
+          this.state.totalPages = Math.ceil(filtradas.length / this.state.size);
+          const ultimaPagina = Math.max(this.state.totalPages - 1, 0);
+          this.state.page = Math.min(this.state.page, ultimaPagina);
+        }
 
-            if (!id) continue;
-
-            const lista = this.saldos.get(id) ?? [];
-
-            lista.push(row);
-
-            this.saldos.set(id, lista);
-          }
-
-          /* Aplicar filtros de stock. */
-          if (this.stockFiltro) {
-            const filasStock = productos.map((producto) =>
-              this.fila(producto),
-            );
-
-            this.stockFilas = filasStock;
-
-            const filtradas = this.filtrarFilasStock(filasStock);
-
-            this.state.totalElements = filtradas.length;
-
-            this.state.totalPages = Math.ceil(
-              filtradas.length / this.state.size,
-            );
-
-            const ultimaPagina = Math.max(
-              this.state.totalPages - 1,
-              0,
-            );
-
-            this.state.page = Math.min(
-              this.state.page,
-              ultimaPagina,
-            );
-          }
-
-          this.prepararVistas();
-        },
-
-        error: (error: unknown) => {
-          if (token !== this.carga) return;
-
-          const mensaje = problemText(error);
-
-          this.state.fail(mensaje, problemStatus(error));
-
-          this.toast.error(mensaje);
-        },
-      });
+        this.prepararVistas();
+      },
+      error: (error: unknown) => {
+        if (token !== this.carga) return;
+        const mensaje = problemText(error);
+        this.state.fail(mensaje, problemStatus(error));
+        this.toast.error(mensaje);
+      },
+    });
 
     this.cargarPanel(extra.sedeId);
   }
@@ -696,47 +699,37 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
   onBuscar(event: Event): void {
     const input = event.target as HTMLInputElement;
-
     this.buscar$.next(input.value ?? '');
   }
 
   elegirStock(valor: 'CON' | 'BAJO' | 'SIN'): void {
-    this.stockFiltro =
-      this.stockFiltro === valor ? '' : valor;
-
+    this.stockFiltro = this.stockFiltro === valor ? '' : valor;
     this.state.page = 0;
-
     this.cargar();
   }
 
   limpiar(): void {
     this.stockFiltro = '';
-
-    /*
-     * Cancela cualquier término pendiente en debounce.
-     */
     this.buscar$.next('');
 
-    /*
-     * Se evita emitir valueChanges durante el reset.
-     * Así no se generan múltiples consultas simultáneas.
-     */
     this.filtros.reset(
       {
         searchTerm: '',
         categoriaId: '',
         sedeId: this.sedeFiltro.sedeId(),
+        almacenId: '',
         tipo: '',
         activo: '',
         esFraccionable: '',
       },
-      {
-        emitEvent: false,
-      },
+      { emitEvent: false },
     );
 
-    this.state.page = 0;
+    this.almacenesFiltro = [];
+    const sede = this.filtros.controls.sedeId.value;
+    if (sede) this.cargarAlmacenesFiltro(sede);
 
+    this.state.page = 0;
     this.cargar();
   }
 
@@ -745,31 +738,18 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   ========================================================= */
 
   cambiarPagina(page: number): void {
-    const ultimaPagina = Math.max(
-      this.state.totalPages - 1,
-      0,
-    );
+    const ultimaPagina = Math.max(this.state.totalPages - 1, 0);
+    this.state.page = Math.max(0, Math.min(page, ultimaPagina));
 
-    this.state.page = Math.max(
-      0,
-      Math.min(page, ultimaPagina),
-    );
-
-    /*
-     * En stock los resultados ya están cargados.
-     * Solo se actualiza la página visual.
-     */
     if (this.stockFiltro) {
       this.prepararVistas();
       return;
     }
-
     this.cargar();
   }
 
   cambiarTamano(size: number): void {
     if (!Number.isFinite(size) || size < 1) return;
-
     this.state.size = size;
     this.state.page = 0;
 
@@ -777,12 +757,9 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       this.state.totalPages = Math.ceil(
         this.state.totalElements / this.state.size,
       );
-
       this.prepararVistas();
-
       return;
     }
-
     this.cargar();
   }
 
@@ -795,13 +772,10 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
     this.editando = false;
     this.fraccionesActuales = [];
-
     this.errorFormulario = null;
-
     this.modoImagen = 'archivo';
     this.archivoPendiente = null;
     this.vistaPrevia = null;
-
     this.teniaPrecioOferta = false;
 
     this.form.reset({
@@ -824,7 +798,17 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       ofertaPorcentaje: 0,
       precioOferta: 0,
       ofertaDias: 7,
+      sedeId: '',
+      almacenId: '',
+      stockInicial: 0,
+      stockMinimo: 0,
+      stockMaximo: 0,
+      puntoReposicion: 0,
     });
+
+    this.almacenes = [];
+    this.stockUbicaciones = [];
+    this.cargandoStock = false;
 
     this.modal = true;
   }
@@ -837,9 +821,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     this.cargarCombos();
 
     this.editando = true;
-
     this.fraccionesActuales = item.fracciones ?? [];
-
     this.errorFormulario = null;
 
     this.form.reset({
@@ -847,49 +829,49 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       nombre: item.nombre ?? '',
       codigoSku: item.codigoSku ?? '',
       descripcion: item.descripcion ?? '',
-
       categoriaId: item.categoria?.id ?? '',
       proveedorId: item.proveedor?.id ?? '',
-
       tipo: item.tipo ?? 'FISICO',
       unidad: item.unidad ?? 'UNIDAD',
-
       precioCompra: item.precioCompra ?? 0,
       precioVentaBase: item.precioVentaBase ?? 0,
-
       activo: item.activo ?? true,
       esFraccionable: item.esFraccionable ?? false,
       destacado: item.destacado ?? false,
       incluyeIgv: item.incluyeIgv ?? true,
-
       imagen: item.imagen ?? '',
-
       enOferta: ofertaVigente(item),
       ofertaPorcentaje: item.ofertaPorcentaje ?? 0,
       precioOferta: item.precioOferta ?? 0,
       ofertaDias: this.diasRestantes(item.ofertaHasta),
+      sedeId: '',
+      almacenId: '',
+      stockInicial: 0,
+      stockMinimo: 0,
+      stockMaximo: 0,
+      puntoReposicion: 0,
     });
 
     this.teniaPrecioOferta = item.precioOferta != null;
-
     this.silencioOferta = false;
-
     this.archivoPendiente = null;
 
     this.modoImagen =
-      item.imagen?.startsWith('http://') ||
-      item.imagen?.startsWith('https://')
+      item.imagen?.startsWith('http://') || item.imagen?.startsWith('https://')
         ? 'url'
         : 'archivo';
 
-    this.vistaPrevia =
-      this.modoImagen === 'url'
-        ? item.imagen ?? null
-        : null;
+    this.vistaPrevia = this.modoImagen === 'url' ? item.imagen ?? null : null;
 
     if (this.modoImagen === 'archivo' && item.imagen) {
       this.cargarVistaPrevia(item.imagen);
     }
+
+    this.almacenes = [];
+    this.stockUbicaciones = [];
+    this.cargandoStock = false;
+
+    if (item.id) this.cargarStockUbicaciones(item.id);
 
     this.modal = true;
   }
@@ -914,12 +896,10 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
     if (this.modoImagen === 'url') {
       const url = value.imagen.trim();
-
       if (url && !/^https?:\/\//i.test(url)) {
         this.errorFormulario =
           'La URL de la imagen debe empezar por http:// o https://.';
         this.pintar();
-
         return;
       }
     }
@@ -933,15 +913,12 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
         this.errorFormulario =
           'El precio de oferta tiene que ser menor que el precio de venta.';
         this.pintar();
-
         return;
       }
 
       if (dias < 1 || dias > 365) {
-        this.errorFormulario =
-          'La oferta dura entre 1 y 365 días.';
+        this.errorFormulario = 'La oferta dura entre 1 y 365 días.';
         this.pintar();
-
         return;
       }
     }
@@ -960,22 +937,16 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (respuesta) => {
             this.form.controls.imagen.setValue(respuesta.ruta);
-
             this.archivoPendiente = null;
-
             this.persistir();
           },
-
           error: (error: unknown) => {
             this.guardando = false;
-
             this.errorFormulario = problemText(error);
-
             this.toast.error(this.errorFormulario);
             this.pintar();
           },
         });
-
       return;
     }
 
@@ -983,21 +954,20 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   }
 
   get gananciaOferta(): number {
-    return Math.round(
-      (
-        Number(this.form.controls.precioOferta.value) -
-        Number(this.form.controls.precioCompra.value)
-      ) * 100,
-    ) / 100;
+    return (
+      Math.round(
+        (Number(this.form.controls.precioOferta.value) -
+          Number(this.form.controls.precioCompra.value)) *
+          100,
+      ) / 100
+    );
   }
 
   /* =========================================================
      CIERRE Y ACTUALIZACIÓN DEL PRODUCTO
   ========================================================= */
 
-  private cerrarProducto(
-    guardado: Api.ProductoResponseDTO,
-  ): void {
+  private cerrarProducto(guardado: Api.ProductoResponseDTO): void {
     const editaba = this.editando;
 
     this.guardando = false;
@@ -1025,21 +995,26 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       ofertaPorcentaje: 0,
       precioOferta: 0,
       ofertaDias: 7,
+      sedeId: '',
+      almacenId: '',
+      stockInicial: 0,
+      stockMinimo: 0,
+      stockMaximo: 0,
+      puntoReposicion: 0,
     });
+
+    this.stockUbicaciones = [];
+    this.cargandoStock = false;
+    this.almacenes = [];
 
     this.lookup.invalidate('productos');
 
-    this.aplicarProducto(
-      guardado,
-      editaba ? 'actualizar' : 'crear',
-    );
+    this.aplicarProducto(guardado, editaba ? 'actualizar' : 'crear');
 
     this.avisarInventario();
 
     this.toast.success(
-      editaba
-        ? 'Producto actualizado.'
-        : 'Producto creado.',
+      editaba ? 'Producto actualizado.' : 'Producto creado.',
     );
     this.pintar();
   }
@@ -1058,11 +1033,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     );
 
     const fin = new Date(`${hasta}T00:00:00`);
-
-    const dias =
-      Math.round(
-        (fin.getTime() - hoy.getTime()) / 86400000,
-      ) + 1;
+    const dias = Math.round((fin.getTime() - hoy.getTime()) / 86400000) + 1;
 
     return dias >= 1 && dias <= 365 ? dias : 7;
   }
@@ -1077,27 +1048,16 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         if (this.silencioOferta) return;
 
-        const base = Number(
-          this.form.controls.precioVentaBase.value,
-        );
+        const base = Number(this.form.controls.precioVentaBase.value);
+        const porcentaje = Number(this.form.controls.ofertaPorcentaje.value);
 
-        const porcentaje = Number(
-          this.form.controls.ofertaPorcentaje.value,
-        );
-
-        if (!(base > 0) || !(porcentaje > 0) || porcentaje >= 100) {
-          return;
-        }
+        if (!(base > 0) || !(porcentaje > 0) || porcentaje >= 100) return;
 
         this.silencioOferta = true;
-
         this.form.controls.precioOferta.setValue(
-          Math.round(
-            base * (1 - porcentaje / 100) * 100,
-          ) / 100,
+          Math.round(base * (1 - porcentaje / 100) * 100) / 100,
           { emitEvent: false },
         );
-
         this.silencioOferta = false;
       });
 
@@ -1106,27 +1066,16 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         if (this.silencioOferta) return;
 
-        const base = Number(
-          this.form.controls.precioVentaBase.value,
-        );
+        const base = Number(this.form.controls.precioVentaBase.value);
+        const oferta = Number(this.form.controls.precioOferta.value);
 
-        const oferta = Number(
-          this.form.controls.precioOferta.value,
-        );
-
-        if (!(base > 0) || !(oferta > 0) || oferta >= base) {
-          return;
-        }
+        if (!(base > 0) || !(oferta > 0) || oferta >= base) return;
 
         this.silencioOferta = true;
-
         this.form.controls.ofertaPorcentaje.setValue(
-          Math.round(
-            ((base - oferta) / base) * 10000,
-          ) / 100,
+          Math.round(((base - oferta) / base) * 10000) / 100,
           { emitEvent: false },
         );
-
         this.silencioOferta = false;
       });
   }
@@ -1137,106 +1086,70 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
   private persistir(): void {
     const value = this.form.getRawValue();
-
-    const body = this.cuerpo(
-      value,
-      value.id,
-      this.fraccionesActuales,
-    );
+    const body = this.cuerpo(value, value.id, this.fraccionesActuales);
 
     const archivo =
-      this.modoImagen === 'archivo'
-        ? this.archivoPendiente
-        : null;
+      this.modoImagen === 'archivo' ? this.archivoPendiente : null;
 
     const request =
       this.editando && value.id && archivo
-        ? this.masivo.actualizarConImagen(
-            value.id,
-            body,
-            archivo,
-          )
+        ? this.masivo.actualizarConImagen(value.id, body, archivo)
         : this.editando && value.id
-          ? this.api.PutApiV1ProductosId(
-              { id: value.id },
-              body,
-            )
-          : this.api.PostApiV1Productos(
-              {},
-              body,
-            );
+          ? this.api.PutApiV1ProductosId({ id: value.id }, body)
+          : this.api.PostApiV1Productos({}, body);
 
-    request
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (guardado) => {
-          const id = guardado.id ?? value.id;
+    request.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (guardado) => {
+        const id = guardado.id ?? value.id;
+        const publicar = value.enOferta || this.teniaPrecioOferta;
 
-          const publicar =
-            value.enOferta || this.teniaPrecioOferta;
+        const oferta = value.enOferta
+          ? {
+              oferta: true,
+              porcentaje: Number(value.ofertaPorcentaje),
+              precioOferta: Number(value.precioOferta),
+              dias: Number(value.ofertaDias),
+            }
+          : { oferta: false };
 
-          const oferta = value.enOferta
-            ? {
-                oferta: true,
-                porcentaje: Number(value.ofertaPorcentaje),
-                precioOferta: Number(value.precioOferta),
-                dias: Number(value.ofertaDias),
-              }
-            : {
-                oferta: false,
-              };
+        if (!id || !publicar) {
+          this.cerrarProducto(guardado);
+          return;
+        }
 
-          if (!id || !publicar) {
-            this.cerrarProducto(guardado);
-            return;
-          }
-
-          this.http
-            .put(
-              `${environment.apiUrl}/api/v1/cms/productos/${id}/oferta`,
-              oferta,
-            )
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: () => {
-                guardado.precioOferta = value.enOferta
-                  ? Number(value.precioOferta)
-                  : undefined;
-
-                guardado.ofertaPorcentaje = value.enOferta
-                  ? Number(value.ofertaPorcentaje)
-                  : undefined;
-
-                guardado.oferta = value.enOferta;
-
-                this.cerrarProducto(guardado);
-              },
-
-              error: (error: unknown) => {
-                this.guardando = false;
-
-                this.errorFormulario = problemText(error);
-
-                this.toast.error(
-                  'El producto quedó guardado, pero la oferta no. ' +
+        this.http
+          .put(`${environment.apiUrl}/api/v1/cms/productos/${id}/oferta`, oferta)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              guardado.precioOferta = value.enOferta
+                ? Number(value.precioOferta)
+                : undefined;
+              guardado.ofertaPorcentaje = value.enOferta
+                ? Number(value.ofertaPorcentaje)
+                : undefined;
+              guardado.oferta = value.enOferta;
+              this.cerrarProducto(guardado);
+            },
+            error: (error: unknown) => {
+              this.guardando = false;
+              this.errorFormulario = problemText(error);
+              this.toast.error(
+                'El producto quedó guardado, pero la oferta no. ' +
                   this.errorFormulario,
-                );
-                this.pintar();
-              },
-            });
-        },
-
-        error: (error: unknown) => {
-          this.guardando = false;
-
-          applyServerErrors(this.form, error);
-
-          this.errorFormulario = problemText(error);
-
-          this.toast.error(this.errorFormulario);
-          this.pintar();
-        },
-      });
+              );
+              this.pintar();
+            },
+          });
+      },
+      error: (error: unknown) => {
+        this.guardando = false;
+        applyServerErrors(this.form, error);
+        this.errorFormulario = problemText(error);
+        this.toast.error(this.errorFormulario);
+        this.pintar();
+      },
+    });
   }
 
   /* =========================================================
@@ -1267,51 +1180,38 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     if (!this.seleccionado?.id || this.eliminando) return;
 
     const id = this.seleccionado.id;
-
     this.eliminando = true;
 
-    this.api
-      .DeleteApiV1ProductosId({ id })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (respuesta: unknown) => {
-          this.eliminando = false;
-          this.confirmar = false;
+    this.api.DeleteApiV1ProductosId({ id }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (respuesta: unknown) => {
+        this.eliminando = false;
+        this.confirmar = false;
+        this.lookup.invalidate('productos');
 
-          this.lookup.invalidate('productos');
+        const guardado = this.esProducto(respuesta) ? respuesta : null;
 
-          const guardado = this.esProducto(respuesta)
-            ? respuesta
-            : null;
+        if (guardado) {
+          this.aplicarProducto(guardado, 'actualizar');
+          this.toast.success(
+            'El producto quedó inactivo para conservar su historial.',
+          );
+        } else {
+          this.state.removeWhere((row) => row.id === id);
+          this.toast.success('Producto eliminado.');
+          this.ajustarPaginaTrasEliminar();
+        }
 
-          if (guardado) {
-            this.aplicarProducto(guardado, 'actualizar');
-
-            this.toast.success(
-              'El producto quedó inactivo para conservar su historial.',
-            );
-          } else {
-            this.state.removeWhere((row) => row.id === id);
-
-            this.toast.success('Producto eliminado.');
-
-            this.ajustarPaginaTrasEliminar();
-          }
-
-          this.seleccionado = null;
-
-          this.avisarInventario();
-          this.pintar();
-        },
-
-        error: (error: unknown) => {
-          this.eliminando = false;
-          this.confirmar = false;
-
-          this.toast.error(problemText(error));
-          this.pintar();
-        },
-      });
+        this.seleccionado = null;
+        this.avisarInventario();
+        this.pintar();
+      },
+      error: (error: unknown) => {
+        this.eliminando = false;
+        this.confirmar = false;
+        this.toast.error(problemText(error));
+        this.pintar();
+      },
+    });
   }
 
   private ajustarPaginaTrasEliminar(): void {
@@ -1323,44 +1223,32 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     if (!this.state.rows.length && this.state.page > 0) {
       this.state.page--;
     }
-
     this.cargar();
   }
 
   private desactivar(): void {
     const item = this.seleccionado;
-
     if (!item?.id || this.eliminando) return;
 
     this.eliminando = true;
 
     this.api
-      .PutApiV1ProductosId(
-        { id: item.id },
-        this.cuerpoDesde(item, false),
-      )
+      .PutApiV1ProductosId({ id: item.id }, this.cuerpoDesde(item, false))
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (guardado) => {
           this.eliminando = false;
           this.confirmar = false;
-
           this.lookup.invalidate('productos');
-
           this.aplicarProducto(guardado, 'actualizar');
-
           this.avisarInventario();
-
           this.seleccionado = null;
-
           this.toast.success('Producto desactivado.');
           this.pintar();
         },
-
         error: (error: unknown) => {
           this.eliminando = false;
           this.confirmar = false;
-
           this.toast.error(problemText(error));
           this.pintar();
         },
@@ -1372,14 +1260,9 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   ========================================================= */
 
   verKardex(item: Api.ProductoResponseDTO): void {
-    void this.router.navigate(
-      ['/modules/kardex'],
-      {
-        queryParams: {
-          productoId: item.id ?? null,
-        },
-      },
-    );
+    void this.router.navigate(['/modules/kardex'], {
+      queryParams: { productoId: item.id ?? null },
+    });
   }
 
   /* =========================================================
@@ -1400,19 +1283,13 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (filas) => {
-          this.escribirArchivo(
-            filas,
-            'csv',
-            'productos.csv',
-          );
-
+          this.escribirArchivo(filas, 'csv', 'productos.csv');
           this.toast.success(
             filas.length
               ? 'Catálogo exportado.'
               : 'El archivo se generó sin filas.',
           );
         },
-
         error: (error: unknown) => {
           this.toast.error(problemText(error));
         },
@@ -1429,38 +1306,23 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     this.archivoNombre = '';
     this.importErrores = [];
     this.importExito = null;
-
     this.modalImportar = true;
   }
 
   descargarPlantilla(): void {
-    this.escribirArchivo(
-      [],
-      'xlsx',
-      'plantilla-productos.xlsx',
-    );
+    this.escribirArchivo([], 'xlsx', 'plantilla-productos.xlsx');
   }
 
   soltarArchivo(event: DragEvent): void {
     event.preventDefault();
-
     this.sobreArchivo = false;
-
     const archivo = event.dataTransfer?.files?.[0];
-
-    if (archivo) {
-      this.leerArchivo(archivo);
-    }
+    if (archivo) this.leerArchivo(archivo);
   }
 
   elegirArchivo(event: Event): void {
-    const archivo = (
-      event.target as HTMLInputElement
-    ).files?.[0];
-
-    if (archivo) {
-      this.leerArchivo(archivo);
-    }
+    const archivo = (event.target as HTMLInputElement).files?.[0];
+    if (archivo) this.leerArchivo(archivo);
   }
 
   /* =========================================================
@@ -1468,53 +1330,40 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   ========================================================= */
 
   elegirImagen(event: Event): void {
-    const archivo = (
-      event.target as HTMLInputElement
-    ).files?.[0];
-
+    const archivo = (event.target as HTMLInputElement).files?.[0];
     if (!archivo) return;
 
     if (archivo.size > 2 * 1024 * 1024) {
-      this.errorFormulario =
-        'La imagen no puede superar 2 MB.';
-
+      this.errorFormulario = 'La imagen no puede superar 2 MB.';
       return;
     }
 
     this.errorFormulario = null;
-
     this.archivoPendiente = archivo;
 
     const lector = new FileReader();
-
     lector.onload = () => {
       this.vistaPrevia = String(lector.result ?? '');
     };
-
     lector.readAsDataURL(archivo);
   }
 
   usarModoImagen(modo: 'archivo' | 'url'): void {
     this.modoImagen = modo;
-
     this.archivoPendiente = null;
 
     const actual = this.form.controls.imagen.value.trim();
 
     if (modo === 'url') {
       const externa = /^https?:\/\//i.test(actual);
-
       if (!externa) {
         this.form.controls.imagen.setValue('');
       }
-
       this.vistaPrevia = externa ? actual : null;
-
       return;
     }
 
     this.vistaPrevia = null;
-
     if (actual.startsWith('productos/')) {
       this.cargarVistaPrevia(actual);
     }
@@ -1522,35 +1371,20 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
   actualizarVistaUrl(): void {
     const url = this.form.controls.imagen.value.trim();
-
-    this.vistaPrevia = /^https?:\/\//i.test(url)
-      ? url
-      : null;
+    this.vistaPrevia = /^https?:\/\//i.test(url) ? url : null;
   }
 
   vistaDe(producto: Api.ProductoResponseDTO): string | null {
-    return producto.id
-      ? this.vistas.get(producto.id) ?? null
-      : null;
+    return producto.id ? this.vistas.get(producto.id) ?? null : null;
   }
 
   ocultarVista(producto: Api.ProductoResponseDTO): void {
-    if (producto.id) {
-      this.vistas.delete(producto.id);
-    }
+    if (producto.id) this.vistas.delete(producto.id);
   }
 
   iniciales(nombre: string | undefined): string {
-    const partes = (nombre ?? 'P')
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2);
-
-    return (
-      partes
-        .map((parte) => parte.charAt(0).toUpperCase())
-        .join('') || 'P'
-    );
+    const partes = (nombre ?? 'P').trim().split(/\s+/).slice(0, 2);
+    return partes.map((parte) => parte.charAt(0).toUpperCase()).join('') || 'P';
   }
 
   errorDe(
@@ -1566,9 +1400,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   atajo(event: KeyboardEvent): void {
     if (event.key !== 'F2' || this.modal) return;
-
     event.preventDefault();
-
     document.getElementById('prod-buscar')?.focus();
   }
 
@@ -1580,22 +1412,12 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     const nombre = archivo.name.toLowerCase();
 
     if (!nombre.endsWith('.xlsx') && !nombre.endsWith('.csv')) {
-      this.importErrores = [
-        {
-          motivo: 'Solo se aceptan archivos .xlsx o .csv.',
-        },
-      ];
-
+      this.importErrores = [{ motivo: 'Solo se aceptan archivos .xlsx o .csv.' }];
       return;
     }
 
     if (archivo.size > 5 * 1024 * 1024) {
-      this.importErrores = [
-        {
-          motivo: 'El archivo no puede superar 5 MB.',
-        },
-      ];
-
+      this.importErrores = [{ motivo: 'El archivo no puede superar 5 MB.' }];
       return;
     }
 
@@ -1604,39 +1426,25 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     this.importExito = null;
     this.importando = true;
 
-    archivo.arrayBuffer()
+    archivo
+      .arrayBuffer()
       .then((buffer) => {
-        const libro = XLSX.read(buffer, {
-          type: 'array',
-        });
-
+        const libro = XLSX.read(buffer, { type: 'array' });
         const hoja = libro.Sheets[libro.SheetNames[0]];
-
-        const crudas = XLSX.utils.sheet_to_json<
-          Record<string, unknown>
-        >(hoja, {
+        const crudas = XLSX.utils.sheet_to_json<Record<string, unknown>>(hoja, {
           defval: '',
         });
 
         const filas: ProductoImportacionFila[] = [];
-
-        const errores: {
-          fila?: number;
-          motivo?: string;
-        }[] = [];
+        const errores: { fila?: number; motivo?: string }[] = [];
 
         crudas.forEach((cruda, indice) => {
           const fila = this.filaImportada(cruda);
-
           if (!fila) return;
 
           const error = this.validarFilaCliente(fila);
-
           if (error) {
-            errores.push({
-              fila: indice + 1,
-              motivo: error,
-            });
+            errores.push({ fila: indice + 1, motivo: error });
           } else {
             filas.push(fila);
           }
@@ -1644,20 +1452,13 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
         if (!filas.length && !errores.length) {
           this.importando = false;
-
-          this.importErrores = [
-            {
-              motivo: 'No hay filas para importar.',
-            },
-          ];
-
+          this.importErrores = [{ motivo: 'No hay filas para importar.' }];
           return;
         }
 
         if (errores.length) {
           this.importando = false;
           this.importErrores = errores;
-
           return;
         }
 
@@ -1667,49 +1468,33 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           .subscribe({
             next: (resultado) => {
               this.importando = false;
-
               this.importExito =
                 `Se crearon ${resultado.creados} y se actualizaron ` +
                 `${resultado.actualizados}. Ninguna fila quedó a medias.`;
 
               this.lookup.invalidate('productos');
-
               this.avisarInventario();
-
               this.cargar();
             },
-
             error: (error: unknown) => {
               this.importando = false;
-
               this.importErrores =
                 isProblem(error) && error.errores?.length
                   ? error.errores
-                  : [
-                      {
-                        motivo: problemText(error),
-                      },
-                    ];
+                  : [{ motivo: problemText(error) }];
             },
           });
       })
       .catch(() => {
         this.importando = false;
-
-        this.importErrores = [
-          {
-            motivo: 'No se pudo leer el archivo.',
-          },
-        ];
+        this.importErrores = [{ motivo: 'No se pudo leer el archivo.' }];
       });
   }
 
   private filaImportada(
     cruda: Record<string, unknown>,
   ): ProductoImportacionFila | null {
-
     const normalizada: Record<string, unknown> = {};
-
     for (const [clave, valor] of Object.entries(cruda)) {
       normalizada[this.aliasColumna(clave)] = valor;
     }
@@ -1722,42 +1507,24 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     return {
       codigoSku: sku || undefined,
       nombre: nombre || undefined,
-      descripcion:
-        this.texto(normalizada['descripcion']) || undefined,
-      categoria:
-        this.texto(normalizada['categoria']) || undefined,
-      tipo:
-        this.texto(normalizada['tipo']).toUpperCase() || undefined,
-      precioCompra:
-        this.numero(normalizada['precioCompra']),
-      precioVentaBase:
-        this.numero(normalizada['precioVentaBase']),
-      unidad:
-        this.texto(normalizada['unidad']) || undefined,
-      esFraccionable:
-        this.bandera(normalizada['esFraccionable']),
-      activo:
-        this.bandera(normalizada['activo']),
-      incluyeIgv:
-        this.bandera(normalizada['incluyeIgv']),
-      tipoAfectacion:
-        this.texto(normalizada['tipoAfectacion']) || undefined,
-      imagen:
-        this.texto(normalizada['imagen']) || undefined,
-      stockInicial:
-        this.numero(normalizada['stockInicial']),
-      almacen:
-        this.texto(normalizada['almacen']) || undefined,
+      descripcion: this.texto(normalizada['descripcion']) || undefined,
+      categoria: this.texto(normalizada['categoria']) || undefined,
+      tipo: this.texto(normalizada['tipo']).toUpperCase() || undefined,
+      precioCompra: this.numero(normalizada['precioCompra']),
+      precioVentaBase: this.numero(normalizada['precioVentaBase']),
+      unidad: this.texto(normalizada['unidad']) || undefined,
+      esFraccionable: this.bandera(normalizada['esFraccionable']),
+      activo: this.bandera(normalizada['activo']),
+      incluyeIgv: this.bandera(normalizada['incluyeIgv']),
+      tipoAfectacion: this.texto(normalizada['tipoAfectacion']) || undefined,
+      imagen: this.texto(normalizada['imagen']) || undefined,
+      stockInicial: this.numero(normalizada['stockInicial']),
+      almacen: this.texto(normalizada['almacen']) || undefined,
     };
   }
 
-  private validarFilaCliente(
-    fila: ProductoImportacionFila,
-  ): string | null {
-
-    if (!fila.codigoSku) {
-      return 'El SKU es obligatorio.';
-    }
+  private validarFilaCliente(fila: ProductoImportacionFila): string | null {
+    if (!fila.codigoSku) return 'El SKU es obligatorio.';
 
     if (
       fila.tipo &&
@@ -1773,7 +1540,6 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     ) {
       return 'La imagen debe ser una URL http(s) o una ruta productos/.';
     }
-
     return null;
   }
 
@@ -1788,18 +1554,14 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       sku: 'codigoSku',
       codigosku: 'codigoSku',
       codigo_sku: 'codigoSku',
-
       preciocompra: 'precioCompra',
       precio_compra: 'precioCompra',
-
       precioventabase: 'precioVentaBase',
       precio_venta_base: 'precioVentaBase',
       precioventa: 'precioVentaBase',
-
       esfraccionable: 'esFraccionable',
       incluyeigv: 'incluyeIgv',
       tipoafectacion: 'tipoAfectacion',
-
       stockinicial: 'stockInicial',
       stock_inicial: 'stockInicial',
     };
@@ -1808,59 +1570,26 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   }
 
   private texto(valor: unknown): string {
-    if (valor === null || valor === undefined) {
-      return '';
-    }
-
+    if (valor === null || valor === undefined) return '';
     return String(valor).trim();
   }
 
   private numero(valor: unknown): number | undefined {
-    if (
-      valor === null ||
-      valor === undefined ||
-      valor === ''
-    ) {
-      return undefined;
-    }
-
+    if (valor === null || valor === undefined || valor === '') return undefined;
     const numero =
       typeof valor === 'number'
         ? valor
         : Number(String(valor).replace(',', '.'));
-
-    return Number.isFinite(numero)
-      ? numero
-      : undefined;
+    return Number.isFinite(numero) ? numero : undefined;
   }
 
   private bandera(valor: unknown): boolean | undefined {
-    if (
-      valor === null ||
-      valor === undefined ||
-      valor === ''
-    ) {
-      return undefined;
-    }
-
-    if (typeof valor === 'boolean') {
-      return valor;
-    }
+    if (valor === null || valor === undefined || valor === '') return undefined;
+    if (typeof valor === 'boolean') return valor;
 
     const texto = String(valor).trim().toLowerCase();
-
-    if (
-      ['true', '1', 'si', 'sí', 's', 'yes'].includes(texto)
-    ) {
-      return true;
-    }
-
-    if (
-      ['false', '0', 'no', 'n'].includes(texto)
-    ) {
-      return false;
-    }
-
+    if (['true', '1', 'si', 'sí', 's', 'yes'].includes(texto)) return true;
+    if (['false', '0', 'no', 'n'].includes(texto)) return false;
     return undefined;
   }
 
@@ -1873,45 +1602,24 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     formato: 'xlsx' | 'csv',
     nombre: string,
   ): void {
-
     const hoja = filas.length
-      ? XLSX.utils.json_to_sheet(filas, {
-          header: [...COLUMNAS_PRODUCTO],
-        })
-      : XLSX.utils.aoa_to_sheet([
-          [...COLUMNAS_PRODUCTO],
-        ]);
+      ? XLSX.utils.json_to_sheet(filas, { header: [...COLUMNAS_PRODUCTO] })
+      : XLSX.utils.aoa_to_sheet([[...COLUMNAS_PRODUCTO]]);
 
     if (formato === 'csv') {
       const csv = XLSX.utils.sheet_to_csv(hoja);
-
       const enlace = document.createElement('a');
-
       enlace.href = URL.createObjectURL(
-        new Blob(
-          [`\uFEFF${csv}`],
-          {
-            type: 'text/csv;charset=utf-8',
-          },
-        ),
+        new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }),
       );
-
       enlace.download = nombre;
       enlace.click();
-
       URL.revokeObjectURL(enlace.href);
-
       return;
     }
 
     const libro = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-      libro,
-      hoja,
-      'Productos',
-    );
-
+    XLSX.utils.book_append_sheet(libro, hoja, 'Productos');
     XLSX.writeFile(libro, nombre);
   }
 
@@ -1928,14 +1636,9 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       const imagen = producto.imagen;
       const id = producto.id;
 
-      if (!imagen || !id || this.vistas.has(id)) {
-        continue;
-      }
+      if (!imagen || !id || this.vistas.has(id)) continue;
 
-      if (
-        imagen.startsWith('http://') ||
-        imagen.startsWith('https://')
-      ) {
+      if (imagen.startsWith('http://') || imagen.startsWith('https://')) {
         this.vistas.set(id, imagen);
       } else {
         this.masivo
@@ -1943,12 +1646,8 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (blob) => {
-              this.vistas.set(
-                id,
-                URL.createObjectURL(blob),
-              );
+              this.vistas.set(id, URL.createObjectURL(blob));
             },
-
             error: () => {
               this.vistas.delete(id);
             },
@@ -1966,10 +1665,8 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           if (this.vistaPrevia?.startsWith('blob:')) {
             URL.revokeObjectURL(this.vistaPrevia);
           }
-
           this.vistaPrevia = URL.createObjectURL(blob);
         },
-
         error: () => {
           this.vistaPrevia = null;
         },
@@ -1988,24 +1685,18 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
         next: (data) => {
           this.dashboard = data;
         },
-
         error: () => {
           this.dashboard = null;
         },
       });
 
     this.stockApi
-      .GetApiV1StockBajoStock({
-        sedeId,
-        page: 0,
-        size: 4,
-      })
+      .GetApiV1StockBajoStock({ sedeId, page: 0, size: 4 })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (page) => {
           this.alertas = page.content ?? [];
         },
-
         error: () => {
           this.alertas = [];
         },
@@ -2013,17 +1704,12 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
     if (this.esAdmin) {
       this.kardex
-        .GetApiV1KardexMermas({
-          sedeId,
-          page: 0,
-          size: 3,
-        })
+        .GetApiV1KardexMermas({ sedeId, page: 0, size: 3 })
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (data) => {
             this.mermas = data;
           },
-
           error: () => {
             this.mermas = null;
           },
@@ -2047,14 +1733,10 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
   private avisarInventario(): void {
     this.omitirRevision = this.inventario.revision() + 1;
-
     this.inventario.marcarCambio();
   }
 
-  private esProducto(
-    valor: unknown,
-  ): valor is Api.ProductoResponseDTO {
-
+  private esProducto(valor: unknown): valor is Api.ProductoResponseDTO {
     return (
       !!valor &&
       typeof valor === 'object' &&
@@ -2070,7 +1752,6 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     guardado: Api.ProductoResponseDTO,
     modo: 'crear' | 'actualizar',
   ): void {
-
     if (!guardado.id) return;
 
     if (this.stockFiltro) {
@@ -2085,20 +1766,12 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     }
 
     const visible = this.visibleEnFiltro(guardado);
-
-    const existe = this.state.rows.some(
-      (row) => row.id === guardado.id,
-    );
+    const existe = this.state.rows.some((row) => row.id === guardado.id);
 
     if (!visible && existe) {
-      this.state.removeWhere(
-        (row) => row.id === guardado.id,
-      );
+      this.state.removeWhere((row) => row.id === guardado.id);
     } else if (visible) {
-      this.state.upsert(
-        guardado,
-        (row) => row.id === guardado.id,
-      );
+      this.state.upsert(guardado, (row) => row.id === guardado.id);
     }
 
     this.refrescarVista(guardado);
@@ -2108,66 +1781,30 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
      VALIDACIÓN DE VISIBILIDAD CON FILTROS
   ========================================================= */
 
-  private visibleEnFiltro(
-    producto: Api.ProductoResponseDTO,
-  ): boolean {
-
+  private visibleEnFiltro(producto: Api.ProductoResponseDTO): boolean {
     const filtro = this.filtros.getRawValue();
 
-    /*
-     * La búsqueda local considera SKU, nombre y categoría.
-     */
     const textoBusqueda = [
       producto.nombre ?? '',
       producto.codigoSku ?? '',
       producto.categoria?.nombre ?? '',
     ].join(' ');
 
-    if (
-      !coincideBusqueda(
-        textoBusqueda,
-        filtro.searchTerm,
-      )
-    ) {
+    if (!coincideBusqueda(textoBusqueda, filtro.searchTerm)) return false;
+
+    if (filtro.categoriaId && producto.categoria?.id !== filtro.categoriaId) {
       return false;
     }
 
-    if (
-      filtro.categoriaId &&
-      producto.categoria?.id !== filtro.categoriaId
-    ) {
+    if (filtro.tipo && producto.tipo !== filtro.tipo) return false;
+
+    if (filtro.activo === 'true' && producto.activo === false) return false;
+    if (filtro.activo === 'false' && producto.activo !== false) return false;
+
+    if (filtro.esFraccionable === 'true' && producto.esFraccionable !== true) {
       return false;
     }
-
-    if (filtro.tipo && producto.tipo !== filtro.tipo) {
-      return false;
-    }
-
-    if (
-      filtro.activo === 'true' &&
-      producto.activo === false
-    ) {
-      return false;
-    }
-
-    if (
-      filtro.activo === 'false' &&
-      producto.activo !== false
-    ) {
-      return false;
-    }
-
-    if (
-      filtro.esFraccionable === 'true' &&
-      producto.esFraccionable !== true
-    ) {
-      return false;
-    }
-
-    if (
-      filtro.esFraccionable === 'false' &&
-      producto.esFraccionable === true
-    ) {
+    if (filtro.esFraccionable === 'false' && producto.esFraccionable === true) {
       return false;
     }
 
@@ -2178,29 +1815,20 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
      ACTUALIZAR IMAGEN DE PRODUCTO
   ========================================================= */
 
-  private refrescarVista(
-    producto: Api.ProductoResponseDTO,
-  ): void {
-
+  private refrescarVista(producto: Api.ProductoResponseDTO): void {
     const id = producto.id;
     const imagen = producto.imagen;
-
     if (!id) return;
 
     const previa = this.vistas.get(id);
-
     if (previa?.startsWith('blob:')) {
       URL.revokeObjectURL(previa);
     }
-
     this.vistas.delete(id);
 
     if (!imagen) return;
 
-    if (
-      imagen.startsWith('http://') ||
-      imagen.startsWith('https://')
-    ) {
+    if (imagen.startsWith('http://') || imagen.startsWith('https://')) {
       this.vistas.set(id, imagen);
       return;
     }
@@ -2210,12 +1838,8 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (blob) => {
-          this.vistas.set(
-            id,
-            URL.createObjectURL(blob),
-          );
+          this.vistas.set(id, URL.createObjectURL(blob));
         },
-
         error: () => {
           this.vistas.delete(id);
         },
@@ -2227,51 +1851,41 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   ========================================================= */
 
   private cuerpo(
-    value: ReturnType<
-      ProductosPageComponent['form']['getRawValue']
-    >,
+    value: ReturnType<ProductosPageComponent['form']['getRawValue']>,
     productoId: string,
     fracciones: Api.CatalogoFraccionResponseDTO[],
   ): Api.ProductoRequestDTO {
-
     return {
       nombre: value.nombre.trim(),
-
-      codigoSku:
-        value.codigoSku.trim() || undefined,
-
-      descripcion:
-        value.descripcion.trim() || undefined,
-
-      categoriaId:
-        value.categoriaId || undefined,
-
-      proveedorId:
-        value.proveedorId || undefined,
-
+      codigoSku: value.codigoSku.trim() || undefined,
+      descripcion: value.descripcion.trim() || undefined,
+      categoriaId: value.categoriaId || undefined,
+      proveedorId: value.proveedorId || undefined,
       tipo: value.tipo,
-
-      unidad:
-        value.unidad.trim() || undefined,
-
+      unidad: value.unidad.trim() || undefined,
       precioCompra: Number(value.precioCompra),
-
       precioVentaBase: Number(value.precioVentaBase),
-
       activo: value.activo,
-
       esFraccionable: value.esFraccionable,
-
       destacado: value.destacado,
-
       incluyeIgv: value.incluyeIgv,
-
       fracciones: value.esFraccionable
         ? this.fraccionesDe(productoId, fracciones)
         : undefined,
-
-      imagen:
-        value.imagen.trim() || undefined,
+      imagen: value.imagen.trim() || undefined,
+      /* ── Ubicación e inventario ── */
+      sedeId: value.sedeId || undefined,
+      almacenId: value.almacenId || undefined,
+      stockInicial:
+        Number(value.stockInicial) > 0 ? Number(value.stockInicial) : undefined,
+      stockMinimo:
+        Number(value.stockMinimo) > 0 ? Number(value.stockMinimo) : undefined,
+      stockMaximo:
+        Number(value.stockMaximo) > 0 ? Number(value.stockMaximo) : undefined,
+      puntoReposicion:
+        Number(value.puntoReposicion) > 0
+          ? Number(value.puntoReposicion)
+          : undefined,
     };
   }
 
@@ -2279,41 +1893,23 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     item: Api.ProductoResponseDTO,
     activo: boolean,
   ): Api.ProductoRequestDTO {
-
     return {
       nombre: item.nombre ?? '',
-
       codigoSku: item.codigoSku,
-
       descripcion: item.descripcion,
-
       categoriaId: item.categoria?.id,
-
       proveedorId: item.proveedor?.id,
-
       tipo: item.tipo ?? 'FISICO',
-
       unidad: item.unidad,
-
       precioCompra: Number(item.precioCompra ?? 0),
-
       precioVentaBase: Number(item.precioVentaBase ?? 0),
-
       activo,
-
       esFraccionable: item.esFraccionable ?? false,
-
       destacado: item.destacado ?? false,
-
       incluyeIgv: item.incluyeIgv ?? true,
-
       fracciones: item.esFraccionable
-        ? this.fraccionesDe(
-            item.id ?? '',
-            item.fracciones ?? [],
-          )
+        ? this.fraccionesDe(item.id ?? '', item.fracciones ?? [])
         : undefined,
-
       imagen: item.imagen,
     };
   }
@@ -2322,7 +1918,6 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     productoId: string,
     fracciones: Api.CatalogoFraccionResponseDTO[],
   ): Api.CatalogoFraccionRequestDTO[] | undefined {
-
     const lista = fracciones.filter(
       (fraccion) =>
         fraccion.nombreFraccion &&
@@ -2334,18 +1929,10 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
     return lista.map((fraccion) => ({
       productoId,
-
-      nombreFraccion:
-        fraccion.nombreFraccion ?? '',
-
-      factorDescuentoKardex:
-        Number(fraccion.factorDescuentoKardex),
-
-      precioVenta:
-        fraccion.precioVenta,
-
-      activo:
-        fraccion.activo ?? true,
+      nombreFraccion: fraccion.nombreFraccion ?? '',
+      factorDescuentoKardex: Number(fraccion.factorDescuentoKardex),
+      precioVenta: fraccion.precioVenta,
+      activo: fraccion.activo ?? true,
     }));
   }
 
@@ -2353,22 +1940,16 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
      CONSTRUCCIÓN DE FILAS DE INVENTARIO
   ========================================================= */
 
-  private fila(
-    producto: Api.ProductoResponseDTO,
-  ): FilaCatalogo {
-
-    const registros =
-      this.saldos.get(producto.id ?? '') ?? [];
+  private fila(producto: Api.ProductoResponseDTO): FilaCatalogo {
+    const registros = this.saldos.get(producto.id ?? '') ?? [];
 
     const cantidad = registros.reduce(
-      (total, row) =>
-        total + Number(row.cantidad ?? 0),
+      (total, row) => total + Number(row.cantidad ?? 0),
       0,
     );
 
     const minimo = registros.reduce(
-      (total, row) =>
-        total + Number(row.stockMinimo ?? 0),
+      (total, row) => total + Number(row.stockMinimo ?? 0),
       0,
     );
 
@@ -2377,29 +1958,14 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       (minimo > 0 && cantidad <= minimo);
 
     const principal = [...registros].sort(
-      (a, b) =>
-        Number(b.cantidad ?? 0) -
-        Number(a.cantidad ?? 0),
+      (a, b) => Number(b.cantidad ?? 0) - Number(a.cantidad ?? 0),
     )[0];
 
-    const unidad =
-      principal?.unidad ||
-      producto.unidad ||
-      'UNID';
-
-    const cortes = this.cortes(
-      producto,
-      cantidad,
-    );
-
-    const referencia = Math.max(
-      minimo * 2,
-      cantidad,
-      1,
-    );
+    const unidad = principal?.unidad || producto.unidad || 'UNID';
+    const cortes = this.cortes(producto, cantidad);
+    const referencia = Math.max(minimo * 2, cantidad, 1);
 
     let estado: FilaCatalogo['estado'] = 'optimo';
-
     let estadoLabel = 'Óptimo';
 
     if (producto.activo === false) {
@@ -2415,38 +1981,16 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
 
     return {
       producto,
-
       cantidad,
-
       minimo,
-
       bajo,
-
       unidad,
-
-      almacen:
-        principal?.almacenNombre || 'Sin almacén',
-
-      sede:
-        principal?.sedeNombre || 'Sin sede',
-
-      otrosAlmacenes: Math.max(
-        registros.length - 1,
-        0,
-      ),
-
-      ancho: Math.max(
-        0,
-        Math.min(
-          100,
-          (cantidad / referencia) * 100,
-        ),
-      ),
-
+      almacen: principal?.almacenNombre || 'Sin almacén',
+      sede: principal?.sedeNombre || 'Sin sede',
+      otrosAlmacenes: Math.max(registros.length - 1, 0),
+      ancho: Math.max(0, Math.min(100, (cantidad / referencia) * 100)),
       cortes,
-
       estado,
-
       estadoLabel,
     };
   }
@@ -2459,10 +2003,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     producto: Api.ProductoResponseDTO,
     cantidad: number,
   ): CorteVista[] {
-
-    const fracciones = (
-      producto.fracciones ?? []
-    ).filter(
+    const fracciones = (producto.fracciones ?? []).filter(
       (fraccion) => fraccion.activo !== false,
     );
 
@@ -2470,60 +2011,31 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       ? fracciones
       : [
           {
-            nombreFraccion:
-              producto.unidad || 'Unidad',
-
-            precioVenta:
-              producto.precioVentaBase,
-
+            nombreFraccion: producto.unidad || 'Unidad',
+            precioVenta: producto.precioVentaBase,
             factorDescuentoKardex: 1,
           },
         ];
 
     const vistos = base
       .map((fraccion) => {
-        const factor = Number(
-          fraccion.factorDescuentoKardex ?? 0,
-        );
-
-        const equivalentes =
-          factor > 0
-            ? cantidad / factor
-            : 0;
-
+        const factor = Number(fraccion.factorDescuentoKardex ?? 0);
+        const equivalentes = factor > 0 ? cantidad / factor : 0;
         return {
-          nombre:
-            fraccion.nombreFraccion || 'Corte',
-
-          precio:
-            Number(fraccion.precioVenta ?? 0),
-
+          nombre: fraccion.nombreFraccion || 'Corte',
+          precio: Number(fraccion.precioVenta ?? 0),
           factor,
-
           equivalentes,
-
           ancho: 0,
         };
       })
-      .sort(
-        (a, b) => b.factor - a.factor,
-      );
+      .sort((a, b) => b.factor - a.factor);
 
-    const mayor = Math.max(
-      ...vistos.map((corte) => corte.equivalentes),
-      1,
-    );
+    const mayor = Math.max(...vistos.map((corte) => corte.equivalentes), 1);
 
     return vistos.map((corte) => ({
       ...corte,
-
-      ancho: Math.max(
-        0,
-        Math.min(
-          100,
-          (corte.equivalentes / mayor) * 100,
-        ),
-      ),
+      ancho: Math.max(0, Math.min(100, (corte.equivalentes / mayor) * 100)),
     }));
   }
 }
