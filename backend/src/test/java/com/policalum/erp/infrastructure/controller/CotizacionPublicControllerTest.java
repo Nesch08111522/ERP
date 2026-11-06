@@ -13,6 +13,7 @@ import com.policalum.erp.application.service.serviceImpl.ChatWebService;
 import com.policalum.erp.application.service.serviceImpl.CotizacionDocumentoService;
 import com.policalum.erp.application.service.serviceImpl.LimitePublico;
 import com.policalum.erp.application.service.serviceImpl.MensajeWebService;
+import com.policalum.erp.application.service.serviceImpl.PedidoWhatsappService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
 import com.policalum.erp.infrastructure.security.JwtUtil;
 import com.policalum.erp.infrastructure.security.SesionUsuarioCache;
@@ -41,6 +42,7 @@ class CotizacionPublicControllerTest {
     @MockitoBean ChatWebService chat;
     @MockitoBean CanalWebNotificador notificador;
     @MockitoBean LimitePublico limite;
+    @MockitoBean PedidoWhatsappService pedidosWhatsapp;
     @MockitoBean JwtUtil jwtUtil;
     @MockitoBean SesionUsuarioCache sesionUsuarioCache;
     @MockitoBean TokenDenylist tokenDenylist;

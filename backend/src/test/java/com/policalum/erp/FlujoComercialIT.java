@@ -79,13 +79,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @org.springframework.test.context.TestPropertySource(properties = "spring.jpa.hibernate.ddl-auto=create-drop")
 @EnabledIfEnvironmentVariable(
         named = "POLICALUM_IT_DB_URL",
-        matches = "jdbc:postgresql://[^/]+/ERPpoli_it_[A-Za-z0-9_]+")
+        matches = "(?i)jdbc:postgresql://[^/]+/erppoli_it_[A-Za-z0-9_]+")
 class FlujoComercialIT {
 
     @DynamicPropertySource
     static void datasource(DynamicPropertyRegistry registry) {
         String url = System.getenv("POLICALUM_IT_DB_URL");
-        if (url == null || !url.matches("jdbc:postgresql://[^/]+/ERPpoli_it_[A-Za-z0-9_]+")) {
+        if (url == null || !url.matches("(?i)jdbc:postgresql://[^/]+/erppoli_it_[A-Za-z0-9_]+")) {
             throw new IllegalStateException("POLICALUM_IT_DB_URL debe apuntar a una base aislada ERPpoli_it_*");
         }
         registry.add("spring.datasource.url", () -> url);

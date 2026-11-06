@@ -108,7 +108,7 @@ public class StockServiceImpl implements StockService {
         } else if (stock == null) {
             stock = Stock.builder()
                     .producto(dto.producto())
-                    .almacen(dto.almacen())
+                    .almacen(almacen)
                     .cantidad(BigDecimal.ZERO)
                     .build();
         }

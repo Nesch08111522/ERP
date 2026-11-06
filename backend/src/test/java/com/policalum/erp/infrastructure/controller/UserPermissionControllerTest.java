@@ -2,6 +2,7 @@ package com.policalum.erp.infrastructure.controller;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.policalum.erp.application.service.UserService;
@@ -25,6 +26,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
+import java.util.UUID;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -61,5 +64,31 @@ class UserPermissionControllerTest {
 
         permisosUsuarios.put("leer", false);
         mvc.perform(get("/api/v1/users")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    void actualizarUsuarioNoUsaElPermisoCrearComoSustitutoDeEditar() throws Exception {
+        Map<String, Object> permisos = new HashMap<>();
+        permisos.put("usuarios", Map.of("crear", true, "editar", false));
+        User admin = User.builder().rol(Rol.builder().nombre(RolNombre.ROLE_ADMIN).permisosJson(permisos).build()).build();
+        when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
+
+        mvc.perform(put("/api/v1/users/" + UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "rol": {},
+                                  "sede": {},
+                                  "nombreUsuario": "usuario_prueba",
+                                  "nombre": "Ana",
+                                  "apellido": "Ruiz",
+                                  "email": "ana.prueba@policalum.com",
+                                  "passwordHash": "ClaveSegura1!",
+                                  "celular": "987654321",
+                                  "activo": true
+                                }
+                                """))
+                .andExpect(status().isForbidden());
     }
 }

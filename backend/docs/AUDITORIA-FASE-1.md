@@ -81,3 +81,65 @@ No se pudo ejecutar la integración PostgreSQL ni pruebas de carga porque `docke
 - El código solo define `ROLE_ADMIN` y `ROLE_MULTIFUNCIONAL`; `SUPERVISOR` y `TRABAJADOR` no existen.
 - Se identificaron 130 endpoints sin `@PreAuthorize`, 140 con protección declarativa/regla de servicio documentada y 3 públicos o con regla específica en el parser de la matriz.
 - No se aplicaron cambios masivos de autorización. Falta revisión por módulo y pruebas 401/403 con una base aislada confirmada.
+
+
+## Bloque A — revisión de usuarios, roles, sedes, inventario y ventas
+
+### Correcciones aplicadas
+
+- `UserController`: `PUT /api/v1/users/{id}` ahora exige `usuarios.editar`; antes exigía incorrectamente `usuarios.crear`.
+- `StockServiceImpl`: las lecturas por almacén, la búsqueda por almacén, la consulta por producto y la actualización de stock validan la sede del usuario. Un `MULTIFUNCIONAL` solo puede consultar o modificar almacenes de su sede; `ADMIN` conserva alcance global.
+- `StockRepository`: se añadió la consulta filtrada por `productoId` y `sedeId` para evitar cargar stock de otras sedes.
+- `VentaServiceImpl`: el detalle, listado y anulación de ventas quedan limitados a la sede del usuario no administrador. Los filtros de listado no pueden ampliar el alcance a otra sede.
+
+### Pruebas añadidas
+
+- `StockServiceImplTest.multifuncional_noPuedeLeerStockDeOtraSede`.
+- `VentaServiceImplTest.obtener_multifuncionalNoPuedeVerVentaDeOtraSede`.
+- `UserPermissionControllerTest.actualizarUsuarioNoUsaElPermisoCrearComoSustitutoDeEditar`.
+
+### Resultado de verificación
+
+La validación de existencia y conflictos de los archivos modificados fue satisfactoria. La ejecución focalizada de Maven (`StockServiceImplTest`, `VentaServiceImplTest`) **no se pudo ejecutar**: Maven sí inició, pero no pudo resolver `org.springframework.boot:spring-boot-starter-parent:4.0.6` desde Maven Central por `Permission denied`; el artefacto no estaba disponible localmente. No se marca ninguna de estas pruebas como aprobada.
+
+### Riesgos residuales del bloque
+
+La protección declarativa de los 273 endpoints todavía requiere revisión módulo por módulo. El aislamiento aplicado en este bloque cubre las rutas de stock y ventas revisadas, pero no constituye evidencia de que todos los módulos restantes filtren por sede. La suite completa, integración PostgreSQL, regresión 401/403 y rendimiento siguen pendientes hasta disponer de dependencias Maven y una base de pruebas aislada.
+
+
+## Bloque B — restablecimiento y validación del entorno
+
+### Maven
+
+- Maven 3.9.16 local funciona correctamente y el wrapper conserva `distributionUrl` sin modificaciones.
+- No existe `settings.xml` de usuario ni global accesible; no hay variables `MAVEN_OPTS`, `M2_HOME`, `MAVEN_HOME`, `HTTP_PROXY` o `HTTPS_PROXY` activas.
+- DNS para `repo.maven.apache.org` funciona, pero TCP/HTTPS hacia el puerto 443 está bloqueado por el entorno. `curl` devuelve error 7 y Maven registra `Permission denied`.
+- El repositorio local solo contiene `spring-boot-starter-parent-4.0.6.pom.lastUpdated`; no contiene el POM requerido.
+- Con acceso de red temporal, Maven resolvió el proyecto y permitió ejecutar las pruebas focalizadas. No se cambiaron versiones ni dependencias.
+
+### PostgreSQL
+
+- El servicio `postgresql-x64-17` figura iniciado y se observó un listener en `0.0.0.0:5432`/`[::]:5432`.
+- El cliente `pg_isready` no obtiene respuesta y `psql` falla con `WSAEACCES 10013 (Permission denied)` antes de autenticarse.
+- La sesión no tiene permisos para inspeccionar ACL, proceso o directorio de datos de PostgreSQL. No se detuvo el servicio, no se consultaron bases de negocio y no se ejecutó ninguna escritura.
+- Docker no está disponible. No se pudo crear una base aislada con Docker/Testcontainers.
+
+### Blindaje de pruebas
+
+`src/test/resources/application.properties` ahora usa exclusivamente:
+
+- `POLICALUM_TEST_DB_URL`, si está definida; o
+- `jdbc:postgresql://127.0.0.1:5432/ERPpoli_it_unconfigured` como fallback seguro.
+
+También se definieron variables separadas para usuario y contraseña. Esto evita que las pruebas hereden accidentalmente `DB_URL` o `ERPpoli` de producción. `FlujoComercialIT` mantiene su validación propia y solo acepta `POLICALUM_IT_DB_URL` con patrón `ERPpoli_it_*`.
+
+### Pruebas ejecutadas
+
+- `StockServiceImplTest`, `VentaServiceImplTest`, `UserPermissionControllerTest`: **41/41 PASS**, 0 fallos, 0 errores.
+- Una primera ejecución focalizada tuvo 40 aprobadas y 1 fallo de prueba por enviar un cuerpo inválido; se corrigió el cuerpo y se repitió con resultado **41/41 PASS**.
+- Suite completa del backend: **no ejecutada**. Fue bloqueada antes de iniciar por no existir evidencia de una base `ERPpoli_it_*` creada y verificada exclusivamente para pruebas.
+- Ejecución Maven offline posterior: **no ejecutada**, porque el parent 4.0.6 no permanece en el caché local.
+
+### Estado de cierre
+
+El Bloque B queda **parcialmente cerrado**: Maven fue diagnosticado y funciona cuando se permite resolver dependencias; las pruebas focalizadas están aprobadas; el datasource de test quedó protegido contra producción. No se puede cerrar la integración PostgreSQL ni la suite completa hasta que un operador con permisos cree/verifique una base exclusiva `ERPpoli_it_*` o habilite Docker/Testcontainers. Por esta razón no se inicia el Bloque C ni el Bloque D.
