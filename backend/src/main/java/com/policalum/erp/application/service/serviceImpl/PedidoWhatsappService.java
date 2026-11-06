@@ -49,7 +49,7 @@ public class PedidoWhatsappService {
                 if (!fraccion.getProducto().getId().equals(producto.getId()) || !Boolean.TRUE.equals(fraccion.getActivo())) {
                     throw new IllegalArgumentException("El corte no corresponde al producto");
                 }
-                precio = PrecioComercial.fraccion(producto, fraccion.getPrecioVenta());
+                precio = PrecioComercial.fraccion(producto, fraccion);
                 corte = " · " + fraccion.getNombreFraccion();
             } else if (Boolean.TRUE.equals(producto.getEsFraccionable())) {
                 throw new IllegalArgumentException("Elige un corte de " + producto.getNombre());

@@ -30,6 +30,7 @@
       <div class="dropdown-panel" *ngIf="sedesAbiertas" role="listbox">
         <button type="button" class="dropdown-item" (click)="elegirSede('', 'Sedes')">Todas las sedes</button>
         <button type="button" class="dropdown-item" *ngFor="let sede of sedes" (click)="elegirSede(sede.id ?? '', sede.nombre ?? 'Sede')">{{ sede.nombre }}</button>
+        <a class="dropdown-item" routerLink="/elegir-sede" (click)="sedesAbiertas = false">Elegir sede</a>
       </div>
     </div>
     <div class="dropdown" [class.menu-open]="avisosAbiertos">

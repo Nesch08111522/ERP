@@ -42,23 +42,21 @@ export class MarcaService {
 
   private favicon(href: string): void {
     if (typeof document === 'undefined') return;
+    document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach((nodo) => nodo.remove());
     this.enlaceIcono('icon', href);
     this.enlaceIcono('apple-touch-icon', href);
   }
 
   private enlaceIcono(rel: string, href: string): void {
-    let enlace = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
-    if (!enlace) {
-      enlace = document.createElement('link');
-      enlace.rel = rel;
-      document.head.appendChild(enlace);
-    }
-    enlace.type = href.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+    const enlace = document.createElement('link');
+    enlace.rel = rel;
     enlace.href = href;
+    document.head.appendChild(enlace);
   }
 
   usarRespaldo(): void {
     this.logoRota.set(true);
+    this.favicon('/POLICALUM.png');
   }
 
   subirLogo(archivo: File): Observable<{ ruta: string }> {

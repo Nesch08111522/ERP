@@ -49,7 +49,7 @@ export class LoginComponent implements OnInit {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: (_response: LoginResponse) => {
         this.isLoading = false;
-        void this.router.navigate(['/modules/turnos-caja']);
+        void this.router.navigate(['/elegir-sede']);
       },
       error: (err: ApiProblem) => {
         this.isLoading = false;

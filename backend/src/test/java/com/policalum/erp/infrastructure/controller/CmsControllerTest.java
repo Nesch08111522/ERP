@@ -40,7 +40,7 @@ class CmsControllerTest {
     @Test
     void cmsPublico_responde200() throws Exception {
         when(cms.publico()).thenReturn(new CmsPublicoDTO("#111111", "#FFFFFF", 16, "claro", "", false,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 
         mvc.perform(get("/api/v1/public/cms"))
                 .andExpect(status().isOk())

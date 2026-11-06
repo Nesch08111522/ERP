@@ -17,6 +17,7 @@ import { ColumnDef, SelectOption, TabItem } from '../../../shared/models/ui.mode
 import { PenPipe } from '../../../shared/pipes/format.pipes';
 import { InventarioSyncService } from '../../../shared/services/inventario-sync.service';
 import { LookupService } from '../../../shared/services/lookup.service';
+import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { fieldError, problemStatus, problemText } from '../../../shared/utils/feedback';
 import { ignoreStale, PageState } from '../../../shared/utils/page-state';
@@ -58,6 +59,7 @@ export class StockPageComponent implements OnInit, OnDestroy {
   errorFormulario: string | null = null;
   private omitirRevision = 0;
   private readonly destroy$ = new Subject<void>();
+  private readonly sedeFiltro = inject(SedeFiltroService);
 
   constructor(private readonly api: StockApiService, private readonly lookup: LookupService, private readonly inventario: InventarioSyncService, private readonly toast: ToastService, private readonly route: ActivatedRoute) {
     effect(() => {
@@ -70,6 +72,8 @@ export class StockPageComponent implements OnInit, OnDestroy {
     });
   }
   ngOnInit(): void {
+    const sede = this.sedeFiltro.sedeId();
+    if (sede) this.filtros.controls.sedeId.setValue(sede);
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab === 'bajo' || tab === 'ajustes' || tab === 'transferencias' || tab === 'consolidado') this.tab = tab;
     this.cargar();

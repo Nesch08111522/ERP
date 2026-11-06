@@ -121,4 +121,8 @@ public class CmsAjuste {
     /** Últimos datos del ERP que el sitio ya aceptó o decidió no usar. */
     @Column(name = "origen_empresa", columnDefinition = "TEXT")
     private String origenEmpresa;
+
+    /** Paleta de día y de noche. Vacío: el sitio usa los colores de fábrica. */
+    @Column(name = "colores_json", columnDefinition = "TEXT")
+    private String coloresJson;
 }

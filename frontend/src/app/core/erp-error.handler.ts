@@ -8,10 +8,13 @@ export class ErpErrorHandler implements ErrorHandler {
   private ultimo = 0;
 
   handleError(error: unknown): void {
-    console.error(error);
     const status = (error as { status?: unknown } | null)?.status;
-    if (typeof status === 'number') return;
     const mensaje = (error as { message?: unknown } | null)?.message;
+    if (typeof status === 'number') {
+      if (typeof mensaje === 'string' && mensaje.length > 0) console.warn(mensaje);
+      return;
+    }
+    console.error(error);
     if (typeof mensaje === 'string' && mensaje.length > 0 && !(error instanceof Error)) return;
     const actual = this.router.url || '';
     if (actual.startsWith('/error/')) return;

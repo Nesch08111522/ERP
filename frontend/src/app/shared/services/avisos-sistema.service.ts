@@ -68,26 +68,26 @@ export class AvisosSistema {
 
   private async nativo(titulo: string, cuerpo: string, url: string): Promise<boolean> {
     if (this.permiso() !== 'granted' || typeof Notification === 'undefined') return false;
-    const icono = this.marca.logoSrc();
+    const icono = '/POLICALUM.png';
     try {
       const registro = await this.registro();
-      if (!registro) {
-        const aviso = new Notification(titulo, { body: cuerpo, tag: 'policalum-erp', icon: icono });
-        aviso.onclick = () => {
-          window.focus();
-          aviso.close();
-          location.assign(url);
-        };
+      if (registro) {
+        await registro.showNotification(titulo, {
+          body: cuerpo,
+          tag: `policalum-${Date.now()}`,
+          icon: icono,
+          badge: icono,
+          data: { url },
+          silent: false,
+        });
         return true;
       }
-      await registro.showNotification(titulo, {
-        body: cuerpo,
-        tag: 'policalum-erp',
-        icon: icono,
-        badge: icono,
-        data: { url },
-        silent: false,
-      });
+      const aviso = new Notification(titulo, { body: cuerpo, tag: `policalum-${Date.now()}`, icon: icono });
+      aviso.onclick = () => {
+        window.focus();
+        aviso.close();
+        location.assign(url);
+      };
       return true;
     } catch {
       return false;

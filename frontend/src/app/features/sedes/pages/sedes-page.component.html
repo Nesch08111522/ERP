@@ -30,7 +30,7 @@
     </ng-template>
   </app-data-table>
 </section>
-<app-modal [closable]="!guardando" [open]="modal" size="lg" [title]="editando ? 'Editar sede' : 'Nueva sede'" (closed)="modal = false">
+<app-modal [closable]="!guardando" [open]="modal" size="lg" [title]="editando ? 'Editar sede' : 'Nueva sede'" (closed)="cancelar()">
   <form class="sede-editor" [formGroup]="form">
     <div class="form-grid">
       <div *ngIf="errorFormulario" class="alert alert-error span-2">{{ errorFormulario }}</div>
@@ -47,7 +47,7 @@
         <label for="sede-ubicar">Buscar lugar</label>
         <div class="ubicar-fila">
           <input id="sede-ubicar" class="input" type="search" [formControl]="consulta" placeholder="Miraflores, Av. Larco, Trujillo" (keydown.enter)="$event.preventDefault(); ubicar()" />
-          <button type="button" class="btn btn-primary" (click)="ubicar()">Ubicar</button>
+          <button type="button" class="btn btn-primary" (click)="ubicar()" [disabled]="buscandoLugar">{{ buscandoLugar ? 'Buscando…' : 'Ubicar' }}</button>
         </div>
         <p class="text-sm text-muted">{{ avisoMapa }}</p>
       </div>
@@ -64,7 +64,7 @@
     </div>
   </form>
   <div modalFooter>
-    <button type="button" class="btn btn-ghost" (click)="modal = false" [disabled]="guardando">Cancelar</button>
+    <button type="button" class="btn btn-ghost" (click)="cancelar()" [disabled]="guardando">Cancelar</button>
     <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
   </div>
 </app-modal>

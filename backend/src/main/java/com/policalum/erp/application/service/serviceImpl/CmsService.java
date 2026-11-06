@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.policalum.erp.application.dto.request.CmsAjusteRequestDTO;
+import com.policalum.erp.application.dto.request.ColoresSitioDTO;
 import com.policalum.erp.application.dto.request.DiaAtencionDTO;
 import com.policalum.erp.application.dto.request.HorarioOperativoRequestDTO;
 import com.policalum.erp.application.dto.request.OfertaManualRequestDTO;
@@ -15,6 +16,7 @@ import com.policalum.erp.application.dto.response.MaterialPublicoDTO;
 import com.policalum.erp.application.service.AtencionHorario;
 import com.policalum.erp.application.service.EmpresaSitioVinculo;
 import com.policalum.erp.application.service.PrecioComercial;
+import com.policalum.erp.domain.model.CatalogoFraccion;
 import com.policalum.erp.domain.model.CmsAjuste;
 import com.policalum.erp.domain.model.ConfiguracionEmpresa;
 import com.policalum.erp.domain.model.HorarioOperativo;
@@ -34,6 +36,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +94,16 @@ public class CmsService {
         fila.setMaterialesKicker(limpio(request.materialesKicker(), 80));
         fila.setMaterialesTitulo(limpio(request.materialesTitulo(), 180));
         fila.setMaterialesTexto(limpio(request.materialesTexto(), 400));
+        if (request.colores() != null) {
+            ColoresSitioDTO colores = sanearColores(request.colores());
+            try {
+                fila.setColoresJson(json.writeValueAsString(colores));
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("No se pudo guardar la paleta");
+            }
+            fila.setColorPrimario(colores.dia().acento());
+            fila.setColorSecundario(colores.dia().tarjeta());
+        }
         if (request.materiales() != null) {
             List<MaterialPublicoDTO> materiales = normalizarMateriales(request.materiales());
             try {
@@ -109,7 +122,12 @@ public class CmsService {
     public CmsPublicoDTO guardarHorario(HorarioOperativoRequestDTO request) {
         HorarioOperativo fila = asegurarHorario();
         fila.setMensaje(request.mensaje() == null ? "" : request.mensaje().trim());
-        fila.setActivo(Boolean.TRUE.equals(request.activo()) && !fila.getMensaje().isBlank());
+        if (request.avisoImagen() != null) {
+            fila.setAvisoImagen(limpio(request.avisoImagen(), 300));
+        }
+        boolean hayAviso = !fila.getMensaje().isBlank()
+                || (fila.getAvisoImagen() != null && !fila.getAvisoImagen().isBlank());
+        fila.setActivo(Boolean.TRUE.equals(request.activo()) && hayAviso);
         if (request.dias() != null) {
             validarDias(request.dias());
             try {
@@ -144,6 +162,7 @@ public class CmsService {
             producto.setOfertaPorcentaje(null);
             producto.setOfertaDesde(null);
             producto.setOfertaHasta(null);
+            limpiarFracciones(producto);
             productos.save(producto);
             publicador.publicar("catalogo");
             return;
@@ -179,6 +198,7 @@ public class CmsService {
         producto.setOfertaHasta(hoy.plusDays(request.dias() - 1L));
         producto.setOferta(true);
         producto.setOfertaManual(true);
+        aplicarFracciones(producto, request, porcentaje);
         productos.save(producto);
         publicador.publicar("catalogo");
     }
@@ -210,7 +230,9 @@ public class CmsService {
         CmsAjuste ajuste = ajustes.findById(CmsAjuste.ID).orElse(null);
         HorarioOperativo horario = horarios.findById(HorarioOperativo.ID).orElse(null);
         String mensaje = horario == null || horario.getMensaje() == null ? "" : horario.getMensaje();
-        boolean activo = horario != null && Boolean.TRUE.equals(horario.getActivo()) && !mensaje.isBlank();
+        String avisoImagen = horario == null ? null : horario.getAvisoImagen();
+        boolean hayImagen = avisoImagen != null && !avisoImagen.isBlank();
+        boolean activo = horario != null && Boolean.TRUE.equals(horario.getActivo()) && (!mensaje.isBlank() || hayImagen);
         List<DiaAtencionDTO> dias = leerDias(horario);
         AtencionPublicaDTO atencion = AtencionHorario.evaluar(dias, LocalDateTime.now(PrecioComercial.LIMA));
         return new CmsPublicoDTO(
@@ -241,7 +263,33 @@ public class CmsService {
                 ajuste == null ? null : ajuste.getMaterialesTexto(),
                 leerMateriales(ajuste),
                 atencion,
-                dias);
+                dias,
+                hayImagen ? avisoImagen : null,
+                leerColores(ajuste));
+    }
+
+    private ColoresSitioDTO sanearColores(ColoresSitioDTO colores) {
+        return new ColoresSitioDTO(sanearPaleta(colores.dia()), sanearPaleta(colores.noche()));
+    }
+
+    private ColoresSitioDTO.PaletaColorDTO sanearPaleta(ColoresSitioDTO.PaletaColorDTO paleta) {
+        return new ColoresSitioDTO.PaletaColorDTO(
+                paleta.acento().toUpperCase(),
+                paleta.fondo().toUpperCase(),
+                paleta.tarjeta().toUpperCase(),
+                paleta.texto().toUpperCase(),
+                paleta.textoSuave().toUpperCase(),
+                paleta.oferta().toUpperCase(),
+                paleta.franja().toUpperCase());
+    }
+
+    private ColoresSitioDTO leerColores(CmsAjuste ajuste) {
+        if (ajuste == null || ajuste.getColoresJson() == null || ajuste.getColoresJson().isBlank()) return null;
+        try {
+            return json.readValue(ajuste.getColoresJson(), ColoresSitioDTO.class);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
     private List<MaterialPublicoDTO> leerMateriales(CmsAjuste ajuste) {
@@ -453,6 +501,38 @@ public class CmsService {
             nuevo.setId(CmsAjuste.ID);
             return ajustes.save(nuevo);
         });
+    }
+
+    private void aplicarFracciones(Producto producto, OfertaManualRequestDTO request, BigDecimal porcentaje) {
+        if (producto.getFracciones() == null) return;
+        String alcance = request.alcanceFracciones() == null ? "TODAS" : request.alcanceFracciones().trim().toUpperCase(Locale.ROOT);
+        for (CatalogoFraccion fraccion : producto.getFracciones()) {
+            boolean entra = switch (alcance) {
+                case "NINGUNA" -> false;
+                case "ALGUNAS" -> request.fraccionIds() != null && request.fraccionIds().contains(fraccion.getId());
+                default -> true;
+            };
+            if (!entra || !Boolean.TRUE.equals(fraccion.getActivo())) {
+                fraccion.setEnOferta(false);
+                fraccion.setOfertaPorcentaje(null);
+                fraccion.setPrecioOferta(null);
+                continue;
+            }
+            BigDecimal lista = fraccion.getPrecioVenta() == null ? BigDecimal.ZERO : fraccion.getPrecioVenta();
+            BigDecimal oferta = lista.multiply(BigDecimal.ONE.subtract(porcentaje.movePointLeft(2))).setScale(2, RoundingMode.HALF_UP);
+            fraccion.setEnOferta(true);
+            fraccion.setOfertaPorcentaje(porcentaje);
+            fraccion.setPrecioOferta(oferta);
+        }
+    }
+
+    private void limpiarFracciones(Producto producto) {
+        if (producto.getFracciones() == null) return;
+        for (CatalogoFraccion fraccion : producto.getFracciones()) {
+            fraccion.setEnOferta(false);
+            fraccion.setOfertaPorcentaje(null);
+            fraccion.setPrecioOferta(null);
+        }
     }
 
     private HorarioOperativo asegurarHorario() {

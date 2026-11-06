@@ -102,7 +102,10 @@ export class PerfilPageComponent implements OnInit, OnDestroy {
   guardar(): void {
     if (this.guardando) return;
     this.datos.markAllAsTouched();
-    if (this.datos.invalid) return;
+    if (this.datos.invalid) {
+      this.toast.error('Revisa los campos marcados antes de guardar.');
+      return;
+    }
     const value = this.datos.getRawValue();
     const body: Api.PerfilActualizarRequestDTO = {
       nombre: value.nombre.trim(),
@@ -129,7 +132,7 @@ export class PerfilPageComponent implements OnInit, OnDestroy {
         this.pintar(perfil);
         this.toast.success('Perfil actualizado.');
       },
-      error: (error: unknown) => { this.guardando = false; applyServerErrors(this.datos, error); this.errorDatos = problemText(error); },
+      error: (error: unknown) => { this.guardando = false; applyServerErrors(this.datos, error); this.errorDatos = problemText(error); this.toast.error(this.errorDatos); },
     });
   }
 

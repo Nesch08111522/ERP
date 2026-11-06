@@ -109,7 +109,7 @@ export class PeruMapaComponent implements AfterViewInit, OnChanges, OnDestroy {
     } else if (distinto) {
       this.pin.setLatLng([latitud, longitud]);
     }
-    if (distinto) this.mapa.setView([latitud, longitud], Math.max(this.mapa.getZoom(), 14));
+    if (distinto) this.mapa.setView([latitud, longitud], Math.max(this.mapa.getZoom(), 16));
     if (!desdeDato && distinto) this.marcaChange.emit({ latitud: redondear(latitud), longitud: redondear(longitud) });
   }
 

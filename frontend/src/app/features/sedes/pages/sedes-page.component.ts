@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Routes } from '@angular/router';
+import { ActivatedRoute, Router, Routes } from '@angular/router';
 import { RoleGuard } from '../../../guards/role.guard';
 import { Subject, takeUntil } from 'rxjs';
 import * as Api from '../../../core/api/openapi.types';
@@ -15,12 +15,14 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { ColumnDef } from '../../../shared/models/ui.models';
 import { LookupService } from '../../../shared/services/lookup.service';
 import { MarcaService } from '../../../shared/services/marca.service';
+import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { TokenService } from '../../../services/token.service';
 import { applyServerErrors, fieldError, mensajeBaja, problemStatus, problemText } from '../../../shared/utils/feedback';
 import { ignoreStale, PageState } from '../../../shared/utils/page-state';
 import { coincideBusqueda } from '../../../shared/utils/search-text';
 import { PeruMapaComponent, PuntoElegido, PuntoSede } from '../components/peru-mapa.component';
-import { buscarLugar } from '../data-access/peru-geocoder';
+import { buscarLugar, geocodificar } from '../data-access/peru-geocoder';
 import { SedeMapa, SedeUbicacionApi } from '../data-access/sede-ubicacion.api';
 import { SedesApiService } from '../data-access/sedes.api';
 
@@ -70,6 +72,8 @@ export class SedesPageComponent implements OnInit, OnDestroy {
   punto: PuntoElegido | null = null;
   consulta = new FormControl('', { nonNullable: true });
   avisoMapa = 'Busca una ciudad o dirección, o haz clic en el mapa para soltar el logo.';
+  buscandoLugar = false;
+  private busquedaToken = 0;
   fotos: Record<string, string> = {};
   archivoImagen: File | null = null;
   vistaImagen = '';
@@ -81,9 +85,25 @@ export class SedesPageComponent implements OnInit, OnDestroy {
     private readonly lookup: LookupService,
     readonly marca: MarcaService,
     private readonly toast: ToastService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly sedeFiltro: SedeFiltroService,
+    private readonly tokens: TokenService,
   ) { this.state.sort = 'nombre,asc'; }
-  ngOnInit(): void { this.cargar(); this.cargarMapa(); }
+  ngOnInit(): void {
+    this.cargar();
+    this.cargarMapa();
+    if (this.route.snapshot.queryParamMap.get('crear') === '1') this.abrirCrear();
+  }
+
+  cancelar(): void {
+    if (this.guardando) return;
+    this.modal = false;
+    this.sedeFiltro.entrarAlCrear = false;
+  }
   ngOnDestroy(): void {
+    this.busquedaToken++;
     this.liberarFotos();
     this.destroy$.next();
     this.destroy$.complete();
@@ -148,15 +168,30 @@ export class SedesPageComponent implements OnInit, OnDestroy {
     }
     this.modal = true;
   }
-  ubicar(avisar = true): void {
-    const value = this.form.getRawValue();
-    const lugar = buscarLugar(`${this.consulta.value} ${value.ciudad} ${value.direccion} ${value.nombre}`);
-    if (!lugar) {
-      if (avisar) this.avisoMapa = 'No reconocí esa ciudad o distrito. Haz clic en el mapa o arrastra el logo hasta el local.';
-      return;
+  ubicar(avisar = true): Promise<void> {
+    const texto = this.textoBusqueda();
+    if (!texto) {
+      if (avisar) this.avisoMapa = 'Escribe una dirección o una ciudad.';
+      this.cdr.markForCheck();
+      return Promise.resolve();
     }
-    this.fijarPunto(lugar.latitud, lugar.longitud);
-    this.avisoMapa = `Marcado en ${lugar.nombre}. Arrastra el logo para dejarlo en la puerta.`;
+    const token = ++this.busquedaToken;
+    this.buscandoLugar = true;
+    if (avisar) this.avisoMapa = 'Buscando el lugar…';
+    this.cdr.markForCheck();
+    return geocodificar(texto).then((remoto) => {
+      if (token !== this.busquedaToken) return;
+      this.buscandoLugar = false;
+      const lugar = remoto ?? buscarLugar(texto);
+      if (!lugar) {
+        if (avisar) this.avisoMapa = 'No encontré esa dirección. Haz clic en el mapa o arrastra el logo hasta el local.';
+        this.cdr.markForCheck();
+        return;
+      }
+      this.fijarPunto(lugar.latitud, lugar.longitud);
+      this.avisoMapa = `Marcado en ${lugar.nombre}. Arrastra el logo para dejarlo en la puerta.`;
+      this.cdr.markForCheck();
+    });
   }
   ubicarSiFalta(): void {
     if (this.form.controls.latitud.value.trim()) return;
@@ -184,8 +219,17 @@ export class SedesPageComponent implements OnInit, OnDestroy {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     const value = this.form.getRawValue();
-    if (!value.latitud.trim() || !value.longitud.trim()) this.ubicar(false);
-    const actual = this.form.getRawValue();
+    if (!value.latitud.trim() || !value.longitud.trim()) {
+      void this.ubicar(false).then(() => this.enviar());
+      return;
+    }
+    this.enviar();
+  }
+
+  private enviar(): void {
+    if (this.guardando) return;
+    const value = this.form.getRawValue();
+    const actual = value;
     const latitud = this.coordenada(actual.latitud, -90, 90);
     const longitud = this.coordenada(actual.longitud, -180, 180);
     if (latitud === false || longitud === false) {
@@ -205,12 +249,12 @@ export class SedesPageComponent implements OnInit, OnDestroy {
         const id = sede?.id || value.id;
         if (this.archivoImagen && id) {
           this.ubicacion.subirImagen(id, this.archivoImagen).pipe(takeUntil(this.destroy$)).subscribe({
-            next: () => this.cerrarGuardado(),
+            next: (conFoto) => this.cerrarGuardado(conFoto?.id ? conFoto : sede),
             error: (error: unknown) => { this.guardando = false; this.errorFormulario = problemText(error); },
           });
           return;
         }
-        this.cerrarGuardado();
+        this.cerrarGuardado(sede);
       },
       error: (error: unknown) => { this.guardando = false; applyServerErrors(this.form, error); this.errorFormulario = problemText(error); },
     });
@@ -249,14 +293,34 @@ export class SedesPageComponent implements OnInit, OnDestroy {
     this.fotos = {};
   }
 
-  private cerrarGuardado(): void {
+  private cerrarGuardado(sede?: Api.SedeResponseDTO): void {
+    const entrar = !this.editando && this.sedeFiltro.entrarAlCrear && !!sede?.id;
     this.guardando = false;
     this.modal = false;
     this.archivoImagen = null;
     this.lookup.invalidate('sedes');
     this.toast.success(this.editando ? 'Sede actualizada.' : 'Sede creada.');
+    if (entrar && sede?.id) {
+      this.sedeFiltro.entrarAlCrear = false;
+      this.sedeFiltro.elegir(sede.id, sede.nombre || this.form.controls.nombre.value || 'Sede');
+      void this.router.navigateByUrl(this.tokens.isAdmin() ? '/modules/turnos-caja' : '/inicio');
+      return;
+    }
     this.cargar();
     this.cargarMapa();
+  }
+
+  private textoBusqueda(): string {
+    const escrito = this.consulta.value.trim();
+    const value = this.form.getRawValue();
+    const base = escrito || value.direccion.trim();
+    const partes = [base];
+    const normal = base.toLowerCase();
+    const ciudad = value.ciudad.trim();
+    const pais = value.pais.trim();
+    if (ciudad && !normal.includes(ciudad.toLowerCase())) partes.push(ciudad);
+    if (pais && !normal.includes(pais.toLowerCase())) partes.push(pais);
+    return partes.filter(Boolean).join(', ');
   }
 
   private fijarPunto(latitud: number, longitud: number): void {

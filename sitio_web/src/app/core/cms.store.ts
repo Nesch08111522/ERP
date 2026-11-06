@@ -2,6 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 
+export interface PaletaPublica {
+  acento: string;
+  fondo: string;
+  tarjeta: string;
+  texto: string;
+  textoSuave: string;
+  oferta: string;
+  franja: string;
+}
+
 export interface CmsPublico {
   primaryColor: string;
   secondaryColor: string;
@@ -9,6 +19,11 @@ export interface CmsPublico {
   themeMode: string;
   aviso: string;
   avisoActivo: boolean;
+  avisoImagen?: string | null;
+  colores?: {
+    dia: PaletaPublica;
+    noche: PaletaPublica;
+  } | null;
   banner?: string;
   resumen?: string;
   horarioSemana?: string;
@@ -40,6 +55,7 @@ export class CmsStore {
   readonly revision = signal(0);
   readonly cambiosPublicos = signal(0);
   private eventos?: EventSource;
+  private estilo?: HTMLStyleElement;
 
   constructor() {
     this.cargar();
@@ -69,12 +85,52 @@ export class CmsStore {
 
   private aplicar(paquete: CmsPublico): void {
     const raiz = document.documentElement;
-    raiz.style.setProperty('--cms-primary', paquete.primaryColor);
-    raiz.style.setProperty('--cms-secondary', paquete.secondaryColor);
     raiz.style.setProperty('--cms-base', `${paquete.baseFontSize}px`);
-    raiz.style.setProperty('--cms-on-primary', textoSobre(paquete.primaryColor));
-    raiz.dataset['theme'] = paquete.themeMode || 'aether';
+    const dia = paquete.colores?.dia;
+    const noche = paquete.colores?.noche;
+    if (!dia || !noche) {
+      this.estilo?.remove();
+      this.estilo = undefined;
+      return;
+    }
+    const css = `:root, [data-tema="dia"] { ${variables(dia)} } [data-tema="noche"] { ${variables(noche)} }`;
+    if (!this.estilo) {
+      this.estilo = document.createElement('style');
+      this.estilo.id = 'cms-colores';
+      document.head.appendChild(this.estilo);
+    }
+    this.estilo.textContent = css;
   }
+}
+
+function variables(paleta: PaletaPublica): string {
+  const acento = hex(paleta.acento, '#0d47a1');
+  const fondo = hex(paleta.fondo, '#f3f6fb');
+  const tarjeta = hex(paleta.tarjeta, '#ffffff');
+  const texto = hex(paleta.texto, '#0c1724');
+  const suave = hex(paleta.textoSuave, '#3c4d5c');
+  const oferta = hex(paleta.oferta, '#c62828');
+  const franja = hex(paleta.franja, '#0c1724');
+  return [
+    `--accent:${acento}`,
+    `--accent-ink:${textoSobre(acento)}`,
+    `--bg:${fondo}`,
+    `--paper:${tarjeta}`,
+    `--ink:${texto}`,
+    `--muted:${suave}`,
+    `--promo:${oferta}`,
+    `--promo-ink:${textoSobre(oferta)}`,
+    `--trust:${franja}`,
+    `--trust-ink:${textoSobre(franja)}`,
+    `--stage:${fondo}`,
+    `--card:${tarjeta}`,
+    `--line:color-mix(in srgb, ${texto} 16%, ${tarjeta})`,
+    `--soft:color-mix(in srgb, ${acento} 10%, ${tarjeta})`,
+  ].join(';');
+}
+
+function hex(valor: string | undefined, respaldo: string): string {
+  return /^#[0-9A-Fa-f]{6}$/.test(valor ?? '') ? (valor as string) : respaldo;
 }
 
 function textoSobre(hex: string): string {

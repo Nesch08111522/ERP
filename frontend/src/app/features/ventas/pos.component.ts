@@ -8,6 +8,7 @@ import { expand, reduce } from 'rxjs/operators';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { PenPipe } from '../../shared/pipes/format.pipes';
 import { CajaSessionService } from '../../shared/services/caja-session.service';
+import { SedeFiltroService } from '../../shared/services/sede-filtro.service';
 import { InventarioSyncService } from '../../shared/services/inventario-sync.service';
 import { LookupService } from '../../shared/services/lookup.service';
 import { MarcaService } from '../../shared/services/marca.service';
@@ -119,6 +120,7 @@ export class PosComponent implements OnInit, OnDestroy {
     private readonly sunat: FacturacionElectronicaApiService,
     readonly marca: MarcaService,
     private readonly cdr: ChangeDetectorRef,
+    private readonly sedeFiltro: SedeFiltroService,
   ) {
     let revisionInventario = this.inventario.revision();
     effect(() => {
@@ -148,7 +150,9 @@ export class PosComponent implements OnInit, OnDestroy {
     this.api.sedes().pipe(takeUntil(this.destroy$)).subscribe({
       next: (page) => {
         this.sedes = page.content.filter((sede) => sede.activa);
-        if (this.sedes[0]) this.seleccionarSede(this.sedes[0].id);
+        const preferida = this.sedeFiltro.sedeId();
+        const elegida = this.sedes.find((sede) => sede.id === preferida) ?? this.sedes[0];
+        if (elegida) this.seleccionarSede(elegida.id);
         this.refrescar();
       },
       error: () => { this.error = 'No se pudieron cargar las sedes.'; this.refrescar(); },

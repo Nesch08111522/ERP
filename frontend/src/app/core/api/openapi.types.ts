@@ -266,6 +266,9 @@ export interface CatalogoFraccionResponseDTO {
   productoId?: string;
   /** Añadido en el DTO de respuesta. Requiere regenerar el cliente OpenAPI. */
   productoNombre?: string;
+  enOferta?: boolean;
+  ofertaPorcentaje?: number;
+  precioOferta?: number;
 }
 
 export interface Categoria {

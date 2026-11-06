@@ -8,6 +8,7 @@ import { ErpErrorHandler } from './core/erp-error.handler';
 import { ErpTitleStrategy } from './core/erp-title.strategy';
 import { apiErrorInterceptor } from './core/interceptors/api-error.interceptor';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { sedeInterceptor } from './core/interceptors/sede.interceptor';
 
 registerLocaleData(localeEsPe);
 
@@ -17,7 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withPreloading(PreloadAllModules)),
     // Angular 22 usa fetch por defecto y entrega la respuesta fuera de NgZone,
     // así que la vista no se entera. XHR queda dentro de la zona y refresca la pantalla.
-    provideHttpClient(withXhr(), withInterceptors([authInterceptor, apiErrorInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([authInterceptor, sedeInterceptor, apiErrorInterceptor])),
     { provide: LOCALE_ID, useValue: 'es-PE' },
     { provide: TitleStrategy, useClass: ErpTitleStrategy },
     { provide: ErrorHandler, useClass: ErpErrorHandler },

@@ -21,6 +21,7 @@ import { precioFraccionVigente } from '../../../shared/utils/precio-oferta';
 import { CajaSessionService } from '../../../shared/services/caja-session.service';
 import { InventarioSyncService } from '../../../shared/services/inventario-sync.service';
 import { LookupService } from '../../../shared/services/lookup.service';
+import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { CanalWebAvisos } from '../../../shared/services/canal-web-avisos.service';
 import { ReportService } from '../../../shared/services/report.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -108,7 +109,11 @@ export class CotizacionesPageComponent implements OnInit, OnDestroy {
   });
   constructor(private readonly api: CotizacionesApiService, private readonly lookup: LookupService, private readonly toast: ToastService, private readonly reportes: ReportService, private readonly http: HttpClient) {}
 
+  private readonly sedeFiltro = inject(SedeFiltroService);
+
   ngOnInit(): void {
+    const sede = this.sedeFiltro.sedeId();
+    if (sede) this.filtros.controls.sedeId.setValue(sede);
     this.cargar();
     this.lookup.loadSedes().pipe(takeUntil(this.destroy$)).subscribe((rows) => (this.sedes = this.lookup.options(rows, (row) => (row as Api.SedeResponseDTO).nombre ?? 'Sede')));
     this.lookup.loadClientes().pipe(takeUntil(this.destroy$)).subscribe((rows) => (this.clientes = this.lookup.options(rows, (row) => (row as Api.ClienteResponseDTO).nombre ?? 'Cliente')));

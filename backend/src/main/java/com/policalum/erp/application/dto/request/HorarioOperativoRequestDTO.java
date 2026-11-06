@@ -8,5 +8,6 @@ import java.util.List;
 public record HorarioOperativoRequestDTO(
         @Size(max = 180) String mensaje,
         @NotNull Boolean activo,
-        @Valid List<DiaAtencionDTO> dias
+        @Valid List<DiaAtencionDTO> dias,
+        @Size(max = 300) String avisoImagen
 ) {}

@@ -46,6 +46,16 @@ public class CatalogoFraccion {
     @Column(name = "precio_venta", nullable = false, precision = 12, scale = 2)
     private BigDecimal precioVenta;
 
+    /** Si es false, la oferta del producto no baja esta fracción. Null conserva el descuento general. */
+    @Column(name = "en_oferta")
+    private Boolean enOferta;
+
+    @Column(name = "oferta_porcentaje", precision = 5, scale = 2)
+    private BigDecimal ofertaPorcentaje;
+
+    @Column(name = "precio_oferta", precision = 12, scale = 2)
+    private BigDecimal precioOferta;
+
     @Column(nullable = false)
     private Boolean activo = true;
 

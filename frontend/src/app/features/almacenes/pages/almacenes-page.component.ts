@@ -13,6 +13,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { SelectComponent } from '../../../shared/components/select/select.component';
 import { ColumnDef, SelectOption } from '../../../shared/models/ui.models';
 import { LookupService } from '../../../shared/services/lookup.service';
+import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { applyServerErrors, fieldError, mensajeBaja, problemStatus, problemText } from '../../../shared/utils/feedback';
 import { ignoreStale, PageState } from '../../../shared/utils/page-state';
@@ -53,9 +54,12 @@ export class AlmacenesPageComponent implements OnInit, OnDestroy {
   seleccionado: Api.AlmacenResponseDTO | null = null;
   private readonly buscar$ = new Subject<string>();
   private readonly destroy$ = new Subject<void>();
+  private readonly sedeFiltro = inject(SedeFiltroService);
 
   constructor(private readonly api: AlmacenesApiService, private readonly lookup: LookupService, private readonly toast: ToastService) { this.state.sort = 'nombre,asc'; }
   ngOnInit(): void {
+    const sede = this.sedeFiltro.sedeId();
+    if (sede) this.filtros.controls.sedeId.setValue(sede);
     this.cargar();
     this.lookup.loadSedes().pipe(takeUntil(this.destroy$)).subscribe((rows) => { this.sedes = this.lookup.options(rows, (row) => (row as Api.SedeResponseDTO).nombre ?? 'Sede'); });
     this.buscar$.pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => { this.filtros.controls.searchTerm.setValue(valor); this.filtrar(); });

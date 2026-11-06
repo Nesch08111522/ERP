@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, OnDestroy, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AvisoService } from './core/aviso.service';
@@ -43,6 +43,7 @@ export class App implements OnDestroy {
   readonly media = media;
   readonly pen = pen;
   readonly menu = signal(false);
+  readonly modalAviso = signal(false);
   readonly angosto = signal(false);
   private readonly consultaAncho = window.matchMedia('(max-width: 991px)');
   private motor: Reconocimiento | null = null;
@@ -75,6 +76,15 @@ export class App implements OnDestroy {
     this.api.categorias().subscribe({ next: (lista) => this.categorias.set(lista), error: () => undefined });
     this.api.sedes().subscribe({ next: (lista) => this.sedes.set(lista), error: () => undefined });
     this.preguntarCarrito.set(this.carrito.deOtroDia());
+    effect(() => {
+      const paquete = this.cms.paquete();
+      const imagen = paquete?.avisoImagen;
+      if (!paquete?.avisoActivo || !imagen) {
+        this.modalAviso.set(false);
+        return;
+      }
+      this.modalAviso.set(localStorage.getItem('policalum-aviso') !== imagen);
+    });
     this.api.productos({ page: 0 }).subscribe({
       next: (pagina) => this.vitrina.set(pagina.content ?? []),
       error: () => undefined,
@@ -88,15 +98,15 @@ export class App implements OnDestroy {
   }
 
   alternarMenu(): void {
+    if (!this.angosto()) return;
     this.menu.update((abierto) => !abierto);
-    if (!this.angosto()) localStorage.setItem('policalum-menu', this.menu() ? '1' : '0');
     this.bloquearFondo();
   }
 
   private aplicarAncho(): void {
     const angosto = this.consultaAncho.matches;
     this.angosto.set(angosto);
-    this.menu.set(angosto ? false : localStorage.getItem('policalum-menu') !== '0');
+    if (!angosto) this.menu.set(false);
     this.bloquearFondo();
   }
 
@@ -106,6 +116,17 @@ export class App implements OnDestroy {
 
   consulta(): URLSearchParams {
     return new URLSearchParams(this.ruta().split('?')[1] ?? '');
+  }
+
+  cerrarAviso(): void {
+    const imagen = this.cms.paquete()?.avisoImagen;
+    if (imagen) localStorage.setItem('policalum-aviso', imagen);
+    this.modalAviso.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  cerrarAvisoConTecla(): void {
+    if (this.modalAviso()) this.cerrarAviso();
   }
 
   conservarCarrito(): void {

@@ -73,8 +73,17 @@
   </header>
 
   <main class="stage">
-    @if (cms.paquete()?.avisoActivo) {
+    @if (cms.paquete()?.avisoActivo && cms.paquete()?.aviso && !cms.paquete()?.avisoImagen) {
       <p class="aviso-operativo" role="status">{{ cms.paquete()?.aviso }}</p>
+    }
+    @if (modalAviso()) {
+      <div class="aviso-modal" (click)="cerrarAviso()">
+        <div class="aviso-tarjeta" role="dialog" aria-modal="true" aria-label="Aviso" (click)="$event.stopPropagation()">
+          <button type="button" class="aviso-cerrar" (click)="cerrarAviso()" aria-label="Cerrar">×</button>
+          <img [src]="media(cms.paquete()?.avisoImagen)" alt="Aviso" />
+          @if (cms.paquete()?.aviso) { <p>{{ cms.paquete()?.aviso }}</p> }
+        </div>
+      </div>
     }
     @if (avisos.texto()) {
       <p class="aviso" role="alert">

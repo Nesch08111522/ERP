@@ -1,4 +1,4 @@
-/** Ciudades y distritos del Perú. La búsqueda es local: no llama a internet. */
+/** Ciudades y distritos de respaldo. Las calles se buscan en OpenStreetMap. */
 const LUGARES: ReadonlyArray<readonly [string, number, number]> = [
   ['Lima', -12.0464, -77.0428],
   ['Miraflores', -12.1211, -77.0297],
@@ -102,6 +102,29 @@ export interface LugarPeru {
   nombre: string;
   latitud: number;
   longitud: number;
+}
+
+export async function geocodificar(texto: string): Promise<LugarPeru | null> {
+  const consulta = texto.trim();
+  if (consulta.length < 3) return null;
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('countrycodes', 'pe');
+  url.searchParams.set('q', consulta);
+  try {
+    const respuesta = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!respuesta.ok) return null;
+    const lista = await respuesta.json() as Array<{ lat?: string; lon?: string; display_name?: string }>;
+    const primero = lista[0];
+    const latitud = Number(primero?.lat);
+    const longitud = Number(primero?.lon);
+    if (!Number.isFinite(latitud) || !Number.isFinite(longitud)) return null;
+    const nombre = (primero?.display_name || consulta).split(',').slice(0, 3).join(',').trim();
+    return { nombre, latitud, longitud };
+  } catch {
+    return null;
+  }
 }
 
 export function buscarLugar(texto: string): LugarPeru | null {

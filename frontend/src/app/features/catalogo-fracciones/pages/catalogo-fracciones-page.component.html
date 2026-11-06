@@ -8,8 +8,9 @@
           <h2>Productos</h2>
           <p>Selecciona un producto para configurar sus medidas.</p>
         </div>
-        <span class="contador">{{ productosVisibles.length }}</span>
+        <span class="contador">{{ cargando ? '…' : productosVisibles.length }}</span>
       </div>
+      <p class="resumen-lista" *ngIf="!cargando">{{ productos.length }} productos · {{ fraccionables }} con cortes</p>
       <label class="busqueda">
         <app-icon name="search"></app-icon>
         <input type="search" [(ngModel)]="busqueda" placeholder="Nombre o SKU del producto" aria-label="Buscar producto" />
@@ -34,7 +35,12 @@
             <strong>{{ producto.nombre }}</strong>
             <small>{{ producto.codigoSku || 'Sin SKU' }} · {{ producto.unidad || 'UNID' }}</small>
           </span>
-          <span class="estado-fraccion" [class.on]="producto.esFraccionable">{{ producto.activo === false ? 'Inactivo' : producto.esFraccionable ? 'Habilitado' : 'Entero' }}</span>
+          <span class="producto-meta">
+            <strong>S/ {{ producto.precioVentaBase | number:'1.2-2' }}</strong>
+            <span class="estado-fraccion" [class.on]="producto.esFraccionable">
+              {{ producto.activo === false ? 'Inactivo' : producto.esFraccionable ? medidasActivas(producto) + ' medidas' : 'Entero' }}
+            </span>
+          </span>
         </button>
       </div>
     </aside>
@@ -80,18 +86,21 @@
               </div>
               <button type="button" class="btn btn-ghost btn-sm" (click)="restaurarPreciosSugeridos()" [disabled]="!fraccionable">Usar precios proporcionales</button>
             </div>
-            <div class="nivel" *ngFor="let nivel of niveles; let i = index">
-              <label class="nivel-activo">
-                <input type="checkbox" [(ngModel)]="nivel.activo" [name]="'nivel-activo-' + i" [disabled]="!fraccionable" />
-                <span>{{ nivel.nombreFraccion }}</span>
-                <small>{{ nivel.factorDescuentoKardex | number:'1.2-2' }} del stock</small>
-              </label>
-              <label class="precio-control">
-                <span>Precio de venta</span>
-                <span class="precio-input"><span>S/</span><input type="number" min="0" step="0.01" [(ngModel)]="nivel.precioVenta" [name]="'precio-fraccion-' + i" [disabled]="!fraccionable" /></span>
-              </label>
-              <span class="precio-sugerido" *ngIf="nivel.factorDescuentoKardex < 1">Proporcional: S/ {{ sugerido(nivel.factorDescuentoKardex) | number:'1.2-2' }}</span>
-              <span class="precio-sugerido" *ngIf="nivel.factorDescuentoKardex === 1">Unidad completa</span>
+            <div class="nivel-grid">
+              <article class="nivel" *ngFor="let nivel of niveles; let i = index" [class.off]="fraccionable && !nivel.activo">
+                <label class="nivel-activo">
+                  <input type="checkbox" [(ngModel)]="nivel.activo" [name]="'nivel-activo-' + i" [disabled]="!fraccionable" />
+                  <span>{{ nivel.nombreFraccion }}</span>
+                  <small>{{ (nivel.factorDescuentoKardex * 100) | number:'1.0-0' }}% del stock</small>
+                </label>
+                <label class="precio-control">
+                  <span>Precio de venta</span>
+                  <span class="precio-input"><span>S/</span><input type="number" min="0" step="0.01" [(ngModel)]="nivel.precioVenta" [name]="'precio-fraccion-' + i" [disabled]="!fraccionable" /></span>
+                </label>
+                <span class="precio-sugerido" *ngIf="nivel.factorDescuentoKardex < 1">Proporcional S/ {{ sugerido(nivel.factorDescuentoKardex) | number:'1.2-2' }}</span>
+                <span class="precio-sugerido" *ngIf="nivel.factorDescuentoKardex === 1">Unidad completa</span>
+                <span class="oferta" *ngIf="nivel.enOferta && nivel.precioOferta != null">Oferta publicada S/ {{ nivel.precioOferta | number:'1.2-2' }}</span>
+              </article>
             </div>
             <p class="nota">La venta descuenta del almacén: 0.25 por 1/4, 0.50 por 1/2, 0.75 por 3/4 y 1.00 por la unidad completa.</p>
           </section>

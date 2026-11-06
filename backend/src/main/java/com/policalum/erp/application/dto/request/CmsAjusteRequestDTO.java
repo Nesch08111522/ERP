@@ -41,5 +41,6 @@ public record CmsAjusteRequestDTO(
         @Size(max = 150) String email,
         @Size(max = 300) String direccionFiscal,
         @Pattern(regexp = "^$|^\\d{6}$", message = "El ubigeo tiene 6 dígitos") String ubigeo,
-        @Size(max = 7) List<@Size(max = 40) String> descartados
+        @Size(max = 7) List<@Size(max = 40) String> descartados,
+        @Valid ColoresSitioDTO colores
 ) {}

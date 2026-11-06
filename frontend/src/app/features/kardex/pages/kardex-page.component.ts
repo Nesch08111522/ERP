@@ -18,6 +18,7 @@ import { PenPipe } from '../../../shared/pipes/format.pipes';
 import { TokenService } from '../../../services/token.service';
 import { InventarioSyncService } from '../../../shared/services/inventario-sync.service';
 import { LookupService } from '../../../shared/services/lookup.service';
+import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { problemStatus, problemText } from '../../../shared/utils/feedback';
 import { ignoreStale, PageState } from '../../../shared/utils/page-state';
@@ -58,6 +59,7 @@ export class KardexPageComponent implements OnInit, OnDestroy {
   errorFormulario: string | null = null;
   private omitirRevision = 0;
   private readonly destroy$ = new Subject<void>();
+  private readonly sedeFiltro = inject(SedeFiltroService);
 
   constructor(private readonly api: KardexApiService, private readonly lookup: LookupService, private readonly inventario: InventarioSyncService, private readonly toast: ToastService, private readonly route: ActivatedRoute, private readonly tokens: TokenService) {
     effect(() => {
@@ -74,6 +76,8 @@ export class KardexPageComponent implements OnInit, OnDestroy {
     if (productoId) this.filtros.controls.productoId.setValue(productoId);
     if (tab === 'mermas' || tab === 'saldos' || tab === 'valorizacion' || tab === 'movimientos') this.tab = tab;
     if (!this.esAdmin && (this.tab === 'mermas' || this.tab === 'valorizacion')) this.tab = 'movimientos';
+    const sede = this.sedeFiltro.sedeId();
+    if (sede) this.filtros.controls.sedeId.setValue(sede);
     this.cargar();
     this.lookup.loadProductos().pipe(takeUntil(this.destroy$)).subscribe((rows) => { this.productos = this.lookup.options(rows, (row) => (row as Api.ProductoResponseDTO).nombre ?? 'Producto'); });
     this.lookup.loadAlmacenes().pipe(takeUntil(this.destroy$)).subscribe((rows) => { this.almacenes = this.lookup.options(rows, (row) => (row as Api.AlmacenResponseDTO).nombre ?? 'Almacén'); });

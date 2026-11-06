@@ -22,14 +22,13 @@ export class EmpresaStore {
     const nombre = this.empresa().nombreComercial?.trim() || 'POLICALUM';
     document.title = `${nombre} | Policarbonatos y cubiertas`;
     const icono = this.logo() || 'favicon.svg';
-    let enlace = document.head.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (!enlace) {
-      enlace = document.createElement('link');
-      enlace.rel = 'icon';
+    document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]').forEach((nodo) => nodo.remove());
+    for (const rel of ['icon', 'apple-touch-icon']) {
+      const enlace = document.createElement('link');
+      enlace.rel = rel;
+      enlace.href = icono;
       document.head.appendChild(enlace);
     }
-    enlace.type = icono.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
-    enlace.href = icono;
   }
 
   constructor() {

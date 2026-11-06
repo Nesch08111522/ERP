@@ -17,6 +17,7 @@ import { PenPipe } from '../../../shared/pipes/format.pipes';
 import { CajaSessionService } from '../../../shared/services/caja-session.service';
 import { InventarioSyncService } from '../../../shared/services/inventario-sync.service';
 import { LookupService } from '../../../shared/services/lookup.service';
+import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { applyServerErrors, fieldError, problemStatus, problemText } from '../../../shared/utils/feedback';
 import { precioFraccionVigente, precioVigente } from '../../../shared/utils/precio-oferta';
@@ -40,6 +41,7 @@ export class VentasPageComponent implements OnInit, OnDestroy {
   private readonly caja = inject(CajaSessionService);
   private readonly inventario = inject(InventarioSyncService);
   private readonly fraccionesApi = inject(CatalogoFraccionesApiService);
+  private readonly sedeFiltro = inject(SedeFiltroService);
   private readonly destroy$ = new Subject<void>();
   private readonly precioFraccion = new Map<string, number>();
   readonly state = new PageState<Api.VentaListadoResponseDTO>();
@@ -87,6 +89,8 @@ export class VentasPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const sede = this.sedeFiltro.sedeId();
+    if (sede) this.filtros.controls.sedeId.setValue(sede);
     this.cargar();
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const ventaId = params.get('ventaId');
@@ -111,14 +115,14 @@ export class VentasPageComponent implements OnInit, OnDestroy {
   }
 
   filtrar(): void { this.state.page = 0; this.cargar(); }
-  limpiar(): void { this.filtros.reset({ sedeId: '', clienteId: '', estado: '', canal: '', desde: '', hasta: '' }); this.filtrar(); }
+  limpiar(): void { this.filtros.reset({ sedeId: this.sedeFiltro.sedeId(), clienteId: '', estado: '', canal: '', desde: '', hasta: '' }); this.filtrar(); }
   cambiarPagina(page: number): void { this.state.page = page; this.cargar(); }
   cambiarTamano(size: number): void { this.state.size = size; this.state.page = 0; this.cargar(); }
   ordenar(event: { key: string; direction: 'asc' | 'desc' }): void { this.state.sort = `${event.key},${event.direction}`; this.cargar(); }
 
   abrirCrear(): void {
     this.errorFormulario = null;
-    this.form.reset({ sedeId: '', almacenId: '', turnoCajaId: this.turnoActivo(), clienteId: '', tipoComprobante: 'BOLETA', canalVenta: 'LOCAL' });
+    this.form.reset({ sedeId: this.sedeFiltro.sedeId(), almacenId: '', turnoCajaId: this.turnoActivo(), clienteId: '', tipoComprobante: 'BOLETA', canalVenta: 'LOCAL' });
     this.lineas.clear();
     this.pagos.clear();
     this.fraccionesLinea = [];

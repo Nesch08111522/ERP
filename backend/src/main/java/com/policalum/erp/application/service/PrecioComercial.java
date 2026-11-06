@@ -1,5 +1,6 @@
 package com.policalum.erp.application.service;
 
+import com.policalum.erp.domain.model.CatalogoFraccion;
 import com.policalum.erp.domain.model.Producto;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -39,6 +40,15 @@ public final class PrecioComercial {
         BigDecimal base = producto.getPrecioVentaBase();
         if (base == null || base.signum() == 0 || producto.getPrecioOferta() == null) return precioLista;
         return precioLista.multiply(producto.getPrecioOferta()).divide(base, 2, RoundingMode.HALF_UP);
+    }
+
+    /** La fracción excluida de la oferta conserva su precio de lista. */
+    public static BigDecimal fraccion(Producto producto, CatalogoFraccion fraccion) {
+        if (fraccion == null) return null;
+        BigDecimal lista = fraccion.getPrecioVenta();
+        if (lista == null || producto == null || !vigente(producto) || Boolean.FALSE.equals(fraccion.getEnOferta())) return lista;
+        if (Boolean.TRUE.equals(fraccion.getEnOferta()) && fraccion.getPrecioOferta() != null) return fraccion.getPrecioOferta();
+        return fraccion(producto, lista);
     }
 
     /** Oferta con precio vigente, o la marca antigua sin cambio de precio. */

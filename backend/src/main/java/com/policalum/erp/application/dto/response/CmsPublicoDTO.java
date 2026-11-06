@@ -1,5 +1,6 @@
 package com.policalum.erp.application.dto.response;
 
+import com.policalum.erp.application.dto.request.ColoresSitioDTO;
 import com.policalum.erp.application.dto.request.DiaAtencionDTO;
 import java.util.List;
 
@@ -31,5 +32,7 @@ public record CmsPublicoDTO(
         String materialesTexto,
         List<MaterialPublicoDTO> materiales,
         AtencionPublicaDTO atencion,
-        List<DiaAtencionDTO> dias
+        List<DiaAtencionDTO> dias,
+        String avisoImagen,
+        ColoresSitioDTO colores
 ) {}

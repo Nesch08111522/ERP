@@ -17,6 +17,7 @@ import { ColumnDef, SelectOption } from '../../../shared/models/ui.models';
 import { PenPipe } from '../../../shared/pipes/format.pipes';
 import { InventarioSyncService } from '../../../shared/services/inventario-sync.service';
 import { LookupService } from '../../../shared/services/lookup.service';
+import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { applyServerErrors, fieldError, problemStatus, problemText } from '../../../shared/utils/feedback';
 import { ignoreStale, PageState } from '../../../shared/utils/page-state';
@@ -76,6 +77,7 @@ export class ComprasPageComponent implements OnInit, OnDestroy {
   eliminando = false;
   seleccionado: Api.CompraListadoDTO | null = null;
   private readonly destroy$ = new Subject<void>();
+  private readonly sedeFiltro = inject(SedeFiltroService);
 
   constructor(
     private readonly api: ComprasApiService,
@@ -87,6 +89,8 @@ export class ComprasPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const sede = this.sedeFiltro.sedeId();
+    if (sede) this.filtros.controls.sedeId.setValue(sede);
     this.cargar();
     this.refrescarDashboard();
     this.lookup.loadProveedores().pipe(takeUntil(this.destroy$)).subscribe((rows) => (this.proveedores = this.lookup.options(rows, (row) => (row as Api.ProveedorResponseDTO).nombreRazon ?? 'Proveedor')));

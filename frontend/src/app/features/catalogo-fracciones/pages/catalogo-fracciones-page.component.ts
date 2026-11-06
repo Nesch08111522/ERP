@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Routes } from '@angular/router';
 import { EMPTY, Observable, Subject, expand, reduce, takeUntil } from 'rxjs';
@@ -19,13 +19,15 @@ interface NivelFraccion {
   precioVenta: number;
   activo: boolean;
   personalizado: boolean;
+  enOferta: boolean;
+  precioOferta: number | null;
 }
 
 const NIVELES_ESTANDAR = [
-  { nombreFraccion: 'Fracción 1/4', factorDescuentoKardex: 0.25 },
-  { nombreFraccion: 'Fracción 1/2', factorDescuentoKardex: 0.5 },
-  { nombreFraccion: 'Fracción 3/4', factorDescuentoKardex: 0.75 },
-  { nombreFraccion: 'Plancha entera', factorDescuentoKardex: 1 },
+  { nombreFraccion: '1/4 Plancha', factorDescuentoKardex: 0.25 },
+  { nombreFraccion: 'Media Plancha (1/2)', factorDescuentoKardex: 0.5 },
+  { nombreFraccion: '3/4 Plancha', factorDescuentoKardex: 0.75 },
+  { nombreFraccion: 'Plancha Completa', factorDescuentoKardex: 1 },
 ];
 
 @Component({
@@ -54,6 +56,7 @@ export class CatalogoFraccionesPageComponent implements OnInit, OnDestroy {
     private readonly lookup: LookupService,
     private readonly inventario: InventarioSyncService,
     private readonly toast: ToastService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -77,6 +80,14 @@ export class CatalogoFraccionesPageComponent implements OnInit, OnDestroy {
     return Number(this.productoSeleccionado?.precioVentaBase ?? 0);
   }
 
+  get fraccionables(): number {
+    return this.productos.filter((producto) => producto.esFraccionable).length;
+  }
+
+  medidasActivas(producto: Api.ProductoResponseDTO): number {
+    return (producto.fracciones ?? []).filter((fraccion) => fraccion.activo !== false).length;
+  }
+
   sugerido(factor: number): number {
     return Math.round((this.precioBase * factor + Number.EPSILON) * 100) / 100;
   }
@@ -92,11 +103,13 @@ export class CatalogoFraccionesPageComponent implements OnInit, OnDestroy {
         if (token !== this.seleccionToken) return;
         this.configurarProducto(detalle);
         this.cargandoProducto = false;
+        this.pintar();
       },
       error: (error: unknown) => {
         if (token !== this.seleccionToken) return;
         this.cargandoProducto = false;
         this.error = problemText(error);
+        this.pintar();
       },
     });
   }
@@ -162,11 +175,13 @@ export class CatalogoFraccionesPageComponent implements OnInit, OnDestroy {
         this.lookup.invalidate('productos');
         this.inventario.marcarCambio();
         this.toast.success('La configuración de fracciones se guardó y se sincronizó con el inventario.');
+        this.pintar();
       },
       error: (error: unknown) => {
         this.guardando = false;
         this.error = problemText(error);
         this.toast.error(this.error);
+        this.pintar();
       },
     });
   }
@@ -182,10 +197,12 @@ export class CatalogoFraccionesPageComponent implements OnInit, OnDestroy {
           const producto = this.productos.find((item) => item.id === this.productoSeleccionado?.id);
           if (producto) this.seleccionar(producto);
         }
+        this.pintar();
       },
       error: (error: unknown) => {
         this.cargando = false;
         this.error = problemText(error);
+        this.pintar();
       },
     });
   }
@@ -220,6 +237,8 @@ export class CatalogoFraccionesPageComponent implements OnInit, OnDestroy {
         precioVenta: Number(existente?.precioVenta ?? this.sugerido(estandar.factorDescuentoKardex)),
         activo: existente?.activo ?? true,
         personalizado: false,
+        enOferta: existente?.enOferta === true,
+        precioOferta: existente?.precioOferta == null ? null : Number(existente.precioOferta),
       };
     });
     for (const fraccion of fracciones) {
@@ -231,9 +250,15 @@ export class CatalogoFraccionesPageComponent implements OnInit, OnDestroy {
         precioVenta: Number(fraccion.precioVenta ?? this.sugerido(factor)),
         activo: fraccion.activo ?? true,
         personalizado: true,
+        enOferta: fraccion.enOferta === true,
+        precioOferta: fraccion.precioOferta == null ? null : Number(fraccion.precioOferta),
       });
     }
     return niveles.sort((a, b) => a.factorDescuentoKardex - b.factorDescuentoKardex);
+  }
+
+  private pintar(): void {
+    this.cdr.markForCheck();
   }
 }
 

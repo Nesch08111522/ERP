@@ -1,0 +1,44 @@
+<section class="escenario">
+  <div class="brillo brillo-a"></div>
+  <div class="brillo brillo-b"></div>
+
+  <header class="bienvenida">
+    <img class="logo" [src]="marca.logoSrc()" [alt]="marca.nombre()" />
+    <p class="empresa">{{ marca.nombre() }}</p>
+    <h1>{{ administrador ? 'Bienvenido, administrador' : 'Bienvenido, ' + nombre }}</h1>
+    <p class="pregunta">
+      {{ administrador ? '¿Qué sede quieres visualizar?' : '¿Dónde quieres trabajar hoy?' }}
+    </p>
+  </header>
+
+  <p class="estado" *ngIf="cargando">Cargando sedes…</p>
+  <p class="estado fallo" *ngIf="error">{{ error }}</p>
+
+  <div class="rejilla" *ngIf="!cargando && !error">
+    <button type="button" class="tarjeta" *ngFor="let sede of sedes" (click)="elegir(sede)">
+      <span class="medalla" *ngIf="foto(sede) as src; else iconoSede">
+        <img [src]="src" alt="" />
+      </span>
+      <ng-template #iconoSede>
+        <span class="medalla" *ngIf="!sede.imagen; else edificio"><img [src]="marca.logoSrc()" alt="" /></span>
+        <ng-template #edificio><span class="medalla"><app-icon name="building"></app-icon></span></ng-template>
+      </ng-template>
+      <strong>{{ sede.nombre }}</strong>
+      <span class="lugar"><app-icon name="pin"></app-icon>{{ lugar(sede) }}</span>
+    </button>
+
+    <button type="button" class="tarjeta general" (click)="todas()">
+      <span class="medalla"><app-icon name="layers"></app-icon></span>
+      <strong>{{ administrador ? 'Ver todas las sedes' : 'Multisedes' }}</strong>
+      <span class="lugar">{{ administrador ? 'Gestión general, como está ahora' : 'Trabajar en todas las sedes' }}</span>
+    </button>
+
+    <button type="button" class="tarjeta crear" *ngIf="administrador" (click)="crear()">
+      <span class="medalla"><app-icon name="plus"></app-icon></span>
+      <strong>Crear una sede</strong>
+      <span class="lugar">Para monitorear desde dónde se venderá</span>
+    </button>
+  </div>
+
+  <button type="button" class="salir" (click)="salir()">Cerrar sesión</button>
+</section>

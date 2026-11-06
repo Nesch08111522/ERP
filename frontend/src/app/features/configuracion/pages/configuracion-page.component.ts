@@ -121,6 +121,7 @@ export class ConfiguracionPageComponent implements OnInit, OnDestroy {
         preformaMinutosMax: data.ventas?.preformaMinutosMax ?? 120,
         vigenciaCotizacionDias: data.ventas?.vigenciaCotizacionDias ?? 7,
       }),
+      error: (error: unknown) => this.toast.error(problemText(error)),
     });
     this.api.GetApiV1ConfiguracionSeries().pipe(takeUntil(this.destroy$)).subscribe({ next: (rows) => (this.series = rows ?? []), error: () => (this.series = []) });
   }

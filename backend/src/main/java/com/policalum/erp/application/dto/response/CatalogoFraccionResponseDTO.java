@@ -10,6 +10,9 @@ public record CatalogoFraccionResponseDTO(
         String nombreFraccion,
         BigDecimal factorDescuentoKardex,
         BigDecimal precioVenta,
-        Boolean activo
+        Boolean activo,
+        Boolean enOferta,
+        BigDecimal ofertaPorcentaje,
+        BigDecimal precioOferta
 ) {
 }

@@ -30,4 +30,8 @@ public class HorarioOperativo {
     /** Semana de atención: días, apertura y cierre. El sitio calcula si hoy está abierto. */
     @Column(name = "horario_json", columnDefinition = "TEXT")
     private String horarioJson;
+
+    /** Foto que el sitio abre en una ventana la primera vez que alguien entra. */
+    @Column(name = "aviso_imagen", length = 300)
+    private String avisoImagen;
 }

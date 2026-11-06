@@ -32,8 +32,7 @@ self.addEventListener('notificationclick', (event) => {
 function mostrar(titulo, cuerpo, url) {
   return self.registration.showNotification(titulo || 'POLICALUM', {
     body: cuerpo || 'Tienes un aviso nuevo.',
-    tag: 'policalum-erp',
-    renotify: true,
+    tag: 'policalum-' + Date.now(),
     icon: '/POLICALUM.png',
     badge: '/POLICALUM.png',
     data: { url: url || '/modules/notificaciones' },

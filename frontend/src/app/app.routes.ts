@@ -13,6 +13,12 @@ const operacion = ['ROLE_ADMIN', 'ROLE_MULTIFUNCIONAL'];
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: '/login' },
   { path: 'login', component: LoginComponent },
+  {
+    path: 'elegir-sede',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./features/elegir-sede/elegir-sede.component').then((m) => m.ElegirSedeComponent),
+    title: 'Elige tu sede',
+  },
   { path: 'recuperar-password', redirectTo: '/login', pathMatch: 'full' },
   {
     path: '',

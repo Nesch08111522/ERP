@@ -19,7 +19,10 @@
 .producto-datos { display: grid; flex: 1; min-width: 0; gap: 0.2rem; }
 .producto-datos strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .producto-datos small { color: var(--color-text-muted); }
-.estado-fraccion { flex: 0 0 auto; padding: 0.22rem 0.45rem; border-radius: var(--radius-full); background: var(--color-bg); color: var(--color-text-muted); font-size: 0.68rem; }
+.producto-meta { display: grid; flex: 0 0 auto; justify-items: end; gap: 0.25rem; }
+.producto-meta strong { font-size: var(--text-sm); }
+.resumen-lista { margin: -0.35rem 0 0.65rem; color: var(--color-text-muted); font-size: var(--text-xs); }
+.estado-fraccion { padding: 0.22rem 0.45rem; border-radius: var(--radius-full); background: var(--color-bg); color: var(--color-text-muted); font-size: 0.68rem; }
 .estado-fraccion.on { background: var(--color-success-bg); color: var(--color-success); }
 .estado, .estado-vacio { padding: 2rem 1rem; text-align: center; color: var(--color-text-muted); }
 .estado-vacio { display: grid; min-height: 25rem; align-content: center; justify-items: center; gap: 0.5rem; }
@@ -43,7 +46,9 @@
 .matriz.desactivada { opacity: 0.55; }
 .matriz-titulo { align-items: flex-start; margin-bottom: 0.75rem; }
 .matriz-titulo h3 { margin: 0; font-size: var(--text-md); }
-.nivel { display: grid; grid-template-columns: minmax(9rem, 1.1fr) minmax(10rem, 0.9fr) minmax(8rem, 1fr); align-items: center; gap: 0.85rem; padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); }
+.nivel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr)); gap: 0.75rem; }
+.nivel { display: grid; align-content: start; gap: 0.65rem; padding: 0.85rem; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-bg-subtle); }
+.nivel.off { opacity: 0.55; }
 .nivel-activo { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 0.2rem 0.55rem; min-width: 0; cursor: pointer; }
 .nivel-activo input { grid-row: span 2; accent-color: var(--color-primary); }
 .nivel-activo span { font-weight: var(--weight-semibold); }
@@ -52,7 +57,8 @@
 .precio-input { display: flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; padding: 0 0.65rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); color: var(--color-text); }
 .precio-input input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: inherit; }
 .precio-input input:disabled { cursor: not-allowed; }
-.precio-sugerido { color: var(--color-text-muted); font-size: var(--text-xs); }
+.precio-sugerido, .oferta { color: var(--color-text-muted); font-size: var(--text-xs); }
+.oferta { color: var(--color-primary); font-weight: var(--weight-semibold); }
 .nota { margin: 0.9rem 0 0; padding: 0.7rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-subtle); color: var(--color-text-muted); font-size: var(--text-xs); line-height: 1.5; }
 .acciones { justify-content: flex-end; margin-top: 1rem; }
 .alert-error { margin: 0 0 0.85rem; }
@@ -64,7 +70,6 @@
 @media (max-width: 540px) {
   .producto-resumen, .matriz-titulo { flex-direction: column; align-items: stretch; }
   .precio-base { text-align: left; }
-  .nivel { grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.8fr); gap: 0.55rem; }
-  .precio-sugerido { grid-column: 1 / -1; padding-left: 1.2rem; }
+  .producto-opcion { align-items: flex-start; }
   .matriz-titulo .btn { align-self: flex-start; }
 }

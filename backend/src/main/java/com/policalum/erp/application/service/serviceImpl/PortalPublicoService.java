@@ -174,7 +174,7 @@ public class PortalPublicoService {
                         fraccion.getId(),
                         fraccion.getNombreFraccion(),
                         fraccion.getFactorDescuentoKardex(),
-                        com.policalum.erp.application.service.PrecioComercial.fraccion(producto, fraccion.getPrecioVenta()),
+                        com.policalum.erp.application.service.PrecioComercial.fraccion(producto, fraccion),
                         vigente ? fraccion.getPrecioVenta() : null))
                 .toList();
         return new ProductoPublicoDTO(

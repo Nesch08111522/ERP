@@ -2,11 +2,13 @@ import { Injectable, signal } from '@angular/core';
 
 const CLAVE = 'erp-sede';
 
-/** Sede elegida en la barra superior. Vacío significa todas las sedes. Cada pestaña guarda la suya. */
+/** Sede elegida al entrar. Vacío significa todas las sedes. Cada pestaña guarda la suya. */
 @Injectable({ providedIn: 'root' })
 export class SedeFiltroService {
   readonly sedeId = signal('');
   readonly nombre = signal('Sedes');
+  /** Si se crea una sede desde el selector, al guardarla se entra en esa sede. */
+  entrarAlCrear = false;
 
   constructor() {
     if (typeof sessionStorage === 'undefined') return;

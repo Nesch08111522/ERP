@@ -75,7 +75,7 @@ class CmsPermissionControllerTest {
                 .build();
         when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
         when(cms.publico()).thenReturn(new CmsPublicoDTO("#111111", "#FFFFFF", 16, "claro", "", false,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 
         mvc.perform(put("/api/v1/cms/settings")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -148,7 +148,7 @@ img.mark { background: transparent; object-fit: contain; }
 .marco { display: flex; align-items: stretch; min-height: 100dvh; min-width: 0; }
 .columna { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 .browse {
-  display: none; flex-direction: column; gap: 8px;
+  display: none !important; flex-direction: column; gap: 8px;
   width: clamp(15rem, 18vw, 18rem); flex: 0 0 clamp(15rem, 18vw, 18rem);
   position: sticky; top: 0; align-self: flex-start; height: 100dvh; overflow: hidden;
   background: var(--paper); border-right: 1px solid var(--line); z-index: 40;
@@ -428,6 +428,11 @@ dialog.visor-obra::backdrop { background: transparent; }
 .aviso { display: flex; justify-content: space-between; gap: 12px; }
 .aviso button { border: 0; background: transparent; color: var(--ink); font-weight: 700; }
 .aviso-operativo { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--ink); color: var(--paper); }
+.aviso-modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 24px; background: rgba(8, 14, 22, 0.72); }
+.aviso-tarjeta { position: relative; width: min(100%, 42rem); max-height: min(92vh, 48rem); overflow: auto; background: #fff; border-radius: 16px; box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35); }
+.aviso-tarjeta img { display: block; width: 100%; height: auto; }
+.aviso-tarjeta p { margin: 0; padding: 14px 16px 18px; color: #0c1724; text-align: center; font-weight: 700; }
+.aviso-cerrar { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #fff; color: #0c1724; font-size: 22px; cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); }
 .okbox { padding: 0.8rem 1rem; border-radius: 10px; background: var(--soft); color: var(--ink); }
 .legal { max-width: 46rem; margin-inline: auto; display: grid; gap: 0.8rem; line-height: 1.65; }
 .trap { position: absolute; left: -9999px; }
@@ -601,10 +606,13 @@ dialog.visor-reel::backdrop { background: transparent; }
   .pie-grid { grid-template-columns: 1fr 1fr; }
   .band { grid-template-columns: 1fr 1fr; }
 }
+@media (min-width: 992px) {
+  .browse, .mast-menu, .velo { display: none !important; }
+}
 @media (max-width: 991px) {
   .mast-menu { display: grid; }
   .browse {
-    display: flex;
+    display: flex !important;
     position: fixed; left: 0; top: 0; height: 100dvh; width: min(18rem, 86vw); flex: none;
     transform: translateX(-105%); transition: transform .25s ease; box-shadow: var(--shadow); z-index: 40;
   }
