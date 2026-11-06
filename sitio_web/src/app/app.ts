@@ -11,6 +11,16 @@ import { PortalApi, media, pen } from './core/portal.api';
 import { TemaService } from './core/tema.service';
 import { AsistenteComponent } from './components/asistente.component';
 
+interface Reconocimiento extends EventTarget {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start: () => void;
+  onresult: ((evento: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+}
+
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, AsyncPipe, AsistenteComponent],
@@ -29,6 +39,9 @@ export class App implements OnDestroy {
   readonly media = media;
   readonly pen = pen;
   readonly menu = signal(false);
+  readonly angosto = signal(false);
+  private readonly consultaAncho = window.matchMedia('(max-width: 1023px)');
+  private readonly alCambiarAncho = () => this.aplicarAncho();
   readonly preguntarCarrito = signal(false);
   readonly anio = new Date().getFullYear();
   readonly ruta = signal(this.router.url);
@@ -36,6 +49,8 @@ export class App implements OnDestroy {
   readonly sedes = signal<SedePublica[]>([]);
   readonly vitrina = signal<ProductoPublico[]>([]);
   readonly sugerencias = signal<ProductoPublico[]>([]);
+  readonly escuchando = signal(false);
+  readonly vozAviso = signal('');
   private espera = 0;
   @ViewChild('caja') caja?: ElementRef<HTMLInputElement>;
 
@@ -44,8 +59,13 @@ export class App implements OnDestroy {
       filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
     ).subscribe((evento) => {
       this.ruta.set(evento.urlAfterRedirects);
-      this.menu.set(false);
+      if (this.angosto()) {
+        this.menu.set(false);
+        this.bloquearFondo();
+      }
     });
+    this.aplicarAncho();
+    this.consultaAncho.addEventListener('change', this.alCambiarAncho);
     this.api.categorias().subscribe({ next: (lista) => this.categorias.set(lista), error: () => undefined });
     this.api.sedes().subscribe({ next: (lista) => this.sedes.set(lista), error: () => undefined });
     this.preguntarCarrito.set(this.carrito.deOtroDia());
@@ -57,6 +77,25 @@ export class App implements OnDestroy {
 
   ngOnDestroy(): void {
     this.navegacion.unsubscribe();
+    this.consultaAncho.removeEventListener('change', this.alCambiarAncho);
+    document.body.style.overflow = '';
+  }
+
+  alternarMenu(): void {
+    this.menu.update((abierto) => !abierto);
+    if (!this.angosto()) localStorage.setItem('policalum-menu', this.menu() ? '1' : '0');
+    this.bloquearFondo();
+  }
+
+  private aplicarAncho(): void {
+    const angosto = this.consultaAncho.matches;
+    this.angosto.set(angosto);
+    this.menu.set(angosto ? false : localStorage.getItem('policalum-menu') !== '0');
+    this.bloquearFondo();
+  }
+
+  private bloquearFondo(): void {
+    document.body.style.overflow = this.angosto() && this.menu() ? 'hidden' : '';
   }
 
   consulta(): URLSearchParams {
@@ -82,8 +121,8 @@ export class App implements OnDestroy {
     return this.consulta().get('categoria') ?? '';
   }
 
-  vistaActiva(): string {
-    return this.consulta().get('vista') ?? '';
+  enProductos(): boolean {
+    return this.ruta().split('?')[0] === '/catalogo';
   }
 
   sugerir(valor: string): void {
@@ -105,6 +144,34 @@ export class App implements OnDestroy {
     this.sugerencias.set([]);
     if (this.caja) this.caja.nativeElement.value = '';
     this.router.navigate(['/catalogo', id]);
+  }
+
+  dictar(): void {
+    const ventana = window as Window & { SpeechRecognition?: new () => Reconocimiento; webkitSpeechRecognition?: new () => Reconocimiento };
+    const Motor = ventana.SpeechRecognition || ventana.webkitSpeechRecognition;
+    if (!Motor) {
+      this.vozAviso.set('Este navegador no tiene dictado. Escribe el producto en el buscador.');
+      return;
+    }
+    const reconocimiento = new Motor();
+    reconocimiento.lang = 'es-PE';
+    reconocimiento.interimResults = false;
+    reconocimiento.maxAlternatives = 1;
+    this.escuchando.set(true);
+    this.vozAviso.set('Di el producto que buscas.');
+    reconocimiento.onresult = (evento) => {
+      const dicho = evento.results[0]?.[0]?.transcript?.trim() ?? '';
+      this.escuchando.set(false);
+      this.vozAviso.set(dicho ? `Buscando “${dicho}”.` : '');
+      if (this.caja) this.caja.nativeElement.value = dicho;
+      if (dicho) this.irBusqueda(dicho);
+    };
+    reconocimiento.onerror = () => {
+      this.escuchando.set(false);
+      this.vozAviso.set('No se escuchó la frase. Intenta de nuevo.');
+    };
+    reconocimiento.onend = () => this.escuchando.set(false);
+    reconocimiento.start();
   }
 
   irBusqueda(texto: string): void {

@@ -1,10 +1,11 @@
 import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Meta, Title } from '@angular/platform-browser';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FichaProductoComponent } from '../components/ficha-producto.component';
 import { VisorProductoComponent } from '../components/visor-producto.component';
 import { CarritoService } from '../core/carrito.service';
-import { PortalApi, media, mensajeError, pen } from '../core/portal.api';
+import { PortalApi, cortePalabras, media, mensajeError, pen } from '../core/portal.api';
 import { ProductoPublico } from '../core/models';
 
 @Component({
@@ -14,6 +15,8 @@ import { ProductoPublico } from '../core/models';
 })
 export class ProductoComponent implements OnInit {
   private readonly api = inject(PortalApi);
+  private readonly titulo = inject(Title);
+  private readonly meta = inject(Meta);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   readonly carrito = inject(CarritoService);
@@ -47,6 +50,9 @@ export class ProductoComponent implements OnInit {
       this.api.producto(id).subscribe({
         next: (producto) => {
           this.producto.set(producto);
+          this.titulo.setTitle(`${producto.nombre} | POLICALUM`);
+          const resumen = cortePalabras(producto.descripcion, 24) || `${producto.nombre} con precio y stock publicados desde el almacén.`;
+          this.meta.updateTag({ name: 'description', content: resumen });
           const primera = producto.fracciones[0]?.id ?? '';
           this.form.patchValue({ fraccionId: producto.esFraccionable ? primera : '', cantidad: 1 });
           this.cargarCercanos(producto);

@@ -45,6 +45,24 @@ public class ProyectoPortafolio {
     @Column(length = 160)
     private String cliente;
 
+    @Column(length = 80)
+    private String lugar;
+
+    @Column(length = 4)
+    private String anio;
+
+    @Column(length = 60)
+    private String servicio;
+
+    @Column(length = 160)
+    private String referencia;
+
+    @Column(name = "etiquetas_json", columnDefinition = "TEXT")
+    private String etiquetasJson;
+
+    @Column(name = "imagenes_json", columnDefinition = "TEXT")
+    private String imagenesJson;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

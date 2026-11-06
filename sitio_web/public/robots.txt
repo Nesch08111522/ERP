@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://policalum.com/sitemap.xml

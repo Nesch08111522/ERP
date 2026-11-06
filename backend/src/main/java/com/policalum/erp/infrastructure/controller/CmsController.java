@@ -6,6 +6,7 @@ import com.policalum.erp.application.dto.request.OfertaManualRequestDTO;
 import com.policalum.erp.application.dto.request.ProyectoPortafolioRequestDTO;
 import com.policalum.erp.application.dto.response.CmsPublicoDTO;
 import com.policalum.erp.application.dto.response.ProyectoPortafolioResponseDTO;
+import com.policalum.erp.application.service.serviceImpl.CmsMedioService;
 import com.policalum.erp.application.service.serviceImpl.CmsPublicador;
 import com.policalum.erp.application.service.serviceImpl.CmsService;
 import com.policalum.erp.application.service.serviceImpl.PortafolioService;
@@ -19,11 +20,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
@@ -31,6 +35,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class CmsController {
 
     private final CmsService cms;
+    private final CmsMedioService medios;
     private final CmsPublicador publicador;
     private final PortafolioService portafolio;
 
@@ -44,6 +49,12 @@ public class CmsController {
     @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'sitio_web', 'configurar')")
     public CmsPublicoDTO guardarAjustes(@Valid @RequestBody CmsAjusteRequestDTO request) {
         return cms.guardarAjustes(request);
+    }
+
+    @PostMapping(value = "/api/v1/cms/medios", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'sitio_web', 'configurar')")
+    public Map<String, String> subirMedio(@RequestParam("archivo") MultipartFile archivo) {
+        return Map.of("ruta", medios.guardar(archivo));
     }
 
     @PutMapping("/api/v1/cms/horario")

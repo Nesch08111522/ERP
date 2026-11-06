@@ -7,7 +7,7 @@
 
   <app-page-header
     title="Portafolio web"
-    subtitle="Estos proyectos aparecen en la galería del portal público."
+    subtitle="El portal arma un mosaico con estas fichas: la primera queda grande y las siguientes alternan tamaño. La descripción admite 40 palabras."
   ></app-page-header>
 
 
@@ -57,7 +57,7 @@
 
     <!-- DESCRIPCIÓN -->
     <app-form-field
-      label="Descripción"
+      label="Descripción del trabajo"
       inputId="pf-desc"
       class="span-2"
     >
@@ -67,8 +67,61 @@
         maxlength="800"
         rows="4"
         formControlName="descripcion"
-        placeholder="Describe el proyecto realizado..."
+        placeholder="Qué se hizo, con qué material y para qué espacio. Máximo 40 palabras."
       ></textarea>
+    </app-form-field>
+
+    <p
+      class="ayuda span-2"
+      [class.form-error]="form.controls.descripcion.hasError('palabras')"
+    >
+      {{ palabras(form.controls.descripcion.value) }} / {{ topeDescripcion }} palabras como máximo.
+      El sitio muestra este texto en la ficha del proyecto.
+    </p>
+
+
+    <!-- SERVICIO Y LUGAR -->
+    <app-form-field
+      label="Servicio realizado"
+      inputId="pf-servicio"
+    >
+      <input
+        id="pf-servicio"
+        class="input"
+        type="text"
+        maxlength="60"
+        formControlName="servicio"
+        placeholder="Cubierta, cerramiento, nave"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Lugar"
+      inputId="pf-lugar"
+    >
+      <input
+        id="pf-lugar"
+        class="input"
+        type="text"
+        maxlength="80"
+        formControlName="lugar"
+        placeholder="Trujillo, almacén, distrito"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Año"
+      inputId="pf-anio"
+    >
+      <input
+        id="pf-anio"
+        class="input"
+        type="text"
+        maxlength="4"
+        inputmode="numeric"
+        formControlName="anio"
+        placeholder="2026"
+      />
     </app-form-field>
 
 
@@ -88,21 +141,96 @@
     </app-form-field>
 
 
-    <!-- IMAGEN -->
+    <!-- REFERENCIA -->
     <app-form-field
-      label="Imagen (URL HTTP o HTTPS)"
-      inputId="pf-img"
+      label="Referencia que llama la atención"
+      inputId="pf-referencia"
       class="span-2"
     >
       <input
-        id="pf-img"
+        id="pf-referencia"
         class="input"
-        type="url"
-        maxlength="500"
-        formControlName="imagenUrl"
-        placeholder="https://..."
+        type="text"
+        maxlength="160"
+        formControlName="referencia"
+        placeholder="180 m² de policarbonato alveolar de 6 mm"
       />
     </app-form-field>
+
+    <p
+      class="ayuda span-2"
+      [class.form-error]="form.controls.referencia.hasError('palabras')"
+    >
+      {{ palabras(form.controls.referencia.value) }} / {{ topeReferencia }} palabras.
+      Una cifra o un resultado corto, visible sobre la foto.
+    </p>
+
+
+    <!-- ETIQUETAS -->
+    <app-form-field
+      label="Etiquetas"
+      inputId="pf-tags"
+      class="span-2"
+    >
+      <input
+        id="pf-tags"
+        class="input"
+        type="text"
+        formControlName="etiquetas"
+        placeholder="Cubierta, alveolar, 6 mm, Trujillo"
+      />
+    </app-form-field>
+
+    <p class="ayuda span-2">
+      Hasta 6 etiquetas, separadas por coma. Cada una admite 24 caracteres.
+    </p>
+
+
+    <!-- IMÁGENES -->
+    <div class="span-2 galeria-admin" formArrayName="imagenes">
+      <div class="galeria-admin-head">
+        <div>
+          <strong>Imágenes</strong>
+          <p class="ayuda">
+            Hasta {{ topeImagenes }}. La primera es la portada del mosaico.
+            Puedes subir JPG, PNG o WebP, o pegar una URL HTTPS.
+          </p>
+        </div>
+        <div class="galeria-admin-actions">
+          <label class="btn btn-ghost btn-sm" [class.is-disabled]="subiendo || imagenes.length >= topeImagenes">
+            {{ subiendo ? 'Subiendo…' : 'Subir imagen' }}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              [disabled]="subiendo || imagenes.length >= topeImagenes"
+              (change)="subirImagen($event)"
+            />
+          </label>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            [disabled]="imagenes.length >= topeImagenes"
+            (click)="agregarImagen()"
+          >
+            Agregar URL
+          </button>
+        </div>
+      </div>
+
+      <p class="ayuda" *ngIf="!imagenes.length">Todavía no hay imágenes en esta ficha.</p>
+
+      <div class="galeria-fila" *ngFor="let foto of imagenes.controls; let i = index">
+        <span class="galeria-orden">{{ i === 0 ? 'Portada' : i + 1 }}</span>
+        <input
+          class="input"
+          type="text"
+          maxlength="500"
+          [formControlName]="i"
+          placeholder="https://... o ruta del sitio"
+        />
+        <button type="button" class="btn btn-ghost btn-sm" (click)="quitarImagen(i)">Quitar</button>
+      </div>
+    </div>
 
 
     <!-- VALIDACIONES -->
@@ -115,16 +243,37 @@
 
     <p
       class="form-error span-2"
-      *ngIf="form.controls.descripcion.touched && form.controls.descripcion.invalid"
+      *ngIf="form.controls.descripcion.touched && form.controls.descripcion.invalid && !form.controls.descripcion.hasError('palabras')"
     >
-      La descripción es obligatoria y admite hasta 800 caracteres.
+      La descripción es obligatoria.
     </p>
 
     <p
       class="form-error span-2"
-      *ngIf="form.controls.imagenUrl.touched && form.controls.imagenUrl.invalid"
+      *ngIf="form.controls.anio.touched && form.controls.anio.invalid"
     >
-      Ingresa una URL HTTP o HTTPS válida.
+      El año debe tener 4 dígitos.
+    </p>
+
+    <p
+      class="form-error span-2"
+      *ngIf="form.controls.etiquetas.touched && form.controls.etiquetas.hasError('etiquetas')"
+    >
+      Puedes publicar hasta 6 etiquetas.
+    </p>
+
+    <p
+      class="form-error span-2"
+      *ngIf="form.controls.etiquetas.touched && form.controls.etiquetas.hasError('etiquetaLarga')"
+    >
+      Cada etiqueta admite hasta 24 caracteres.
+    </p>
+
+    <p
+      class="form-error span-2"
+      *ngIf="imagenes.invalid"
+    >
+      Cada imagen debe ser una URL HTTP o HTTPS, o una ruta del sitio.
     </p>
 
     <p
@@ -248,15 +397,15 @@
             <div class="portfolio-card-image">
 
               <img
-                *ngIf="proyecto.imagenUrl"
-                [src]="proyecto.imagenUrl"
+                *ngIf="portada(proyecto)"
+                [src]="portada(proyecto)"
                 [alt]="'Imagen de ' + proyecto.titulo"
                 loading="lazy"
                 (error)="$any($event.target).hidden = true"
               />
 
               <span
-                *ngIf="!proyecto.imagenUrl"
+                *ngIf="!portada(proyecto)"
                 class="portfolio-image-placeholder"
               >
                 Sin imagen
@@ -332,6 +481,26 @@
                 {{ proyecto.descripcion }}
               </p>
 
+            </div>
+
+            <div class="portfolio-detail-item" *ngIf="ficha(proyecto)">
+              <span class="portfolio-detail-label">Obra</span>
+              <p>{{ ficha(proyecto) }}</p>
+            </div>
+
+            <div class="portfolio-detail-item" *ngIf="proyecto.referencia">
+              <span class="portfolio-detail-label">Referencia</span>
+              <p>{{ proyecto.referencia }}</p>
+            </div>
+
+            <div class="portfolio-detail-item" *ngIf="proyecto.etiquetas?.length">
+              <span class="portfolio-detail-label">Etiquetas</span>
+              <p>{{ proyecto.etiquetas?.join(' · ') }}</p>
+            </div>
+
+            <div class="portfolio-detail-item" *ngIf="(proyecto.imagenes?.length || 0) > 1">
+              <span class="portfolio-detail-label">Galería</span>
+              <p>{{ proyecto.imagenes?.length }} imágenes</p>
             </div>
 
 
@@ -490,16 +659,16 @@
               <div class="portfolio-thumbnail-wrapper">
 
                 <img
-                  *ngIf="proyecto.imagenUrl"
+                  *ngIf="portada(proyecto)"
                   class="portfolio-thumbnail"
-                  [src]="proyecto.imagenUrl"
+                  [src]="portada(proyecto)"
                   [alt]="'Imagen de ' + proyecto.titulo"
                   loading="lazy"
                   (error)="$any($event.target).hidden = true"
                 />
 
                 <span
-                  *ngIf="!proyecto.imagenUrl"
+                  *ngIf="!portada(proyecto)"
                   class="portfolio-no-image"
                 >
                   Sin imagen
@@ -519,6 +688,15 @@
 
               <span class="text-muted portfolio-description">
                 {{ proyecto.descripcion }}
+              </span>
+              <span class="text-muted" *ngIf="ficha(proyecto)">
+                {{ ficha(proyecto) }}
+              </span>
+              <span class="text-muted" *ngIf="proyecto.etiquetas?.length">
+                {{ proyecto.etiquetas?.join(' · ') }}
+              </span>
+              <span class="text-muted" *ngIf="(proyecto.imagenes?.length || 0) > 1">
+                {{ proyecto.imagenes?.length }} imágenes
               </span>
 
             </td>

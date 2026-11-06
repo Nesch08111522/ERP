@@ -128,7 +128,9 @@ public class PortalPublicoService {
 
     private ProyectoPortafolioPublicoDTO proyecto(ProyectoPortafolio proyecto) {
         return new ProyectoPortafolioPublicoDTO(proyecto.getId(), proyecto.getTitulo(), proyecto.getDescripcion(),
-                proyecto.getImagenUrl(), proyecto.getOrden(), proyecto.getCliente());
+                proyecto.getImagenUrl(), proyecto.getOrden(), proyecto.getCliente(), proyecto.getLugar(),
+                proyecto.getAnio(), proyecto.getServicio(), proyecto.getReferencia(),
+                ListasJson.leer(proyecto.getEtiquetasJson()), ListasJson.imagenes(proyecto));
     }
 
     private Map<UUID, BigDecimal> saldos(List<Producto> productos) {

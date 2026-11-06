@@ -1,5 +1,6 @@
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { GaleriaMaterialesComponent } from '../components/galeria-materiales.component';
 import { CmsStore } from '../core/cms.store';
 import { EmpresaStore } from '../core/empresa.store';
 import { ProyectoPublico } from '../core/models';
@@ -95,8 +96,9 @@ export class ReclamacionesComponent {}
       @if (marca.empresa().email) { <p>Correo: {{ marca.empresa().email }}</p> }
       <p><a routerLink="/contacto">Hablar con el equipo</a></p>
     </article>
+    <app-galeria-materiales />
   `,
-  imports: [RouterLink],
+  imports: [RouterLink, GaleriaMaterialesComponent],
 })
 export class NosotrosComponent {
   readonly marca = inject(EmpresaStore);

@@ -15,6 +15,10 @@
           <option value="nombre">Nombre</option>
         </select>
       </label>
+      <div class="vista-toggle" role="group" aria-label="Forma de ver los productos">
+        <button type="button" [class.on]="!vistaLista()" (click)="cambiarVista(false)">Cuadros</button>
+        <button type="button" [class.on]="vistaLista()" (click)="cambiarVista(true)">Lista</button>
+      </div>
     </div>
   </div>
   @if (errorCatalogo()) { <p class="alert" role="alert">{{ errorCatalogo() }}</p> }
@@ -27,6 +31,54 @@
     @for (categoria of categorias(); track categoria.id) {
       <a [class.on]="categoriaId() === categoria.id" routerLink="/catalogo" [queryParams]="{ categoria: categoria.id }">{{ categoria.nombre }}</a>
     }
+    <p class="kicker">Mostrar</p>
+    <label class="check"><input type="checkbox" [checked]="vista() === 'ofertas'" (change)="verOfertas($any($event.target).checked)" /> Ofertas</label>
+    @if (hayDestacados()) {
+      <label class="check"><input type="checkbox" [checked]="soloDestacado()" (change)="soloDestacado.set($any($event.target).checked)" /> Destacados</label>
+    }
+    @if (hayCortes()) {
+      <label class="check"><input type="checkbox" [checked]="soloCorte()" (change)="soloCorte.set($any($event.target).checked)" /> Se vende por corte</label>
+    }
+    <label class="check"><input type="checkbox" [checked]="soloStock()" (change)="soloStock.set($any($event.target).checked)" /> Solo con stock</label>
+    @if (hayUltimas()) {
+      <label class="check"><input type="checkbox" [checked]="soloUltimas()" (change)="soloUltimas.set($any($event.target).checked)" /> Últimas unidades</label>
+    }
+    @if (tipos().length > 1) {
+      <p class="kicker">Tipo</p>
+      <div class="chips">
+        <button type="button" class="chip-btn" [class.on]="!tipo()" (click)="tipo.set('')">Todos</button>
+        @for (opcion of tipos(); track opcion) {
+          <button type="button" class="chip-btn" [class.on]="tipo() === opcion" (click)="tipo.set(opcion)">{{ opcion }}</button>
+        }
+      </div>
+    }
+    @if (materiales().length > 1) {
+      <p class="kicker">Material</p>
+      <div class="chips">
+        <button type="button" class="chip-btn" [class.on]="!material()" (click)="material.set('')">Todos</button>
+        @for (opcion of materiales(); track opcion) {
+          <button type="button" class="chip-btn" [class.on]="material() === opcion" (click)="material.set(opcion)">{{ opcion }}</button>
+        }
+      </div>
+    }
+    @if (presentaciones().length > 1) {
+      <p class="kicker">Presentación</p>
+      <div class="chips">
+        <button type="button" class="chip-btn" [class.on]="!presentacion()" (click)="presentacion.set('')">Todas</button>
+        @for (opcion of presentaciones(); track opcion) {
+          <button type="button" class="chip-btn" [class.on]="presentacion() === opcion" (click)="presentacion.set(opcion)">{{ opcion }}</button>
+        }
+      </div>
+    }
+    @if (colores().length) {
+      <p class="kicker">Color</p>
+      <div class="chips">
+        <button type="button" class="chip-btn" [class.on]="!color()" (click)="color.set('')">Todos</button>
+        @for (opcion of colores(); track opcion) {
+          <button type="button" class="chip-btn" [class.on]="color() === opcion" (click)="color.set(opcion)">{{ opcion }}</button>
+        }
+      </div>
+    }
     @if (espesores().length) {
       <p class="kicker">Espesor</p>
       <div class="chips">
@@ -36,16 +88,18 @@
         }
       </div>
     }
-    <label class="check"><input type="checkbox" [checked]="soloStock()" (change)="soloStock.set($any($event.target).checked)" /> Solo con stock</label>
+    @if (hayFiltro()) {
+      <button type="button" class="filtro-limpiar" (click)="limpiar()">Limpiar filtros</button>
+    }
   </aside>
   <div>
 @if (error()) { <p class="alert" role="alert">{{ error() }} <button type="button" class="btn btn-line btn-sm" (click)="reintentar()">Reintentar</button></p> }
 @if (cargando()) { <p class="muted">Cargando catálogo...</p> }
 @if (!cargando() && !visibles().length) { <p class="muted">No hay productos con ese filtro.</p> }
 
-<div class="product-grid">
+<div class="product-grid" [class.lista]="vistaLista()">
   @for (producto of visibles(); track producto.id) {
-    <app-ficha [producto]="producto"></app-ficha>
+    <app-ficha [producto]="producto" [lista]="vistaLista()"></app-ficha>
   }
 </div>
 

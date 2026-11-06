@@ -9,8 +9,12 @@ import com.policalum.erp.application.dto.response.SedePublicaDTO;
 import com.policalum.erp.application.dto.response.ServicioPublicoDTO;
 import com.policalum.erp.application.service.serviceImpl.PortalPublicoService;
 import com.policalum.erp.application.service.serviceImpl.CatalogoPdfService;
+import com.policalum.erp.application.service.serviceImpl.CmsMedioService;
 import com.policalum.erp.application.service.serviceImpl.ProductoImagenService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -20,8 +24,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRange;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.support.ResourceRegion;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +45,7 @@ public class PortalPublicoController {
     private final PortalPublicoService portal;
     private final CatalogoPdfService catalogoPdf;
     private final ProductoImagenService imagenes;
+    private final CmsMedioService medios;
 
     @GetMapping("/empresa")
     public ResponseEntity<EmpresaPublicaDTO> empresa() {
@@ -100,6 +108,27 @@ public class PortalPublicoController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + (nombre != null ? nombre : "imagen") + "\"")
                 .contentType(tipo(nombre))
                 .body(resource);
+    }
+
+    @GetMapping("/medios")
+    public ResponseEntity<?> medio(HttpServletRequest solicitud, @RequestParam String ruta) throws IOException {
+        Resource recurso = medios.cargar(ruta);
+        MediaType tipo = medios.tipo(ruta);
+        long tamano = recurso.contentLength();
+        String rango = solicitud.getHeader(HttpHeaders.RANGE);
+        if (rango == null || rango.isBlank()) {
+            return ResponseEntity.ok()
+                    .contentType(tipo)
+                    .contentLength(tamano)
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
+                    .body(recurso);
+        }
+        ResourceRegion region = HttpRange.parseRanges(rango).get(0).toResourceRegion(recurso);
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                .contentType(tipo)
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .body(region);
     }
 
     @GetMapping("/portafolio")

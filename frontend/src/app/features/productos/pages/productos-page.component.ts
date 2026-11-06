@@ -2,6 +2,8 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   HostListener,
   OnDestroy,
@@ -9,7 +11,6 @@ import {
   effect,
   inject,
   untracked,
-  ChangeDetectionStrategy,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, Routes } from '@angular/router';
@@ -270,6 +271,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     router: Router,
     masivo: ProductosMasivoApiService,
     tokens: TokenService,
+    private readonly cdr: ChangeDetectorRef,
   ) {
     this.api = api;
     this.stockApi = stockApi;
@@ -900,8 +902,13 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     if (this.guardando) return;
 
     this.form.markAllAsTouched();
+    this.errorFormulario = null;
 
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.errorFormulario = 'Revisa los campos marcados antes de guardar.';
+      this.pintar();
+      return;
+    }
 
     const value = this.form.getRawValue();
 
@@ -911,6 +918,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       if (url && !/^https?:\/\//i.test(url)) {
         this.errorFormulario =
           'La URL de la imagen debe empezar por http:// o https://.';
+        this.pintar();
 
         return;
       }
@@ -924,6 +932,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       if (!(oferta > 0) || oferta >= base) {
         this.errorFormulario =
           'El precio de oferta tiene que ser menor que el precio de venta.';
+        this.pintar();
 
         return;
       }
@@ -931,12 +940,14 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
       if (dias < 1 || dias > 365) {
         this.errorFormulario =
           'La oferta dura entre 1 y 365 días.';
+        this.pintar();
 
         return;
       }
     }
 
     this.guardando = true;
+    this.pintar();
 
     if (
       this.modoImagen === 'archivo' &&
@@ -961,6 +972,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
             this.errorFormulario = problemText(error);
 
             this.toast.error(this.errorFormulario);
+            this.pintar();
           },
         });
 
@@ -1029,6 +1041,11 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
         ? 'Producto actualizado.'
         : 'Producto creado.',
     );
+    this.pintar();
+  }
+
+  private pintar(): void {
+    this.cdr.detectChanges();
   }
 
   private diasRestantes(hasta?: string): number {
@@ -1204,6 +1221,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
                   'El producto quedó guardado, pero la oferta no. ' +
                   this.errorFormulario,
                 );
+                this.pintar();
               },
             });
         },
@@ -1216,6 +1234,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           this.errorFormulario = problemText(error);
 
           this.toast.error(this.errorFormulario);
+          this.pintar();
         },
       });
   }
@@ -1282,6 +1301,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           this.seleccionado = null;
 
           this.avisarInventario();
+          this.pintar();
         },
 
         error: (error: unknown) => {
@@ -1289,6 +1309,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           this.confirmar = false;
 
           this.toast.error(problemText(error));
+          this.pintar();
         },
       });
   }
@@ -1333,6 +1354,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           this.seleccionado = null;
 
           this.toast.success('Producto desactivado.');
+          this.pintar();
         },
 
         error: (error: unknown) => {
@@ -1340,6 +1362,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           this.confirmar = false;
 
           this.toast.error(problemText(error));
+          this.pintar();
         },
       });
   }

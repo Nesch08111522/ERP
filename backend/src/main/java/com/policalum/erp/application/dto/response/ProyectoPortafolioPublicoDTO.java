@@ -1,5 +1,6 @@
 package com.policalum.erp.application.dto.response;
 
+import java.util.List;
 import java.util.UUID;
 
 public record ProyectoPortafolioPublicoDTO(
@@ -8,5 +9,11 @@ public record ProyectoPortafolioPublicoDTO(
         String descripcion,
         String imagenUrl,
         Integer orden,
-        String cliente
+        String cliente,
+        String lugar,
+        String anio,
+        String servicio,
+        String referencia,
+        List<String> etiquetas,
+        List<String> imagenes
 ) {}

@@ -65,12 +65,16 @@ public interface ProductoRepository extends JpaRepository<Producto, UUID> {
             + "(CAST(:categoriaId AS string) IS NULL OR p.categoria.id = :categoriaId) AND "
             + "(CAST(:soloDestacados AS boolean) = false OR p.destacado = true) AND "
             + "(CAST(:q AS string) IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR "
-            + " LOWER(COALESCE(p.codigoSku, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')))",
+            + " LOWER(COALESCE(p.codigoSku, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR "
+            + " LOWER(COALESCE(p.descripcion, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR "
+            + " LOWER(COALESCE(p.categoria.nombre, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')))",
             countQuery = "SELECT COUNT(p) FROM Producto p WHERE p.activo = true AND "
             + "(CAST(:categoriaId AS string) IS NULL OR p.categoria.id = :categoriaId) AND "
             + "(CAST(:soloDestacados AS boolean) = false OR p.destacado = true) AND "
             + "(CAST(:q AS string) IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR "
-            + " LOWER(COALESCE(p.codigoSku, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')))")
+            + " LOWER(COALESCE(p.codigoSku, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR "
+            + " LOWER(COALESCE(p.descripcion, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')) OR "
+            + " LOWER(COALESCE(p.categoria.nombre, '')) LIKE LOWER(CONCAT('%', CAST(:q AS string), '%')))")
     Page<Producto> catalogoPublico(@Param("categoriaId") UUID categoriaId,
                                    @Param("soloDestacados") boolean soloDestacados,
                                    @Param("q") String q,

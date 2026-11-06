@@ -26,6 +26,10 @@ public record CmsPublicoDTO(
         String heroKicker,
         String heroTitulo,
         String heroTexto,
+        String materialesKicker,
+        String materialesTitulo,
+        String materialesTexto,
+        List<MaterialPublicoDTO> materiales,
         AtencionPublicaDTO atencion,
         List<DiaAtencionDTO> dias
 ) {}

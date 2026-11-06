@@ -84,6 +84,13 @@ class PortafolioServiceTest {
     }
 
     private static ProyectoPortafolioRequestDTO request(String titulo, String descripcion, boolean publicado, String imagenUrl) {
-        return new ProyectoPortafolioRequestDTO(titulo, descripcion, imagenUrl, 1, publicado, " Cliente ");
+        return new ProyectoPortafolioRequestDTO(titulo, descripcion, imagenUrl, 1, publicado, " Cliente ",
+                null, null, null, null, null, null);
+    }
+
+    @Test
+    void descripcionConMasDe40PalabrasEsRechazada() {
+        String larga = "palabra ".repeat(41).trim();
+        assertThrows(IllegalArgumentException.class, () -> service.crear(request("Proyecto", larga, true)));
     }
 }

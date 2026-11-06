@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.policalum.erp.application.dto.response.CmsPublicoDTO;
+import com.policalum.erp.application.service.serviceImpl.CmsMedioService;
 import com.policalum.erp.application.service.serviceImpl.CmsPublicador;
 import com.policalum.erp.application.service.serviceImpl.CmsService;
 import com.policalum.erp.application.service.serviceImpl.PortafolioService;
@@ -28,6 +29,7 @@ class CmsControllerTest {
 
     @Autowired MockMvc mvc;
     @MockitoBean CmsService cms;
+    @MockitoBean CmsMedioService medios;
     @MockitoBean CmsPublicador publicador;
     @MockitoBean PortafolioService portafolio;
     @MockitoBean JwtUtil jwtUtil;
@@ -38,7 +40,7 @@ class CmsControllerTest {
     @Test
     void cmsPublico_responde200() throws Exception {
         when(cms.publico()).thenReturn(new CmsPublicoDTO("#111111", "#FFFFFF", 16, "claro", "", false,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 
         mvc.perform(get("/api/v1/public/cms"))
                 .andExpect(status().isOk())

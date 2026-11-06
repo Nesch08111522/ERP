@@ -7,12 +7,31 @@
       <a class="btn btn-primary" routerLink="/catalogo">Ver catálogo</a>
       <a class="btn btn-line" routerLink="/contacto">Hablar con un asesor</a>
     </div>
+    <ul class="hero-chips">
+      <li>Stock en almacén</li>
+      <li>Atención desde Trujillo</li>
+    </ul>
   </div>
-  <div class="hero-visual" aria-hidden="true">
-    <img src="/marca/hero-planchas.jpg" alt="" />
-    <img src="/marca/hero-nave.jpg" alt="" />
-    <span class="pill">Stock en almacén</span>
-    <span class="pill">Atención desde Trujillo</span>
+  <div class="hero-visual">
+    <div class="hero-banner" aria-roledescription="carrusel" aria-label="Banner de espesor, colores y conectores" (mouseenter)="pausarBanner()" (mouseleave)="reanudarBanner()">
+      @for (clip of clips; track clip.id; let i = $index) {
+        @if (banner() === i) {
+          @if (cine()) {
+            <video autoplay muted loop playsinline disablepictureinpicture [poster]="clip.poster" [src]="clip.src" [attr.aria-label]="clip.titulo" (loadedmetadata)="silenciar($event)" (play)="silenciar($event)"></video>
+          } @else {
+            <img [src]="clip.poster" [alt]="clip.titulo" />
+          }
+        }
+      }
+      <span class="play-tag">{{ clips[banner()].titulo }}</span>
+      <div class="banner-nav">
+        <button type="button" (click)="avanzar(-1); reanudarBanner()" aria-label="Video anterior">‹</button>
+        @for (clip of clips; track clip.id; let i = $index) {
+          <button type="button" class="banner-dot" [class.on]="banner() === i" (click)="irBanner(i)" [attr.aria-label]="clip.titulo" [attr.aria-current]="banner() === i ? 'true' : null"></button>
+        }
+        <button type="button" (click)="avanzar(1); reanudarBanner()" aria-label="Video siguiente">›</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -35,13 +54,32 @@
   </article>
 </section>
 
+@if (categorias().length) {
+  <section class="section" aria-label="Categorías">
+    <div class="section-head">
+      <div>
+        <p class="kicker">Líneas</p>
+        <h2>Categorías del almacén</h2>
+      </div>
+      <a class="btn btn-line btn-sm" routerLink="/catalogo">Ver todo</a>
+    </div>
+    <div class="cat-rail">
+      @for (categoria of categorias(); track categoria.id) {
+        <a [routerLink]="['/catalogo']" [queryParams]="{ categoria: categoria.id }">{{ categoria.nombre }}</a>
+      }
+    </div>
+  </section>
+}
+
+<app-galeria-materiales />
+
 <section class="section">
   <div class="section-head">
     <div>
-      <p class="kicker">Ofertas</p>
-      <h2>Lo que el ERP marcó en oferta</h2>
+      <p class="kicker">Promociones</p>
+      <h2>Ofertas publicadas por el ERP</h2>
     </div>
-    <a class="btn btn-line btn-sm" routerLink="/catalogo">Todo el catálogo</a>
+    <a class="btn btn-line btn-sm" routerLink="/catalogo" [queryParams]="{ vista: 'ofertas' }">Ver ofertas</a>
   </div>
   @if (ofertas().length) {
     <div class="product-grid">
@@ -53,6 +91,23 @@
     <p class="muted">Cuando un producto quede en oferta en el ERP, aparece aquí.</p>
   }
 </section>
+
+@if (destacados().length) {
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <p class="kicker">Vitrina</p>
+        <h2>Productos destacados</h2>
+      </div>
+      <a class="btn btn-line btn-sm" routerLink="/catalogo" [queryParams]="{ vista: 'destacados' }">Ver destacados</a>
+    </div>
+    <div class="product-grid">
+      @for (producto of destacados().slice(0, 4); track producto.id) {
+        <app-ficha [producto]="producto"></app-ficha>
+      }
+    </div>
+  </section>
+}
 
 <section class="section">
   <div class="section-head">
@@ -66,17 +121,17 @@
   @if (obrasError()) { <p class="alert" role="alert">No se pudo cargar el portafolio: {{ obrasError() }}</p> }
   @if (!obrasCargando() && !obrasError() && !obras().length) { <p class="muted">Próximamente compartiremos nuestros proyectos.</p> }
   @if (!obrasCargando() && !obrasError() && obras().length) {
-    <div class="works">
-    @for (obra of obras().slice(0, 3); track obra.id; let i = $index) {
-      <article class="work" [class.sin-imagen]="!foto(obra)">
+    <div class="mosaico">
+    @for (obra of obras().slice(0, 4); track obra.id; let i = $index) {
+      <a class="obra {{ ritmo(i) }}" [class.sin-imagen]="!foto(obra)" [routerLink]="['/portafolio']" [queryParams]="{ obra: obra.id }">
         @if (foto(obra); as imagen) { <img [src]="imagen" [alt]="'Proyecto: ' + obra.titulo" loading="lazy" decoding="async" (error)="imagenFallida($event)" /> }
-        <div class="veil"></div>
-        <div>
+        <span class="obra-copy">
+          @if (obra.servicio) { <span class="kicker">{{ obra.servicio }}</span> }
           <h3>{{ obra.titulo }}</h3>
-          @if (obra.cliente) { <p class="kicker">{{ obra.cliente }}</p> }
-          <p>{{ obra.descripcion }}</p>
-        </div>
-      </article>
+          @if (obra.cliente || obra.lugar) { <span class="obra-meta">{{ obra.cliente }} {{ obra.lugar }}</span> }
+          @if (ritmo(i) === 'hero' || ritmo(i) === 'ancha') { <span class="obra-texto">{{ breve(obra.descripcion, 18) }}</span> }
+        </span>
+      </a>
     }
     </div>
   }
@@ -85,8 +140,8 @@
 <section class="section">
   <div class="section-head">
     <div>
-      <p class="kicker">Catálogo</p>
-      <h2>Productos con precio y stock</h2>
+      <p class="kicker">Novedades</p>
+      <h2>Recién publicados en el catálogo</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/catalogo">Abrir tienda</a>
   </div>
@@ -119,3 +174,17 @@
     <p class="muted">Los servicios activos del ERP se listan en esta portada.</p>
   }
 </section>
+
+<section class="cta-comercial">
+  <div>
+    <p class="kicker">Siguiente paso</p>
+    <h2>La visita se convierte en cotización.</h2>
+    <p>El precio sale del almacén. Ventas confirma el documento con RUC, sin pago en línea.</p>
+  </div>
+  <div class="hero-actions">
+    <a class="btn btn-primary" routerLink="/cotizar">Cotizar proyecto</a>
+    <a class="btn btn-line" routerLink="/contacto">Hablar con ventas</a>
+  </div>
+</section>
+
+<app-mapa-local />

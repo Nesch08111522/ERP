@@ -5,6 +5,71 @@ import { FichaProductoComponent } from '../components/ficha-producto.component';
 import { CategoriaPublica, ProductoPublico } from '../core/models';
 import { PortalApi, mensajeError } from '../core/portal.api';
 
+const COLORES: ReadonlyArray<readonly [string, string]> = [
+  ['transparente', 'Transparente'],
+  ['cristal', 'Cristal'],
+  ['bronce', 'Bronce'],
+  ['ahumado', 'Ahumado'],
+  ['humo', 'Humo'],
+  ['opalino', 'Opalino'],
+  ['ópalo', 'Ópalo'],
+  ['opal', 'Opal'],
+  ['lechoso', 'Lechoso'],
+  ['blanco', 'Blanco'],
+  ['azul', 'Azul'],
+  ['verde', 'Verde'],
+  ['rojo', 'Rojo'],
+  ['gris', 'Gris'],
+  ['negro', 'Negro'],
+  ['amarillo', 'Amarillo'],
+  ['naranja', 'Naranja'],
+];
+
+function textoDe(producto: ProductoPublico): string {
+  return `${producto.nombre} ${producto.descripcion ?? ''}`.toLocaleLowerCase('es');
+}
+
+function tipoDe(producto: ProductoPublico): string {
+  const nombre = producto.nombre.toLocaleLowerCase('es');
+  if (nombre.includes('alveolar')) return 'Alveolar';
+  if (nombre.includes('sólido') || nombre.includes('solido')) return 'Sólido';
+  if (nombre.includes('perfil')) return 'Perfil';
+  return 'Accesorio';
+}
+
+function materialDe(producto: ProductoPublico): string {
+  const nombre = producto.nombre.toLocaleLowerCase('es');
+  const texto = `${nombre} ${textoDe(producto)}`;
+  if (nombre.includes('neopreno') || texto.includes('neopreno')) return 'Neopreno';
+  if (nombre.includes('silicona') || texto.includes('silicona')) return 'Silicona';
+  if (nombre.includes('aluminio') || nombre.includes('perfil')) return 'Aluminio';
+  if (nombre.includes('policarbonato') || texto.includes('policarbonato')) return 'Policarbonato';
+  return '';
+}
+
+function presentacionDe(producto: ProductoPublico): string {
+  const unidad = (producto.unidad ?? '').toUpperCase();
+  if (unidad.startsWith('PLANCHA')) return 'Plancha';
+  if (unidad.startsWith('BARRA')) return 'Barra';
+  if (unidad === 'UNID' || unidad === 'UNIDAD' || unidad === 'UND') return 'Unidad';
+  if (!unidad) return '';
+  return unidad.charAt(0) + unidad.slice(1).toLowerCase();
+}
+
+function colorDe(producto: ProductoPublico): string {
+  const texto = textoDe(producto);
+  return COLORES.find(([clave]) => texto.includes(clave))?.[1] ?? '';
+}
+
+function unicos(valores: string[]): string[] {
+  return [...new Set(valores.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+}
+
+function esUltima(producto: ProductoPublico): boolean {
+  const stock = Number(producto.stock ?? 0);
+  return producto.disponible && stock > 0 && stock <= 8;
+}
+
 @Component({
   selector: 'app-catalogo',
   imports: [FichaProductoComponent, RouterLink],
@@ -25,7 +90,15 @@ export class CatalogoComponent implements OnInit {
   readonly q = signal('');
   readonly orden = signal<'reciente' | 'precio' | 'nombre'>('reciente');
   readonly soloStock = signal(false);
+  readonly soloDestacado = signal(false);
+  readonly soloCorte = signal(false);
+  readonly soloUltimas = signal(false);
+  readonly tipo = signal('');
+  readonly material = signal('');
+  readonly presentacion = signal('');
+  readonly color = signal('');
   readonly espesor = signal('');
+  readonly vistaLista = signal(localStorage.getItem('policalum-vista') === 'lista');
   readonly cargando = signal(true);
   readonly descargandoCatalogo = signal(false);
   readonly errorCatalogo = signal('');
@@ -34,6 +107,7 @@ export class CatalogoComponent implements OnInit {
   readonly titulo = computed(() => {
     if (this.q()) return 'Resultados';
     if (this.vista() === 'destacados') return 'Destacados';
+    if (this.vista() === 'ofertas') return 'Ofertas';
     const id = this.categoriaId();
     if (!id) return 'Todos los productos';
     return this.categorias().find((categoria) => categoria.id === id)?.nombre ?? 'Colección';
@@ -41,16 +115,34 @@ export class CatalogoComponent implements OnInit {
   readonly espesores = computed(() => {
     const hallados = new Set<string>();
     for (const producto of this.productos()) {
-      const coincide = producto.nombre.match(/(\d+(?:[.,]\d+)?)\s*mm/i);
+      const coincide = `${producto.nombre} ${producto.descripcion ?? ''}`.match(/(\d+(?:[.,]\d+)?)\s*mm/i);
       if (coincide) hallados.add(coincide[1].replace(',', '.'));
     }
     return [...hallados].sort((a, b) => Number(a) - Number(b));
   });
+  readonly tipos = computed(() => unicos(this.productos().map(tipoDe)));
+  readonly materiales = computed(() => unicos(this.productos().map(materialDe)));
+  readonly presentaciones = computed(() => unicos(this.productos().map(presentacionDe)));
+  readonly colores = computed(() => unicos(this.productos().map(colorDe)));
+  readonly hayDestacados = computed(() => this.productos().some((producto) => producto.destacado));
+  readonly hayCortes = computed(() => this.productos().some((producto) => producto.esFraccionable));
+  readonly hayUltimas = computed(() => this.productos().some(esUltima));
+  readonly hayFiltro = computed(() =>
+    this.vista() === 'ofertas' || this.soloStock() || this.soloDestacado() || this.soloCorte() || this.soloUltimas()
+    || Boolean(this.tipo() || this.material() || this.presentacion() || this.color() || this.espesor()));
   readonly visibles = computed(() => {
     let lista = [...this.productos()];
+    if (this.vista() === 'ofertas') lista = lista.filter((producto) => producto.oferta);
+    if (this.soloDestacado()) lista = lista.filter((producto) => producto.destacado);
+    if (this.soloCorte()) lista = lista.filter((producto) => producto.esFraccionable);
     if (this.soloStock()) lista = lista.filter((producto) => producto.disponible);
+    if (this.soloUltimas()) lista = lista.filter(esUltima);
+    if (this.tipo()) lista = lista.filter((producto) => tipoDe(producto) === this.tipo());
+    if (this.material()) lista = lista.filter((producto) => materialDe(producto) === this.material());
+    if (this.presentacion()) lista = lista.filter((producto) => presentacionDe(producto) === this.presentacion());
+    if (this.color()) lista = lista.filter((producto) => colorDe(producto) === this.color());
     const mm = this.espesor();
-    if (mm) lista = lista.filter((producto) => new RegExp(`(?:^|\\D)${mm}\\s*mm`, 'i').test(producto.nombre));
+    if (mm) lista = lista.filter((producto) => new RegExp(`(?:^|\\D)${mm.replace('.', '\\.')}\\s*mm`, 'i').test(`${producto.nombre} ${producto.descripcion ?? ''}`));
     if (this.orden() === 'precio') lista.sort((a, b) => a.precioPublico - b.precioPublico);
     if (this.orden() === 'nombre') lista.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     return lista;
@@ -67,8 +159,34 @@ export class CatalogoComponent implements OnInit {
     });
   }
 
+  cambiarVista(lista: boolean): void {
+    this.vistaLista.set(lista);
+    localStorage.setItem('policalum-vista', lista ? 'lista' : 'cuadros');
+  }
+
   ordenar(valor: string): void {
     if (valor === 'precio' || valor === 'nombre' || valor === 'reciente') this.orden.set(valor);
+  }
+
+  verOfertas(activo: boolean): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { vista: activo ? 'ofertas' : null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  limpiar(): void {
+    this.soloStock.set(false);
+    this.soloDestacado.set(false);
+    this.soloCorte.set(false);
+    this.soloUltimas.set(false);
+    this.tipo.set('');
+    this.material.set('');
+    this.presentacion.set('');
+    this.color.set('');
+    this.espesor.set('');
+    if (this.vista() === 'ofertas') this.verOfertas(false);
   }
 
   @HostListener('document:visibilitychange')
@@ -136,7 +254,7 @@ export class CatalogoComponent implements OnInit {
       categoriaId: this.categoriaId() || undefined,
       q: this.q().trim() || undefined,
       page: this.pagina(),
-      size: 24,
+      size: 48,
     }).subscribe({
       next: (pagina) => {
         this.enCache.set(Boolean(pagina.enCache));

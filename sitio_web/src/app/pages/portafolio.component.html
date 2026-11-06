@@ -1,24 +1,78 @@
 <section class="section">
   <p class="kicker">Portafolio</p>
   <h1>Proyectos realizados</h1>
-  <p class="lead">Trabajos publicados desde el ERP POLICALUM.</p>
+  <p class="lead">Trabajos publicados desde el ERP. Cada pieza abre la ficha: servicio, lugar, referencia y la galería de la obra.</p>
 </section>
-<p class="portfolio-state" *ngIf="cargando()" role="status">Cargando proyectos…</p>
-<div class="portfolio-error" *ngIf="error()" role="alert">
-  <p>No se pudo cargar el portafolio: {{ error() }}</p>
-  <button type="button" (click)="cargar()">Reintentar</button>
-</div>
-<p class="portfolio-state" *ngIf="!cargando() && !error() && !obras().length">Próximamente compartiremos nuestros proyectos.</p>
-<div class="works" *ngIf="!cargando() && !error() && obras().length">
+@if (cargando()) { <p class="portfolio-state" role="status">Cargando proyectos…</p> }
+@if (error()) {
+  <div class="portfolio-error" role="alert">
+    <p>No se pudo cargar el portafolio: {{ error() }}</p>
+    <button type="button" (click)="cargar()">Reintentar</button>
+  </div>
+}
+@if (!cargando() && !error() && !obras().length) { <p class="portfolio-state">Próximamente compartiremos nuestros proyectos.</p> }
+@if (!cargando() && !error() && obras().length) {
+<div class="mosaico">
   @for (obra of obras(); track obra.id; let i = $index) {
-    <article class="work tone-{{ i % 4 }}" [class.sin-imagen]="!foto(obra)">
-      @if (foto(obra); as imagen) { <img [src]="imagen" [alt]="'Proyecto: ' + obra.titulo" loading="lazy" decoding="async" (error)="imagenFallida($event)" /> }
-      <div class="veil"></div>
-      <div>
+    <button type="button" class="obra {{ ritmo(i) }}" [class.sin-imagen]="!portada(obra)" (click)="abrir(obra)">
+      @if (portada(obra); as imagen) {
+        <img [src]="imagen" [alt]="'Proyecto: ' + obra.titulo" loading="lazy" decoding="async" (error)="imagenFallida($event)" />
+      }
+      <span class="obra-copy">
+        @if (obra.servicio) { <span class="kicker">{{ obra.servicio }}</span> }
         <h3>{{ obra.titulo }}</h3>
-        @if (obra.cliente) { <p class="kicker">{{ obra.cliente }}</p> }
-        <p>{{ obra.descripcion }}</p>
-      </div>
-    </article>
+        @if (meta(obra)) { <span class="obra-meta">{{ meta(obra) }}</span> }
+        @if (obra.referencia) { <strong class="obra-ref">{{ obra.referencia }}</strong> }
+        @if (amplia(i)) { <span class="obra-texto">{{ breve(obra.descripcion, 18) }}</span> }
+        @if (obra.etiquetas?.length) {
+          <span class="pills">
+            @for (etiqueta of obra.etiquetas.slice(0, 3); track etiqueta) { <span>{{ etiqueta }}</span> }
+          </span>
+        }
+        @if (galeria(obra).length > 1) { <span class="obra-fotos">{{ galeria(obra).length }} fotos</span> }
+      </span>
+    </button>
   }
 </div>
+}
+
+<dialog class="visor-obra" #visor aria-label="Ficha del proyecto" (close)="alCerrar()">
+  @if (seleccion(); as obra) {
+    <div class="obra-panel">
+      <button type="button" class="x" (click)="cerrar()" aria-label="Cerrar">×</button>
+      <div class="escena">
+        @if (fotoActual(); as imagen) {
+          <img [src]="imagen" [alt]="obra.titulo" />
+        } @else {
+          <div class="hueco" aria-hidden="true"></div>
+        }
+        @if (galeria(obra).length > 1) {
+          <button type="button" class="lado prev" (click)="mover(-1)" aria-label="Foto anterior">‹</button>
+          <button type="button" class="lado next" (click)="mover(1)" aria-label="Foto siguiente">›</button>
+          <p class="conteo">Foto {{ fotoIndice() + 1 }} de {{ galeria(obra).length }}</p>
+        }
+      </div>
+      <div class="ficha-obra">
+        @if (obra.servicio) { <p class="kicker">{{ obra.servicio }}</p> }
+        <h2>{{ obra.titulo }}</h2>
+        @if (meta(obra)) { <p class="obra-meta">{{ meta(obra) }}</p> }
+        @if (obra.referencia) { <p class="cita">{{ obra.referencia }}</p> }
+        <p>{{ breve(obra.descripcion, 40) }}</p>
+        @if (obra.etiquetas?.length) {
+          <ul class="pills">
+            @for (etiqueta of obra.etiquetas; track etiqueta) { <li>{{ etiqueta }}</li> }
+          </ul>
+        }
+        @if (galeria(obra).length > 1) {
+          <div class="thumbs">
+            @for (imagen of galeria(obra); track imagen; let i = $index) {
+              <button type="button" [class.activa]="i === fotoIndice()" (click)="irFoto(i)" [attr.aria-label]="'Ver foto ' + (i + 1)">
+                <img [src]="imagen" alt="" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</dialog>

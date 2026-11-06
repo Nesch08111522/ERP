@@ -7,12 +7,23 @@
 @if (!lineas().length && !creada()) {
   <p class="muted">Agrega productos antes de cotizar. <a routerLink="/catalogo">Ir al catálogo</a></p>
 } @else if (creada(); as oficial) {
-  <div class="okbox">Cotización registrada. Ventas ya tiene el aviso: tienes una nueva cotización para visualizar.</div>
+  <div class="okbox">Cotización registrada. En el ERP, Ventas ya puede abrirla: alguien quiere comprar y el pedido quedó listado.</div>
   <article class="sheet" style="margin-top:1rem">
-    <p class="kicker">{{ marca.empresa().nombreComercial }}</p>
-    <h2>Cotización</h2>
-    <p>{{ oficial.clienteNombre }} · {{ oficial.origen || oficial.estado }}</p>
-    <p class="muted">Vigente hasta {{ oficial.fechaVigencia }} · Entrega en {{ oficial.cargos?.distrito }}</p>
+    <header class="sheet-head">
+      <div>
+        <p class="kicker">{{ marca.empresa().razonSocial || marca.empresa().nombreComercial }}</p>
+        <h2>Cotización</h2>
+        @if (marca.empresa().ruc) { <p>RUC {{ marca.empresa().ruc }}</p> }
+        @if (marca.empresa().direccion) { <p class="muted">{{ marca.empresa().direccion }}</p> }
+      </div>
+      <div>
+        <p>N.º {{ oficial.id.slice(0, 8).toUpperCase() }}</p>
+        <p>Estado {{ oficial.estado }}</p>
+        <p class="muted">Vigente hasta {{ oficial.fechaVigencia }}</p>
+      </div>
+    </header>
+    <p>Cliente: {{ oficial.clienteNombre }}</p>
+    <p class="muted">Entrega en {{ oficial.cargos?.distrito }} · {{ oficial.origen || 'WEB' }}</p>
     @if (oficial.cargos?.modificada) {
       <p class="alert">La empresa modificó esta cotización. {{ oficial.cargos.notaCambio }}</p>
     }

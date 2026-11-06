@@ -73,6 +73,12 @@ export interface ProyectoPublico {
   imagenUrl?: string;
   orden: number;
   cliente?: string;
+  lugar?: string;
+  anio?: string;
+  servicio?: string;
+  referencia?: string;
+  etiquetas?: string[];
+  imagenes?: string[];
 }
 
 export interface LineaCarrito {

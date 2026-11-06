@@ -150,6 +150,16 @@ export function pen(valor: number | null | undefined): string {
   return dinero.format(Number(valor ?? 0));
 }
 
+export function ritmoObra(indice: number): string {
+  return ['hero', 'lado', 'media', 'alta', 'baja', 'ancha'][indice % 6];
+}
+
+export function cortePalabras(texto: string | null | undefined, tope = 22): string {
+  const palabras = (texto || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+  if (palabras.length <= tope) return palabras.join(' ');
+  return `${palabras.slice(0, tope).join(' ')}…`;
+}
+
 export function mensajeError(error: unknown): string {
   const fallo = error as { status?: number; error?: { message?: string } };
   if (fallo?.status === 0) return 'No hay conexión con el ERP. Inténtalo nuevamente más tarde.';

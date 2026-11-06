@@ -9,6 +9,7 @@ import com.policalum.erp.application.dto.request.HorarioOperativoRequestDTO;
 import com.policalum.erp.application.dto.request.OfertaManualRequestDTO;
 import com.policalum.erp.application.dto.response.AtencionPublicaDTO;
 import com.policalum.erp.application.dto.response.CmsPublicoDTO;
+import com.policalum.erp.application.dto.response.MaterialPublicoDTO;
 import com.policalum.erp.application.service.AtencionHorario;
 import com.policalum.erp.application.service.PrecioComercial;
 import com.policalum.erp.domain.model.CmsAjuste;
@@ -39,6 +40,15 @@ public class CmsService {
 
     private static final List<String> SEMANA = List.of("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO");
     private static final TypeReference<List<DiaAtencionDTO>> DIAS = new TypeReference<>() {};
+    private static final TypeReference<List<MaterialPublicoDTO>> MATERIALES = new TypeReference<>() {};
+    private static final List<MaterialPublicoDTO> MATERIALES_BASE = List.of(
+            new MaterialPublicoDTO("espesor", "Espesor", "Compara el cuerpo de la plancha y elige el milimetraje según la luz del vano y la cubierta.", "/videos/espesor-poster.jpg", "/videos/espesor.mp4", true),
+            new MaterialPublicoDTO("colores", "Colores", "Transparente, humo, bronce y tonos de color para dosificar la luz y el carácter del ambiente.", "/videos/colores-poster.jpg", "/videos/colores.mp4", true),
+            new MaterialPublicoDTO("conectores", "Conectores H", "La unión entre planchas: un encuentro firme, alineado y del mismo tono del policarbonato.", "/videos/conectores-poster.jpg", "/videos/conectores.mp4", true),
+            new MaterialPublicoDTO("conectores-colores", "Conectores y colores", "Perfiles y tonos de policarbonato para unir la cubierta y dosificar la luz.", null, "/videos/conectores-colores.mp4", true),
+            new MaterialPublicoDTO("ubicanos", "Ubícanos", "La sede y el taller en Trujillo, para llegar, cotizar y recoger en persona.", null, "/videos/ubicanos.mp4", true),
+            new MaterialPublicoDTO("conector-blanco", "Conector blanco", "El perfil de unión en blanco, alineado con la plancha y listo para la cubierta.", null, "/videos/conector-blanco.mp4", true)
+    );
 
     private final CmsAjusteRepository ajustes;
     private final HorarioOperativoRepository horarios;
@@ -69,6 +79,17 @@ public class CmsService {
         fila.setHeroKicker(limpio(request.heroKicker(), 80));
         fila.setHeroTitulo(limpio(request.heroTitulo(), 180));
         fila.setHeroTexto(limpio(request.heroTexto(), 400));
+        fila.setMaterialesKicker(limpio(request.materialesKicker(), 80));
+        fila.setMaterialesTitulo(limpio(request.materialesTitulo(), 180));
+        fila.setMaterialesTexto(limpio(request.materialesTexto(), 400));
+        if (request.materiales() != null) {
+            List<MaterialPublicoDTO> materiales = normalizarMateriales(request.materiales());
+            try {
+                fila.setMaterialesJson(json.writeValueAsString(materiales));
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException("No se pudieron guardar los materiales");
+            }
+        }
         ajustes.save(fila);
         publicador.publicar("ajustes");
         return publico();
@@ -193,8 +214,59 @@ public class CmsService {
                 ajuste == null ? null : ajuste.getHeroKicker(),
                 ajuste == null ? null : ajuste.getHeroTitulo(),
                 ajuste == null ? null : ajuste.getHeroTexto(),
+                ajuste == null ? null : ajuste.getMaterialesKicker(),
+                ajuste == null ? null : ajuste.getMaterialesTitulo(),
+                ajuste == null ? null : ajuste.getMaterialesTexto(),
+                leerMateriales(ajuste),
                 atencion,
                 dias);
+    }
+
+    private List<MaterialPublicoDTO> leerMateriales(CmsAjuste ajuste) {
+        if (ajuste == null || ajuste.getMaterialesJson() == null || ajuste.getMaterialesJson().isBlank()) {
+            return MATERIALES_BASE;
+        }
+        try {
+            List<MaterialPublicoDTO> lista = json.readValue(ajuste.getMaterialesJson(), MATERIALES);
+            return lista == null ? List.of() : lista;
+        } catch (JsonProcessingException e) {
+            return MATERIALES_BASE;
+        }
+    }
+
+    private List<MaterialPublicoDTO> normalizarMateriales(List<MaterialPublicoDTO> entrada) {
+        if (entrada.size() > 24) throw new IllegalArgumentException("Puedes publicar hasta 24 piezas del reel");
+        List<MaterialPublicoDTO> salida = new ArrayList<>();
+        Set<String> ids = new LinkedHashSet<>();
+        int n = 0;
+        for (MaterialPublicoDTO item : entrada) {
+            String nombre = limpio(item.nombre(), 80);
+            if (nombre == null) continue;
+            String imagen = urlMaterial(item.imagenUrl());
+            String video = urlMaterial(item.videoUrl());
+            if (imagen == null && video == null) continue;
+            String id = limpio(item.id(), 40);
+            if (id == null) id = "material-" + (++n);
+            id = id.toLowerCase().replaceAll("[^a-z0-9-]", "-").replaceAll("-{2,}", "-");
+            if (id.isBlank() || !ids.add(id)) id = "material-" + (++n);
+            salida.add(new MaterialPublicoDTO(
+                    id,
+                    nombre,
+                    limpio(item.resumen(), 240),
+                    imagen,
+                    video,
+                    item.activo()));
+        }
+        return salida;
+    }
+
+    private String urlMaterial(String valor) {
+        String texto = limpio(valor, 300);
+        if (texto == null) return null;
+        boolean ruta = texto.startsWith("/") && !texto.startsWith("//");
+        boolean web = texto.startsWith("https://") || texto.startsWith("http://");
+        if (!ruta && !web) throw new IllegalArgumentException("La foto o el video del material debe ser una ruta del sitio o una URL http");
+        return texto;
     }
 
     private List<DiaAtencionDTO> leerDias(HorarioOperativo horario) {

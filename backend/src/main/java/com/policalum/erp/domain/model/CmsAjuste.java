@@ -80,4 +80,16 @@ public class CmsAjuste {
 
     @Column(name = "hero_texto", length = 400)
     private String heroTexto;
+
+    @Column(name = "materiales_kicker", length = 80)
+    private String materialesKicker;
+
+    @Column(name = "materiales_titulo", length = 180)
+    private String materialesTitulo;
+
+    @Column(name = "materiales_texto", length = 400)
+    private String materialesTexto;
+
+    @Column(name = "materiales_json", columnDefinition = "TEXT")
+    private String materialesJson;
 }

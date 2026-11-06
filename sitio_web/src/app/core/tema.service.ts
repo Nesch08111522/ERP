@@ -28,8 +28,8 @@ export class TemaService {
       const guardado = localStorage.getItem(CLAVE);
       if (guardado === 'dia' || guardado === 'noche') return guardado;
     } catch {
-      return 'noche';
+      return 'dia';
     }
-    return 'noche';
+    return 'dia';
   }
 }

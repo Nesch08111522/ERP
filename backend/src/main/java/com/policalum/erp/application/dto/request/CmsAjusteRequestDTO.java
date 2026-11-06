@@ -1,10 +1,13 @@
 package com.policalum.erp.application.dto.request;
 
+import com.policalum.erp.application.dto.response.MaterialPublicoDTO;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public record CmsAjusteRequestDTO(
         @NotBlank @Pattern(regexp = "#[0-9A-Fa-f]{6}", message = "Usa un color hexadecimal de 6 dígitos") String primaryColor,
@@ -26,5 +29,9 @@ public record CmsAjusteRequestDTO(
         @Size(max = 4000) String textoFaq,
         @Size(max = 80) String heroKicker,
         @Size(max = 180) String heroTitulo,
-        @Size(max = 400) String heroTexto
+        @Size(max = 400) String heroTexto,
+        @Size(max = 80) String materialesKicker,
+        @Size(max = 180) String materialesTitulo,
+        @Size(max = 400) String materialesTexto,
+        @Valid @Size(max = 24) List<MaterialPublicoDTO> materiales
 ) {}

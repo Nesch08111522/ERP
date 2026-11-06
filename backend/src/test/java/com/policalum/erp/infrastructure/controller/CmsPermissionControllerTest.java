@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.policalum.erp.application.dto.response.CmsPublicoDTO;
+import com.policalum.erp.application.service.serviceImpl.CmsMedioService;
 import com.policalum.erp.application.service.serviceImpl.CmsPublicador;
 import com.policalum.erp.application.service.serviceImpl.CmsService;
 import com.policalum.erp.application.service.serviceImpl.PortafolioService;
@@ -44,6 +45,9 @@ class CmsPermissionControllerTest {
     CmsService cms;
 
     @MockitoBean
+    CmsMedioService medios;
+
+    @MockitoBean
     CmsPublicador publicador;
 
     @MockitoBean
@@ -71,7 +75,7 @@ class CmsPermissionControllerTest {
                 .build();
         when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
         when(cms.publico()).thenReturn(new CmsPublicoDTO("#111111", "#FFFFFF", 16, "claro", "", false,
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 
         mvc.perform(put("/api/v1/cms/settings")
                         .contentType(MediaType.APPLICATION_JSON)

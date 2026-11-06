@@ -1,12 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MapaLocalComponent } from '../components/mapa-local.component';
 import { EmpresaStore } from '../core/empresa.store';
 import { SedePublica } from '../core/models';
 import { PortalApi, mensajeError } from '../core/portal.api';
 
 @Component({
   selector: 'app-contacto',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, MapaLocalComponent],
   templateUrl: './contacto.component.html',
 })
 export class ContactoComponent {
@@ -16,6 +17,11 @@ export class ContactoComponent {
   readonly enviado = signal(false);
   readonly error = signal('');
   readonly enviando = signal(false);
+  readonly direccionMapa = computed(() => {
+    const sede = this.sedes().find((item) => item.direccion);
+    if (sede) return [sede.direccion, sede.ciudad].filter(Boolean).join(', ');
+    return this.marca.empresa().direccion || '';
+  });
   readonly form = inject(FormBuilder).nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(120)]],
     correo: ['', [Validators.required, Validators.email]],
@@ -28,12 +34,6 @@ export class ContactoComponent {
 
   constructor() {
     this.api.sedes().subscribe({ next: (lista) => this.sedes.set(lista), error: () => undefined });
-  }
-
-  mapa(direccion?: string | null): string | null {
-    const texto = (direccion || this.marca.empresa().direccion || '').trim();
-    if (!texto) return null;
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(texto)}`;
   }
 
   enviar(): void {

@@ -51,10 +51,15 @@ describe('PortafolioWebPageComponent', () => {
     component.form.setValue({
       titulo: proyecto.titulo,
       descripcion: proyecto.descripcion,
-      imagenUrl: proyecto.imagenUrl ?? '',
       cliente: proyecto.cliente ?? '',
+      lugar: '',
+      anio: '',
+      servicio: '',
+      referencia: '',
+      etiquetas: '',
       orden: proyecto.orden,
       publicado: false,
+      imagenes: [],
     });
 
     component.guardar();

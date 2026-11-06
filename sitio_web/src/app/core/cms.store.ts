@@ -25,6 +25,10 @@ export interface CmsPublico {
   heroKicker?: string;
   heroTitulo?: string;
   heroTexto?: string;
+  materialesKicker?: string;
+  materialesTitulo?: string;
+  materialesTexto?: string;
+  materiales?: Array<{ id: string; nombre: string; resumen?: string; imagenUrl?: string; videoUrl?: string; activo?: boolean }>;
   atencion?: { configurado: boolean; abiertoAhora: boolean; atiendeHoy: boolean; texto: string };
   dias?: Array<{ dia: string; abierto: boolean; desde?: string; hasta?: string }>;
 }

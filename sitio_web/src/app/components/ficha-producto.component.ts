@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal } from '@angular/core';
+import { booleanAttribute, Component, Input, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CarritoService } from '../core/carrito.service';
 import { ProductoPublico } from '../core/models';
@@ -9,29 +9,37 @@ import { VisorProductoComponent } from './visor-producto.component';
   selector: 'app-ficha',
   imports: [RouterLink, VisorProductoComponent],
   template: `
-    <article class="tile" [class.elegida]="enCarrito">
+    <article class="tile" [class.elegida]="enCarrito" [class.lista]="lista">
       <div class="tile-photo" [class.gira]="girando()">
         <a [routerLink]="['/catalogo', producto.id]" [attr.aria-label]="producto.nombre">
           <app-visor [src]="foto" [alt]="producto.nombre" [nombre]="producto.nombre" />
         </a>
         @if (producto.oferta) {
-          <span class="tile-badge">Oferta</span>
+          <span class="tile-badge oferta">Oferta</span>
+        } @else if (ultimas) {
+          <span class="tile-badge bajo">Últimas unidades</span>
         } @else if (producto.destacado) {
           <span class="tile-badge">Destacado</span>
         }
         <button type="button" class="giro" (click)="girar()" aria-label="Ver en 3D">3D</button>
       </div>
-      <p class="eyebrow">{{ producto.categoriaNombre || 'Catálogo' }}</p>
-      <h3><a [routerLink]="['/catalogo', producto.id]">{{ producto.nombre }}</a></h3>
-      <p class="tile-meta">
-        <span [class.on]="producto.disponible" [class.off]="!producto.disponible">{{ existencia }}</span>
-        @if (producto.codigoSku) { <span>{{ producto.codigoSku }}</span> }
-      </p>
-      <div class="tile-row">
-        <p class="tile-price">@if (antes) { <span class="precio-antes">{{ antes }}</span> }{{ precio }}</p>
-        <button type="button" class="btn btn-sm" [class.btn-primary]="!enCarrito" [class.btn-ok]="enCarrito" [disabled]="!producto.disponible" (click)="sumar()">
-          {{ enCarrito ? 'En el carrito' : 'Agregar' }}
-        </button>
+      <div class="tile-copy">
+        <p class="eyebrow">{{ producto.categoriaNombre || 'Catálogo' }}</p>
+        <h3><a [routerLink]="['/catalogo', producto.id]">{{ producto.nombre }}</a></h3>
+        @if (producto.descripcion && (lista || abierta())) { <p class="tile-desc">{{ producto.descripcion }}</p> }
+        @if (producto.descripcion && !lista) {
+          <button type="button" class="linkish" (click)="abierta.set(!abierta())">{{ abierta() ? 'Ocultar descripción' : 'Ver descripción' }}</button>
+        }
+        <p class="tile-meta">
+          <span [class.on]="producto.disponible" [class.off]="!producto.disponible">{{ existencia }}</span>
+          @if (producto.codigoSku) { <span>{{ producto.codigoSku }}</span> }
+        </p>
+        <div class="tile-row">
+          <p class="tile-price">@if (antes) { <span class="precio-antes">{{ antes }}</span> }{{ precio }}</p>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="!enCarrito" [class.btn-ok]="enCarrito" [disabled]="!producto.disponible" (click)="sumar()">
+            {{ enCarrito ? 'En el carrito' : 'Agregar' }}
+          </button>
+        </div>
       </div>
     </article>
   `,
@@ -39,10 +47,17 @@ import { VisorProductoComponent } from './visor-producto.component';
 export class FichaProductoComponent {
   private readonly carrito = inject(CarritoService);
   readonly girando = signal(false);
+  readonly abierta = signal(false);
   @Input({ required: true }) producto!: ProductoPublico;
+  @Input({ transform: booleanAttribute }) lista = false;
 
   get enCarrito(): boolean {
     return this.carrito.tiene(this.producto.id);
+  }
+
+  get ultimas(): boolean {
+    const stock = this.producto.stock;
+    return this.producto.disponible && stock != null && stock > 0 && stock <= 8;
   }
 
   girar(): void {

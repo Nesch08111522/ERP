@@ -1018,6 +1018,52 @@
    16. ACCESIBILIDAD
    ========================================================= */
 
+.ayuda {
+  margin: -0.35rem 0 0;
+  color: var(--text-muted, #8b97a8);
+  font-size: var(--text-sm, 0.85rem);
+}
+
+.galeria-admin {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.galeria-admin-head,
+.galeria-admin-actions,
+.galeria-fila {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.galeria-admin-head {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.galeria-fila .input {
+  flex: 1 1 16rem;
+}
+
+.galeria-orden {
+  min-width: 4.5rem;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.galeria-admin-actions input[type="file"] {
+  display: none;
+}
+
+.galeria-admin-actions label.is-disabled {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   .module-page *,
