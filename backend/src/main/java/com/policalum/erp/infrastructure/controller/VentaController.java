@@ -12,6 +12,10 @@ import com.policalum.erp.application.dto.response.VentaProcesadaResponseDTO;
 import com.policalum.erp.application.service.VentaService;
 import com.policalum.erp.domain.enums.CanalVenta;
 import com.policalum.erp.domain.enums.EstadoVenta;
+import com.policalum.erp.domain.enums.RolNombre;
+import com.policalum.erp.domain.model.User;
+import com.policalum.erp.exception.ResourceNotFoundException;
+import com.policalum.erp.infrastructure.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -23,6 +27,8 @@ import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -32,7 +38,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/api/v1/ventas")
 @RequiredArgsConstructor
 public class VentaController {
+
     private final VentaService ventaService;
+    private final UserRepository userRepository;
 
     @Operation(summary = "Registrar venta", description = "Registra una venta COMPLETADA con sus líneas (producto, fracción o servicio) y pagos. Requiere un turno de caja ABIERTO del usuario en la sede. Los precios e IGV los calcula el servidor; la suma de pagos debe ser igual al total. Descuenta stock con una salida de Kardex.")
     @ApiResponses({
@@ -45,7 +53,8 @@ public class VentaController {
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'ventas', 'crear')")
     public ResponseEntity<VentaProcesadaResponseDTO> registrar(@Valid @RequestBody RegistrarVentaRequestDTO request) {
         VentaProcesadaResponseDTO venta = ventaService.registrar(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(venta.id()).toUri();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(venta.id())
+                .toUri();
         return ResponseEntity.created(location).body(venta);
     }
 
@@ -55,24 +64,42 @@ public class VentaController {
             @ApiResponse(responseCode = "404", description = "Venta no encontrada")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<VentaDetalleResponseDTO> obtener(@PathVariable UUID id) { return ResponseEntity.ok(ventaService.obtener(id)); }
+    public ResponseEntity<VentaDetalleResponseDTO> obtener(@PathVariable UUID id) {
+        return ResponseEntity.ok(ventaService.obtener(id));
+    }
 
-    @Operation(summary = "Buscar ventas", description = "Listado paginado. Filtros opcionales: sede, vendedor, cliente, estado, canal y rango de fecha-hora (ISO date-time).")
+    @Operation(summary = "Buscar ventas", description = "Listado paginado. Filtros opcionales: sede, vendedor, cliente, estado, canal y rango de fecha-hora (ISO date-time). MULTIFUNCIONAL solo ve sus propias ventas.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK")
     })
     @GetMapping
     public ResponseEntity<Page<VentaListadoResponseDTO>> buscar(
-            @RequestParam(required = false) UUID sedeId, @RequestParam(required = false) UUID userId,
-            @RequestParam(required = false) UUID clienteId, @RequestParam(required = false) EstadoVenta estado,
+            @RequestParam(required = false) UUID sedeId,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) UUID clienteId,
+            @RequestParam(required = false) EstadoVenta estado,
             @RequestParam(required = false) CanalVenta canal,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta,
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+
+        // MULTIFUNCIONAL: forzar userId = él mismo. No puede ver ventas de otros.
+        User usuario = usuarioAutenticado();
+        if (usuario.getRol().getNombre() == RolNombre.ROLE_MULTIFUNCIONAL) {
+            userId = usuario.getId();
+            // También forzar sede si el usuario tiene una sede asignada
+            if (usuario.getSede() != null) {
+                sedeId = usuario.getSede().getId();
+            }
+        }
+
         return ResponseEntity.ok(ventaService.buscar(sedeId, userId, clienteId, estado, canal, desde, hasta, pageable));
     }
 
-    /** Completed fiscal sales are immutable; this endpoint reverses stock and preserves the audit trail. */
+    /**
+     * Completed fiscal sales are immutable; this endpoint reverses stock and
+     * preserves the audit trail.
+     */
     @Operation(summary = "Anular venta", description = "Marca la venta ANULADA y reingresa al Kardex todo lo que salió. Solo el vendedor de la venta o un ADMIN. No se permite si la venta tiene devoluciones PENDIENTES o APROBADAS.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK"),
@@ -81,7 +108,18 @@ public class VentaController {
     })
     @PostMapping("/{id}/anulacion")
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'ventas', 'anular')")
-    public ResponseEntity<VentaProcesadaResponseDTO> anular(@PathVariable UUID id, @Valid @RequestBody AnularVentaRequestDTO request) {
+    public ResponseEntity<VentaProcesadaResponseDTO> anular(@PathVariable UUID id,
+            @Valid @RequestBody AnularVentaRequestDTO request) {
         return ResponseEntity.ok(ventaService.anular(id, request));
+    }
+
+    // VentaController.java — línea ~85
+    private User usuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
+            throw new ResourceNotFoundException("Usuario no autenticado");
+        }
+        return userRepository.findWithRolAndSedeByEmail(auth.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
     }
 }

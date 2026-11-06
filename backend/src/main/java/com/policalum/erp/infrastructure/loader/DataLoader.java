@@ -32,25 +32,17 @@ public class DataLoader implements CommandLineRunner {
     private final RolRepository rolRepository;
     private final SedeRepository sedeRepository;
     private final PasswordEncoder passwordEncoder;
-    private final TotpService totpService;  // ← INYECTAR TotpService
+    private final TotpService totpService;
 
-    // ID de la sede existente
     private static final UUID SEDE_ID = UUID.fromString("2c0d98ec-1680-4662-a9af-e66d23e44345");
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
         log.info("🔄 Iniciando carga de datos iniciales...");
-
-        // 1. Crear roles si no existen
         crearRoles();
-
-        // 2. Usar la sede histórica o crear una si la base está vacía
         Sede sede = obtenerOCrearSede();
-
-        // 3. Crear usuarios por defecto
         crearUsuarios(sede);
-
         log.info("✅ Carga de datos iniciales completada.");
     }
 
@@ -59,6 +51,15 @@ public class DataLoader implements CommandLineRunner {
         crearRolSiNoExiste(RolNombre.ROLE_MULTIFUNCIONAL, crearPermisosMultifuncional());
     }
 
+    /**
+     * Si el rol no existe, lo crea. Si existe, hace merge DEEP:
+     * - Agrega módulos nuevos que falten.
+     * - Agrega acciones nuevas dentro de módulos existentes.
+     * - NO sobreescribe valores existentes (para no pisar decisiones del ADMIN).
+     *
+     * IMPORTANTE: los permisos en false que ya estén en BD se respetan.
+     * Para forzar la corrección completa, usar el script SQL de migración.
+     */
     private void crearRolSiNoExiste(RolNombre nombre, Map<String, Object> permisosJson) {
         Rol existente = rolRepository.findAll().stream()
                 .filter(rol -> rol.getNombre() == nombre)
@@ -72,272 +73,479 @@ public class DataLoader implements CommandLineRunner {
                     .build();
             rolRepository.save(rol);
             log.info("✅ Rol creado: {}", nombre);
-        } else if (nombre == RolNombre.ROLE_MULTIFUNCIONAL || nombre == RolNombre.ROLE_ADMIN) {
-            Map<String, Object> actuales = existente.getPermisosJson() == null
-                    ? new HashMap<>()
-                    : new HashMap<>(existente.getPermisosJson());
-            boolean actualizado = false;
-            for (Map.Entry<String, Object> permiso : permisosJson.entrySet()) {
-                if (!actuales.containsKey(permiso.getKey())) {
-                    actuales.put(permiso.getKey(), permiso.getValue());
-                    actualizado = true;
-                    continue;
-                }
+            return;
+        }
 
-                Object actualModulo = actuales.get(permiso.getKey());
-                if (actualModulo instanceof Map<?, ?> accionesActuales
-                        && permiso.getValue() instanceof Map<?, ?> accionesPorDefecto) {
-                    Map<String, Object> accionesCompletas = new HashMap<>();
-                    for (Map.Entry<?, ?> accion : accionesActuales.entrySet()) {
-                        if (accion.getKey() instanceof String nombreAccion) {
-                            accionesCompletas.put(nombreAccion, accion.getValue());
-                        }
+        Map<String, Object> actuales = existente.getPermisosJson() == null
+                ? new HashMap<>()
+                : deepCopy(existente.getPermisosJson());
+
+        boolean actualizado = false;
+
+        for (Map.Entry<String, Object> permiso : permisosJson.entrySet()) {
+            String modulo = permiso.getKey();
+            Object valorPorDefecto = permiso.getValue();
+
+            if (!actuales.containsKey(modulo)) {
+                actuales.put(modulo, deepCopyObject(valorPorDefecto));
+                actualizado = true;
+                continue;
+            }
+
+            Object actualModulo = actuales.get(modulo);
+            if (actualModulo instanceof Map<?, ?> accionesActuales
+                    && valorPorDefecto instanceof Map<?, ?> accionesPorDefecto) {
+                Map<String, Object> accionesCompletas = new HashMap<>();
+                for (Map.Entry<?, ?> accion : accionesActuales.entrySet()) {
+                    if (accion.getKey() instanceof String nombreAccion) {
+                        accionesCompletas.put(nombreAccion, accion.getValue());
                     }
-                    for (Map.Entry<?, ?> accion : accionesPorDefecto.entrySet()) {
-                        if (accion.getKey() instanceof String nombreAccion && !accionesCompletas.containsKey(nombreAccion)) {
-                            accionesCompletas.put(nombreAccion, accion.getValue());
-                            actualizado = true;
-                        }
-                    }
-                    actuales.put(permiso.getKey(), accionesCompletas);
                 }
+                for (Map.Entry<?, ?> accion : accionesPorDefecto.entrySet()) {
+                    if (accion.getKey() instanceof String nombreAccion
+                            && !accionesCompletas.containsKey(nombreAccion)) {
+                        accionesCompletas.put(nombreAccion, accion.getValue());
+                        actualizado = true;
+                    }
+                }
+                actuales.put(modulo, accionesCompletas);
             }
-            if (actualizado) {
-                existente.setPermisosJson(actuales);
-                rolRepository.save(existente);
-                log.info("✅ Permisos por defecto completados para: {}", nombre);
-            } else {
-                log.debug("ℹ️ Rol ya existe: {}", nombre);
-            }
+        }
+
+        if (actualizado) {
+            existente.setPermisosJson(actuales);
+            rolRepository.save(existente);
+            log.info("✅ Permisos por defecto completados para: {}", nombre);
         } else {
-            log.debug("ℹ️ Rol ya existe: {}", nombre);
+            log.debug("ℹ️ Rol ya existe sin cambios: {}", nombre);
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> deepCopy(Map<String, Object> origen) {
+        Map<String, Object> copia = new HashMap<>();
+        for (Map.Entry<String, Object> entry : origen.entrySet()) {
+            copia.put(entry.getKey(), deepCopyObject(entry.getValue()));
+        }
+        return copia;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object deepCopyObject(Object valor) {
+        if (valor instanceof Map<?, ?> mapa) {
+            Map<String, Object> copia = new HashMap<>();
+            for (Map.Entry<?, ?> entry : mapa.entrySet()) {
+                if (entry.getKey() instanceof String clave) {
+                    copia.put(clave, deepCopyObject(entry.getValue()));
+                }
+            }
+            return copia;
+        }
+        return valor;
+    }
+
+    // ================================================================
+    // PERMISOS ADMIN (dios: todo true en todos los módulos)
+    // ================================================================
     private Map<String, Object> crearPermisosAdmin() {
         Map<String, Object> permisos = new HashMap<>();
 
-        Map<String, Boolean> sedesPermisos = new HashMap<>();
-        sedesPermisos.put("leer", true);
-        sedesPermisos.put("crear", true);
-        sedesPermisos.put("editar", true);
-        sedesPermisos.put("eliminar", true);
-        permisos.put("sedes", sedesPermisos);
+        // Módulos administrativos
+        permisos.put("sedes", permisosCrud());
+        permisos.put("usuarios", permisosCrud());
+        permisos.put("roles", permisosCrud());
+        permisos.put("configuracion", permisosCrud());
+        permisos.put("auditoria", permisosCrud());
+        permisos.put("finanzas", permisosFinanzasAdmin());
+        permisos.put("reportes", permisosReportesAdmin());
 
-        Map<String, Boolean> finanzasPermisos = new HashMap<>();
-        finanzasPermisos.put("ver_reportes", true);
-        finanzasPermisos.put("aprobar_pagos", true);
-        permisos.put("finanzas", finanzasPermisos);
-
-        Map<String, Boolean> usuariosPermisos = new HashMap<>();
-        usuariosPermisos.put("leer", true);
-        usuariosPermisos.put("crear", true);
-        usuariosPermisos.put("eliminar", false);
-        permisos.put("usuarios", usuariosPermisos);
-
-        Map<String, Boolean> rrhhPermisos = new HashMap<>();
-        rrhhPermisos.put("ver_legajos", true);
-        rrhhPermisos.put("gestionar_legajos", true);
-        rrhhPermisos.put("ver_nominas", true);
-        rrhhPermisos.put("gestionar_nominas", true);
-        rrhhPermisos.put("ver_turnos", true);
-        rrhhPermisos.put("gestionar_turnos", true);
-        rrhhPermisos.put("ver_mi_rrhh", true);
-        permisos.put("rrhh", rrhhPermisos);
-
-        Map<String, Boolean> mensajesWebPermisos = new HashMap<>();
-        mensajesWebPermisos.put("leer", true);
-        mensajesWebPermisos.put("responder", true);
-        mensajesWebPermisos.put("gestionar", true);
-        permisos.put("mensajes_web", mensajesWebPermisos);
-
-        Map<String, Boolean> notificacionesPermisos = new HashMap<>();
-        notificacionesPermisos.put("leer", true);
-        notificacionesPermisos.put("gestionar", true);
-        permisos.put("notificaciones", notificacionesPermisos);
-
-        Map<String, Boolean> sitioWebPermisos = new HashMap<>();
-        sitioWebPermisos.put("leer", true);
-        sitioWebPermisos.put("configurar", true);
-        sitioWebPermisos.put("gestionar_catalogo", true);
-        sitioWebPermisos.put("gestionar_portafolio", true);
-        permisos.put("sitio_web", sitioWebPermisos);
-
-        Map<String, Boolean> despachosPermisos = new HashMap<>();
-        despachosPermisos.put("leer", true);
-        despachosPermisos.put("crear", true);
-        despachosPermisos.put("asignar", true);
-        despachosPermisos.put("cambiar_estado", true);
-        despachosPermisos.put("registrar_entrega", true);
-        permisos.put("despachos", despachosPermisos);
-
-        Map<String, Boolean> movilidadesPermisos = new HashMap<>();
-        movilidadesPermisos.put("leer", true);
-        movilidadesPermisos.put("crear", true);
-        movilidadesPermisos.put("editar", true);
-        movilidadesPermisos.put("eliminar", true);
-        movilidadesPermisos.put("asignar_conductor", true);
-        permisos.put("movilidades", movilidadesPermisos);
-
-        Map<String, Boolean> cotizacionesPermisos = new HashMap<>();
-        cotizacionesPermisos.put("leer", true);
-        cotizacionesPermisos.put("crear", true);
-        cotizacionesPermisos.put("editar", true);
-        cotizacionesPermisos.put("eliminar", true);
-        cotizacionesPermisos.put("convertir", true);
-        permisos.put("cotizaciones", cotizacionesPermisos);
-
-        Map<String, Boolean> preformasPermisos = new HashMap<>();
-        preformasPermisos.put("leer", true);
-        preformasPermisos.put("crear", true);
-        preformasPermisos.put("editar", true);
-        preformasPermisos.put("eliminar", true);
-        preformasPermisos.put("confirmar", true);
-        preformasPermisos.put("cancelar", true);
-        permisos.put("preformas", preformasPermisos);
-
-        Map<String, Boolean> devolucionesPermisos = new HashMap<>();
-        devolucionesPermisos.put("leer", true);
-        devolucionesPermisos.put("crear", true);
-        devolucionesPermisos.put("aprobar", true);
-        devolucionesPermisos.put("rechazar", true);
-        devolucionesPermisos.put("procesar_reembolso", true);
-        permisos.put("devoluciones", devolucionesPermisos);
-
-        return permisos;
-    }
-
-    private Map<String, Object> crearPermisosMultifuncional() {
-        Map<String, Object> permisos = new HashMap<>();
-
-        Map<String, Boolean> sedesPermisos = new HashMap<>();
-        sedesPermisos.put("leer", true);
-        sedesPermisos.put("crear", false);
-        sedesPermisos.put("editar", false);
-        sedesPermisos.put("eliminar", false);
-        permisos.put("sedes", sedesPermisos);
-
-        Map<String, Boolean> rrhhPermisos = new HashMap<>();
-        rrhhPermisos.put("ver_legajos", false);
-        rrhhPermisos.put("gestionar_legajos", false);
-        rrhhPermisos.put("ver_nominas", false);
-        rrhhPermisos.put("gestionar_nominas", false);
-        rrhhPermisos.put("ver_turnos", false);
-        rrhhPermisos.put("gestionar_turnos", false);
-        rrhhPermisos.put("ver_mi_rrhh", true);
-        permisos.put("rrhh", rrhhPermisos);
-
-        Map<String, Boolean> asistenciaPermisos = new HashMap<>();
-        asistenciaPermisos.put("marcar", true);
-        asistenciaPermisos.put("ver_mis_marcaciones", true);
-        permisos.put("asistencia", asistenciaPermisos);
-
+        // Módulos operativos
         permisos.put("productos", permisosCrud());
         permisos.put("servicios", permisosCrud());
         permisos.put("categorias", permisosCrud());
         permisos.put("fracciones", permisosCrud());
         permisos.put("almacenes", permisosCrud());
-
-        Map<String, Boolean> inventarioPermisos = new HashMap<>();
-        inventarioPermisos.put("leer", true);
-        inventarioPermisos.put("ajustar", true);
-        inventarioPermisos.put("transferir", true);
-        permisos.put("inventario", inventarioPermisos);
+        permisos.put("inventario", permisosInventarioAdmin());
         permisos.put("clientes", permisosCrud());
         permisos.put("proveedores", permisosCrud());
+        permisos.put("compras", permisosComprasAdmin());
+        permisos.put("ventas", permisosVentasAdmin());
+        permisos.put("cotizaciones", permisosCotizaciones());
+        permisos.put("preformas", permisosPreformas());
+        permisos.put("devoluciones", permisosDevolucionesAdmin());
+        permisos.put("despachos", permisosDespachos());
+        permisos.put("movilidades", permisosMovilidadesAdmin());
+        permisos.put("caja", permisosCaja());
 
-        Map<String, Boolean> comprasPermisos = new HashMap<>();
-        comprasPermisos.put("leer", true);
-        comprasPermisos.put("crear", true);
-        comprasPermisos.put("editar", true);
-        comprasPermisos.put("recibir", true);
-        comprasPermisos.put("anular", true);
-        comprasPermisos.put("eliminar", true);
-        permisos.put("compras", comprasPermisos);
+        // Módulos RRHH
+        permisos.put("rrhh", permisosRrhhAdmin());
+        permisos.put("asistencia", permisosAsistencia());
 
-        Map<String, Boolean> ventasPermisos = new HashMap<>();
-        ventasPermisos.put("leer", true);
-        ventasPermisos.put("crear", true);
-        ventasPermisos.put("anular", true);
-        permisos.put("ventas", ventasPermisos);
-
-        Map<String, Boolean> cotizacionesPermisos = new HashMap<>();
-        cotizacionesPermisos.put("leer", true);
-        cotizacionesPermisos.put("crear", true);
-        cotizacionesPermisos.put("editar", true);
-        cotizacionesPermisos.put("eliminar", true);
-        cotizacionesPermisos.put("convertir", true);
-        permisos.put("cotizaciones", cotizacionesPermisos);
-
-        Map<String, Boolean> preformasPermisos = new HashMap<>();
-        preformasPermisos.put("leer", true);
-        preformasPermisos.put("crear", true);
-        preformasPermisos.put("editar", true);
-        preformasPermisos.put("eliminar", true);
-        preformasPermisos.put("confirmar", true);
-        preformasPermisos.put("cancelar", true);
-        permisos.put("preformas", preformasPermisos);
-
-        Map<String, Boolean> devolucionesPermisos = new HashMap<>();
-        devolucionesPermisos.put("leer", true);
-        devolucionesPermisos.put("crear", true);
-        devolucionesPermisos.put("aprobar", false);
-        devolucionesPermisos.put("rechazar", false);
-        devolucionesPermisos.put("procesar_reembolso", false);
-        permisos.put("devoluciones", devolucionesPermisos);
-
-        Map<String, Boolean> mensajesWebPermisos = new HashMap<>();
-        mensajesWebPermisos.put("leer", true);
-        mensajesWebPermisos.put("responder", true);
-        mensajesWebPermisos.put("gestionar", true);
-        permisos.put("mensajes_web", mensajesWebPermisos);
-
-        Map<String, Boolean> notificacionesPermisos = new HashMap<>();
-        notificacionesPermisos.put("leer", true);
-        notificacionesPermisos.put("gestionar", true);
-        permisos.put("notificaciones", notificacionesPermisos);
-
-        Map<String, Boolean> sitioWebPermisos = new HashMap<>();
-        sitioWebPermisos.put("leer", true);
-        sitioWebPermisos.put("configurar", false);
-        sitioWebPermisos.put("gestionar_catalogo", false);
-        sitioWebPermisos.put("gestionar_portafolio", false);
-        permisos.put("sitio_web", sitioWebPermisos);
-
-        Map<String, Boolean> despachosPermisos = new HashMap<>();
-        despachosPermisos.put("leer", true);
-        despachosPermisos.put("crear", true);
-        despachosPermisos.put("asignar", true);
-        despachosPermisos.put("cambiar_estado", true);
-        despachosPermisos.put("registrar_entrega", true);
-        permisos.put("despachos", despachosPermisos);
-
-        Map<String, Boolean> movilidadesPermisos = new HashMap<>();
-        movilidadesPermisos.put("leer", true);
-        movilidadesPermisos.put("crear", false);
-        movilidadesPermisos.put("editar", false);
-        movilidadesPermisos.put("eliminar", false);
-        movilidadesPermisos.put("asignar_conductor", false);
-        permisos.put("movilidades", movilidadesPermisos);
-
-        Map<String, Boolean> cajaPermisos = new HashMap<>();
-        cajaPermisos.put("leer", true);
-        cajaPermisos.put("abrir", true);
-        cajaPermisos.put("registrar_movimiento", true);
-        cajaPermisos.put("cerrar", true);
-        permisos.put("caja", cajaPermisos);
+        // Módulos web
+        permisos.put("mensajes_web", permisosMensajesWeb());
+        permisos.put("notificaciones", permisosNotificaciones());
+        permisos.put("sitio_web", permisosSitioWebAdmin());
 
         return permisos;
     }
+
+    // ================================================================
+    // PERMISOS MULTIFUNCIONAL
+    // Solo vender, asistencia, ver catálogo, integrar OC, ver stock.
+    // NO toca stock, NO finanzas, NO RRHH, NO configuración, NO usuarios.
+    // ================================================================
+    private Map<String, Object> crearPermisosMultifuncional() {
+        Map<String, Object> permisos = new HashMap<>();
+
+        // ---- Solo lectura del catálogo ----
+        permisos.put("productos", permisosSoloLectura());
+        permisos.put("servicios", permisosSoloLectura());
+        permisos.put("categorias", permisosSoloLectura());
+        permisos.put("fracciones", permisosSoloLectura());
+        permisos.put("almacenes", permisosSoloLectura());
+
+        // ---- Inventario: solo ver, NO tocar stock ----
+        Map<String, Boolean> inventario = new HashMap<>();
+        inventario.put("leer", true);
+        inventario.put("ajustar", false);
+        inventario.put("transferir", false);
+        permisos.put("inventario", inventario);
+
+        // ---- Ventas (sí vende, NO anula) ----
+        Map<String, Boolean> ventas = new HashMap<>();
+        ventas.put("leer", true);
+        ventas.put("crear", true);
+        ventas.put("anular", false);
+        permisos.put("ventas", ventas);
+
+        // ---- Clientes y proveedores (CRUD sin eliminar) ----
+        permisos.put("clientes", permisosCrudSinEliminar());
+        permisos.put("proveedores", permisosCrudSinEliminar());
+
+        // ---- Compras: integra OC pero NO recibe ni anula ----
+        Map<String, Boolean> compras = new HashMap<>();
+        compras.put("leer", true);
+        compras.put("crear", true);
+        compras.put("editar", true);
+        compras.put("eliminar", false);
+        compras.put("recibir", false);
+        compras.put("anular", false);
+        permisos.put("compras", compras);
+
+        // ---- Cotizaciones y preformas (sin eliminar) ----
+        Map<String, Boolean> cotizaciones = new HashMap<>();
+        cotizaciones.put("leer", true);
+        cotizaciones.put("crear", true);
+        cotizaciones.put("editar", true);
+        cotizaciones.put("eliminar", false);
+        cotizaciones.put("convertir", true);
+        permisos.put("cotizaciones", cotizaciones);
+
+        Map<String, Boolean> preformas = new HashMap<>();
+        preformas.put("leer", true);
+        preformas.put("crear", true);
+        preformas.put("editar", true);
+        preformas.put("eliminar", false);
+        preformas.put("confirmar", true);
+        preformas.put("cancelar", true);
+        permisos.put("preformas", preformas);
+
+        // ---- Devoluciones: crea pero NO aprueba ni reembolsa ----
+        Map<String, Boolean> devoluciones = new HashMap<>();
+        devoluciones.put("leer", true);
+        devoluciones.put("crear", true);
+        devoluciones.put("aprobar", false);
+        devoluciones.put("rechazar", false);
+        devoluciones.put("procesar_reembolso", false);
+        permisos.put("devoluciones", devoluciones);
+
+        // ---- Despachos: su trabajo diario ----
+        permisos.put("despachos", permisosDespachos());
+
+        // ---- Movilidades: solo ver ----
+        Map<String, Boolean> movilidades = new HashMap<>();
+        movilidades.put("leer", true);
+        movilidades.put("crear", false);
+        movilidades.put("editar", false);
+        movilidades.put("eliminar", false);
+        movilidades.put("asignar_conductor", false);
+        permisos.put("movilidades", movilidades);
+
+        // ---- Caja: su turno ----
+        permisos.put("caja", permisosCaja());
+
+        // ---- RRHH: solo SU información ----
+        Map<String, Boolean> rrhh = new HashMap<>();
+        rrhh.put("ver_legajos", false);
+        rrhh.put("gestionar_legajos", false);
+        rrhh.put("ver_nominas", false);
+        rrhh.put("gestionar_nominas", false);
+        rrhh.put("ver_turnos", false);
+        rrhh.put("gestionar_turnos", false);
+        rrhh.put("ver_mi_rrhh", true);
+        permisos.put("rrhh", rrhh);
+
+        // ---- Asistencia: solo SU marcación ----
+        Map<String, Boolean> asistencia = new HashMap<>();
+        asistencia.put("marcar", true);
+        asistencia.put("ver_mis_marcaciones", true);
+        permisos.put("asistencia", asistencia);
+
+        // ---- Mensajes web: responde ----
+        permisos.put("mensajes_web", permisosMensajesWeb());
+        permisos.put("notificaciones", permisosNotificaciones());
+
+        // ---- Sitio web: solo ver ----
+        Map<String, Boolean> sitioWeb = new HashMap<>();
+        sitioWeb.put("leer", true);
+        sitioWeb.put("configurar", false);
+        sitioWeb.put("gestionar_catalogo", false);
+        sitioWeb.put("gestionar_portafolio", false);
+        permisos.put("sitio_web", sitioWeb);
+
+        // ---- Módulos que NO puede tocar (todo false explícito) ----
+        Map<String, Boolean> todoFalse = permisosTodoFalse();
+        permisos.put("finanzas", permisosFinanzasMultifuncional());
+        permisos.put("auditoria", permisosSoloLecturaFalse());
+        permisos.put("usuarios", todoFalse);
+        permisos.put("roles", todoFalse);
+
+        // ---- Configuración: solo ver ----
+        Map<String, Boolean> configuracion = new HashMap<>();
+        configuracion.put("leer", true);
+        configuracion.put("crear", false);
+        configuracion.put("editar", false);
+        configuracion.put("eliminar", false);
+        permisos.put("configuracion", configuracion);
+
+        // ---- Reportes: ver sin exportar ----
+        Map<String, Boolean> reportes = new HashMap<>();
+        reportes.put("leer", true);
+        reportes.put("exportar", false);
+        permisos.put("reportes", reportes);
+
+        // ---- Sedes: solo ver ----
+        Map<String, Boolean> sedes = new HashMap<>();
+        sedes.put("leer", true);
+        sedes.put("crear", false);
+        sedes.put("editar", false);
+        sedes.put("eliminar", false);
+        permisos.put("sedes", sedes);
+
+        return permisos;
+    }
+
+    // ================================================================
+    // HELPERS
+    // ================================================================
 
     private Map<String, Boolean> permisosCrud() {
-        Map<String, Boolean> permisos = new HashMap<>();
-        permisos.put("leer", true);
-        permisos.put("crear", true);
-        permisos.put("editar", true);
-        permisos.put("eliminar", true);
-        return permisos;
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("editar", true);
+        p.put("eliminar", true);
+        return p;
     }
+
+    private Map<String, Boolean> permisosSoloLectura() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", false);
+        p.put("editar", false);
+        p.put("eliminar", false);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosSoloLecturaFalse() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", false);
+        p.put("crear", false);
+        p.put("editar", false);
+        p.put("eliminar", false);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosCrudSinEliminar() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("editar", true);
+        p.put("eliminar", false);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosTodoFalse() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", false);
+        p.put("crear", false);
+        p.put("editar", false);
+        p.put("eliminar", false);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosInventarioAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("ajustar", true);
+        p.put("transferir", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosFinanzasAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("ver_reportes", true);
+        p.put("aprobar_pagos", true);
+        p.put("crear", true);
+        p.put("editar", true);
+        p.put("eliminar", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosFinanzasMultifuncional() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", false);
+        p.put("ver_reportes", false);
+        p.put("aprobar_pagos", false);
+        p.put("crear", false);
+        p.put("editar", false);
+        p.put("eliminar", false);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosReportesAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("exportar", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosComprasAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("editar", true);
+        p.put("eliminar", true);
+        p.put("recibir", true);
+        p.put("anular", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosVentasAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("anular", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosCotizaciones() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("editar", true);
+        p.put("eliminar", true);
+        p.put("convertir", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosPreformas() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("editar", true);
+        p.put("eliminar", true);
+        p.put("confirmar", true);
+        p.put("cancelar", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosDevolucionesAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("aprobar", true);
+        p.put("rechazar", true);
+        p.put("procesar_reembolso", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosDespachos() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("asignar", true);
+        p.put("cambiar_estado", true);
+        p.put("registrar_entrega", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosMovilidadesAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("crear", true);
+        p.put("editar", true);
+        p.put("eliminar", true);
+        p.put("asignar_conductor", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosCaja() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("abrir", true);
+        p.put("cerrar", true);
+        p.put("registrar_movimiento", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosRrhhAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("ver_legajos", true);
+        p.put("gestionar_legajos", true);
+        p.put("ver_nominas", true);
+        p.put("gestionar_nominas", true);
+        p.put("ver_turnos", true);
+        p.put("gestionar_turnos", true);
+        p.put("ver_mi_rrhh", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosAsistencia() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("marcar", true);
+        p.put("ver_mis_marcaciones", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosMensajesWeb() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("responder", true);
+        p.put("gestionar", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosNotificaciones() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("gestionar", true);
+        return p;
+    }
+
+    private Map<String, Boolean> permisosSitioWebAdmin() {
+        Map<String, Boolean> p = new HashMap<>();
+        p.put("leer", true);
+        p.put("configurar", true);
+        p.put("gestionar_catalogo", true);
+        p.put("gestionar_portafolio", true);
+        return p;
+    }
+
+    // ================================================================
+    // SEDE Y USUARIOS (sin cambios)
+    // ================================================================
 
     private Sede obtenerOCrearSede() {
         return sedeRepository.findById(SEDE_ID).orElseGet(() -> {
@@ -363,7 +571,6 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void crearUsuarios(Sede sede) {
-        // Obtener roles
         Rol adminRol = rolRepository.findAll().stream()
                 .filter(r -> r.getNombre() == RolNombre.ROLE_ADMIN)
                 .findFirst()
@@ -374,51 +581,22 @@ public class DataLoader implements CommandLineRunner {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Rol MULTIFUNCIONAL no encontrado"));
 
-        // 1. Crear usuario ADMIN
-        crearUsuarioSiNoExiste(
-                "admin@policalum.com",
-                "Admin",
-                "Sistema",
-                "admin",
-                "admin123",
-                "+51 987654321",
-                adminRol,
-                sede,
-                true
-        );
+        crearUsuarioSiNoExiste("admin@policalum.com", "Admin", "Sistema", "admin",
+                "admin123", "+51 987654321", adminRol, sede, true);
 
-        // 2. Crear usuario MULTIFUNCIONAL (empleado)
-        crearUsuarioSiNoExiste(
-                "empleado@policalum.com",
-                "Empleado",
-                "Demo",
-                "empleado",
-                "empleado123",
-                "+51 987654322",
-                multifuncionalRol,
-                sede,
-                true
-        );
+        crearUsuarioSiNoExiste("empleado@policalum.com", "Empleado", "Demo", "empleado",
+                "empleado123", "+51 987654322", multifuncionalRol, sede, true);
     }
 
     private void crearUsuarioSiNoExiste(
-            String email,
-            String nombre,
-            String apellido,
-            String nombreUsuario,
-            String passwordRaw,
-            String celular,
-            Rol rol,
-            Sede sede,
-            boolean activo) {
+            String email, String nombre, String apellido, String nombreUsuario,
+            String passwordRaw, String celular, Rol rol, Sede sede, boolean activo) {
 
-        // Verificar si el usuario ya existe por email
         if (userRepository.findByEmail(email).isPresent()) {
             log.debug("ℹ️ Usuario ya existe: {}", email);
             return;
         }
 
-        // Verificar si el usuario ya existe por nombre de usuario
         boolean existeNombreUsuario = userRepository.findAll().stream()
                 .anyMatch(u -> nombreUsuario.equals(u.getNombreUsuario()));
 
@@ -427,11 +605,9 @@ public class DataLoader implements CommandLineRunner {
             return;
         }
 
-        // ✅ GENERAR SECRETO TOTP
         String totpSecret = totpService.generateSecret();
         log.info("Secreto TOTP generado para {}", email);
 
-        // Crear nuevo usuario con TOTP configurado
         User user = User.builder()
                 .email(email)
                 .nombre(nombre)
@@ -442,8 +618,8 @@ public class DataLoader implements CommandLineRunner {
                 .rol(rol)
                 .sede(sede)
                 .activo(activo)
-                .totpEnabled(true)          // ✅ HABILITAR TOTP
-                .totpSecret(totpSecret)     // ✅ ASIGNAR SECRETO
+                .totpEnabled(true)
+                .totpSecret(totpSecret)
                 .build();
 
         userRepository.save(user);

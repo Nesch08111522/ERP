@@ -31,6 +31,8 @@ export class AuthService {
           email: response.email,
           rol: response.rol,
           totpConfigurado: response.totpConfigurado,
+          sedeId: response.sedeId,          // ← NUEVO
+          sedeNombre: response.sedeNombre,  // ← NUEVO
         });
       }),
     );

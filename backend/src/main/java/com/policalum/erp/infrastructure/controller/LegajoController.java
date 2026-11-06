@@ -41,12 +41,15 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  * Legajo digital. Ojo con los ids:
  * - /{empleadoId} usa el id del USUARIO (empleado).
  * - /{id}/documentos usa el id del LEGAJO (campo "id" de LegajoResponseDTO).
+ *
+ * IMPORTANTE: el @PreAuthorize de la clase se ha quitado para que /me no herede
+ * la restricción "rrhh.ver_legajos" (el multifuncional la tiene en false, pero
+ * SÍ puede ver SU PROPIO legajo).
  */
 @Tag(name = "RRHH")
 @RestController
 @RequestMapping("/api/v1/rrhh/legajos")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'ver_legajos')")
 public class LegajoController {
 
     private final LegajoService legajoService;
@@ -61,21 +64,26 @@ public class LegajoController {
         return ResponseEntity.created(location).body(creado);
     }
 
-    /** Legajo del usuario autenticado (cualquier rol). */
+    /**
+     * Legajo del usuario autenticado (cualquier rol).
+     * NO hereda @PreAuthorize de la clase, así que MULTIFUNCIONAL puede ver SU PROPIO legajo.
+     */
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL')")
     public ResponseEntity<LegajoResponseDTO> miLegajo() {
         return ResponseEntity.ok(legajoService.obtenerMio());
     }
 
-    /** KPIs de legajos. */
+    /** KPIs de legajos. Solo ADMIN. */
     @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'ver_legajos')")
     public ResponseEntity<LegajoDashboardDTO> dashboard(@RequestParam(required = false) UUID sedeId) {
         return ResponseEntity.ok(legajoService.dashboard(sedeId));
     }
 
-    /** Listado paginado. Filtros opcionales; "texto" busca en nombre, apellido y email. */
+    /** Listado paginado. Solo ADMIN. */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'ver_legajos')")
     public ResponseEntity<Page<LegajoListadoDTO>> buscar(
             @RequestParam(required = false) UUID sedeId,
             @RequestParam(required = false) String tipoContrato,
@@ -86,13 +94,14 @@ public class LegajoController {
         return ResponseEntity.ok(legajoService.buscar(sedeId, tipoContrato, sistemaPension, activo, texto, pageable));
     }
 
-    /** Legajo de un empleado (id de usuario). */
+    /** Legajo de un empleado (id de usuario). Solo ADMIN. */
     @GetMapping("/{empleadoId}")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'ver_legajos')")
     public ResponseEntity<LegajoResponseDTO> obtener(@PathVariable UUID empleadoId) {
         return ResponseEntity.ok(legajoService.obtenerPorEmpleado(empleadoId));
     }
 
-    /** Actualiza el legajo de un empleado (id de usuario). */
+    /** Actualiza el legajo de un empleado (id de usuario). Solo ADMIN. */
     @PutMapping("/{empleadoId}")
     @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'gestionar_legajos')")
     public ResponseEntity<LegajoResponseDTO> actualizar(@PathVariable UUID empleadoId,
@@ -102,7 +111,7 @@ public class LegajoController {
 
     // ============ DOCUMENTOS (id = id del legajo) ============
 
-    /** Sube un documento (multipart: archivo, tipo, descripcion opcional). 201 + Location. */
+    /** Sube un documento. Solo ADMIN. */
     @PostMapping(value = "/{id}/documentos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'gestionar_legajos')")
     public ResponseEntity<LegajoDocumentoResponseDTO> subirDocumento(
@@ -123,7 +132,7 @@ public class LegajoController {
         return ResponseEntity.ok(legajoService.listarDocumentos(id));
     }
 
-    /** Descarga un documento con su nombre original. ADMIN o el dueño. */
+    /** Descarga un documento. ADMIN o el dueño. */
     @GetMapping("/{id}/documentos/{docId}")
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL')")
     public ResponseEntity<Resource> descargarDocumento(@PathVariable UUID id, @PathVariable UUID docId) {
@@ -135,7 +144,7 @@ public class LegajoController {
                 .body(archivo.resource());
     }
 
-    /** Elimina un documento. 204. */
+    /** Elimina un documento. Solo ADMIN. */
     @DeleteMapping("/{id}/documentos/{docId}")
     @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'gestionar_legajos')")
     public ResponseEntity<Void> eliminarDocumento(@PathVariable UUID id, @PathVariable UUID docId) {

@@ -76,4 +76,16 @@ class RolePermissionGuardTest {
     private User user(RolNombre nombre, Map<String, Object> permissions) {
         return User.builder().rol(Rol.builder().nombre(nombre).permisosJson(permissions).build()).build();
     }
+
+    @Test
+void administradorSiempreTieneAccesoCompleto() {
+    Authentication authentication = authentication("admin@policalum.com");
+    // Aunque el rol tenga permisosJson vacíos o con false, ADMIN siempre pasa.
+    when(users.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(user(
+            RolNombre.ROLE_ADMIN, Map.of())));
+
+    assertTrue(guard.permite(authentication, "asistencia", "marcar"));
+    assertTrue(guard.permite(authentication, "finanzas", "ver_reportes"));
+    assertTrue(guard.permite(authentication, "modulo-que-no-existe", "accion-cualquiera"));
+}
 }

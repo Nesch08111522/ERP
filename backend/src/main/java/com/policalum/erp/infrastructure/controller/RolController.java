@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.Map;
 
 import com.policalum.erp.application.dto.request.RolRequestDTO;
 import com.policalum.erp.application.dto.response.RolResponseDTO;
@@ -61,5 +63,14 @@ public class RolController {
     public void deleteRol(@PathVariable UUID id){
         rolService.deleteRol(id);
 
+
+}
+
+@PatchMapping("/{id}/permisos/{grupo}")
+public ResponseEntity<RolResponseDTO> actualizarPermisos(
+        @PathVariable UUID id,
+        @PathVariable String grupo,
+        @RequestBody Map<String, Boolean> permisos) {
+    return ResponseEntity.ok(rolService.actualizarPermisos(id, grupo, permisos));
 }
 }

@@ -14,6 +14,10 @@ import com.policalum.erp.application.dto.response.VentaProcesadaResponseDTO;
 import com.policalum.erp.application.service.CotizacionService;
 import com.policalum.erp.application.service.serviceImpl.CotizacionDocumentoService;
 import com.policalum.erp.domain.enums.EstadoCotizacion;
+import com.policalum.erp.domain.enums.RolNombre;
+import com.policalum.erp.domain.model.User;
+import com.policalum.erp.exception.ResourceNotFoundException;
+import com.policalum.erp.infrastructure.repository.UserRepository;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -27,8 +31,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Tag(name = "Cotizaciones")
@@ -37,8 +42,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/api/v1/cotizaciones")
 @RequiredArgsConstructor
 public class CotizacionController {
+
     private final CotizacionService cotizacionService;
     private final CotizacionDocumentoService cotizacionDocumento;
+    private final UserRepository userRepository;
 
     /** Creates an issued quotation with server-calculated amounts. */
     @Operation(summary = "Crear cotización", description = "Emite una cotización (EMITIDA) con montos calculados en el servidor. Sin fecha de vigencia se usa la de Configuración > ventas (15 días por defecto).")
@@ -53,19 +60,45 @@ public class CotizacionController {
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
+
     /** Gets a quotation and its lines. */
     @Operation(summary = "Detalle de cotización", description = "Cotización con sus líneas.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "404", description = "Cotización no encontrada")
     })
-    @GetMapping("/{id}") public ResponseEntity<CotizacionResponseDTO> findById(@PathVariable UUID id) { return ResponseEntity.ok(cotizacionService.findById(id)); }
+    @GetMapping("/{id}")
+    public ResponseEntity<CotizacionResponseDTO> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(cotizacionService.findById(id));
+    }
+
     /** Searches quotations with pagination. */
-    @Operation(summary = "Buscar cotizaciones", description = "Listado paginado por cliente, sede, estado y rango de fecha-hora.")
+    @Operation(summary = "Buscar cotizaciones", description = "Listado paginado por cliente, sede, estado, usuario y rango de fecha-hora. MULTIFUNCIONAL solo ve sus propias cotizaciones.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK")
     })
-    @GetMapping public ResponseEntity<Page<CotizacionListadoDTO>> search(@RequestParam(required=false) UUID clienteId, @RequestParam(required=false) UUID sedeId, @RequestParam(required=false) EstadoCotizacion estado, @RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde, @RequestParam(required=false) @DateTimeFormat(iso=DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta, @PageableDefault(size=20, sort="createdAt") Pageable pageable) { return ResponseEntity.ok(cotizacionService.search(clienteId,sedeId,estado,desde,hasta,pageable)); }
+    @GetMapping
+    public ResponseEntity<Page<CotizacionListadoDTO>> search(
+            @RequestParam(required = false) UUID clienteId,
+            @RequestParam(required = false) UUID sedeId,
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) EstadoCotizacion estado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta,
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+
+        // MULTIFUNCIONAL: forzar userId = él mismo. No puede ver cotizaciones de otros.
+        User usuario = usuarioAutenticado();
+        if (usuario.getRol().getNombre() == RolNombre.ROLE_MULTIFUNCIONAL) {
+            userId = usuario.getId();
+            if (usuario.getSede() != null) {
+                sedeId = usuario.getSede().getId();
+            }
+        }
+
+        return ResponseEntity.ok(cotizacionService.search(clienteId, sedeId, userId, estado, desde, hasta, pageable));
+    }
+
     /** Updates an issued quotation. */
     @Operation(summary = "Editar cotización", description = "Edita una cotización EMITIDA y recalcula montos.")
     @ApiResponses({
@@ -73,7 +106,12 @@ public class CotizacionController {
             @ApiResponse(responseCode = "404", description = "Cotización no encontrada"),
             @ApiResponse(responseCode = "409", description = "Solo se editan cotizaciones EMITIDAS")
     })
-    @PutMapping("/{id}") @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')") public ResponseEntity<CotizacionResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody CotizacionRequestDTO request) { return ResponseEntity.ok(cotizacionService.update(id, request)); }
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')")
+    public ResponseEntity<CotizacionResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody CotizacionRequestDTO request) {
+        return ResponseEntity.ok(cotizacionService.update(id, request));
+    }
+
     /** Deletes an issued quotation draft. */
     @Operation(summary = "Eliminar cotización", description = "Elimina una cotización EMITIDA.")
     @ApiResponses({
@@ -81,7 +119,13 @@ public class CotizacionController {
             @ApiResponse(responseCode = "404", description = "Cotización no encontrada"),
             @ApiResponse(responseCode = "409", description = "Solo se eliminan cotizaciones EMITIDAS")
     })
-    @DeleteMapping("/{id}") @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'eliminar')") public ResponseEntity<Void> delete(@PathVariable UUID id) { cotizacionService.delete(id); return ResponseEntity.noContent().build(); }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'eliminar')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        cotizacionService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
     /** Accepts an issued quotation. */
     @Operation(summary = "Aceptar cotización", description = "EMITIDA → ACEPTADA.")
     @ApiResponses({
@@ -89,7 +133,12 @@ public class CotizacionController {
             @ApiResponse(responseCode = "404", description = "Cotización no encontrada"),
             @ApiResponse(responseCode = "409", description = "Estado inválido o cotización vencida")
     })
-    @PostMapping("/{id}/aceptar") @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')") public ResponseEntity<CotizacionResponseDTO> aceptar(@PathVariable UUID id) { return ResponseEntity.ok(cotizacionService.aceptar(id)); }
+    @PostMapping("/{id}/aceptar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')")
+    public ResponseEntity<CotizacionResponseDTO> aceptar(@PathVariable UUID id) {
+        return ResponseEntity.ok(cotizacionService.aceptar(id));
+    }
+
     /** Rejects an issued quotation. */
     @Operation(summary = "Rechazar cotización", description = "EMITIDA → RECHAZADA con motivo.")
     @ApiResponses({
@@ -97,10 +146,29 @@ public class CotizacionController {
             @ApiResponse(responseCode = "404", description = "Cotización no encontrada"),
             @ApiResponse(responseCode = "409", description = "Estado inválido")
     })
-    @PostMapping("/{id}/rechazar") @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')") public ResponseEntity<CotizacionResponseDTO> rechazar(@PathVariable UUID id, @Valid @RequestBody RechazarCotizacionRequestDTO request) { return ResponseEntity.ok(cotizacionService.rechazar(id, request)); }
-    @PostMapping("/{id}/no-comprada") @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')") public ResponseEntity<CotizacionResponseDTO> noComprada(@PathVariable UUID id) { return ResponseEntity.ok(cotizacionService.marcarNoComprada(id)); }
-    @PutMapping("/{id}/cargos") @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')") public ResponseEntity<CotizacionResponseDTO> cargos(@PathVariable UUID id, @Valid @RequestBody AjusteCargoCotizacionRequestDTO request) { return ResponseEntity.ok(cotizacionService.ajustarCargos(id, request)); }
-    @GetMapping("/{id}/documento") public ResponseEntity<byte[]> documento(@PathVariable UUID id, @RequestParam(defaultValue = "pdf") String formato) { return cotizacionDocumento.descargar(id, formato); }
+    @PostMapping("/{id}/rechazar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')")
+    public ResponseEntity<CotizacionResponseDTO> rechazar(@PathVariable UUID id, @Valid @RequestBody RechazarCotizacionRequestDTO request) {
+        return ResponseEntity.ok(cotizacionService.rechazar(id, request));
+    }
+
+    @PostMapping("/{id}/no-comprada")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')")
+    public ResponseEntity<CotizacionResponseDTO> noComprada(@PathVariable UUID id) {
+        return ResponseEntity.ok(cotizacionService.marcarNoComprada(id));
+    }
+
+    @PutMapping("/{id}/cargos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'editar')")
+    public ResponseEntity<CotizacionResponseDTO> cargos(@PathVariable UUID id, @Valid @RequestBody AjusteCargoCotizacionRequestDTO request) {
+        return ResponseEntity.ok(cotizacionService.ajustarCargos(id, request));
+    }
+
+    @GetMapping("/{id}/documento")
+    public ResponseEntity<byte[]> documento(@PathVariable UUID id, @RequestParam(defaultValue = "pdf") String formato) {
+        return cotizacionDocumento.descargar(id, formato);
+    }
+
     /** Converts an accepted quotation to the protected POS flow. */
     @Operation(summary = "Convertir en venta", description = "ACEPTADA → CONVERTIDA: registra la venta con el turno de caja abierto del usuario (mismas reglas que POST /ventas).")
     @ApiResponses({
@@ -108,17 +176,38 @@ public class CotizacionController {
             @ApiResponse(responseCode = "404", description = "Cotización, almacén o turno inexistente"),
             @ApiResponse(responseCode = "409", description = "La cotización no está ACEPTADA, venció o no hay turno abierto")
     })
-    @PostMapping("/{id}/convertir") @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'convertir') and @rolePermissionGuard.permite(authentication, 'ventas', 'crear')") public ResponseEntity<VentaProcesadaResponseDTO> convertir(@PathVariable UUID id, @Valid @RequestBody ConvertirCotizacionRequestDTO request) { return ResponseEntity.ok(cotizacionService.convertir(id, request)); }
+    @PostMapping("/{id}/convertir")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'cotizaciones', 'convertir') and @rolePermissionGuard.permite(authentication, 'ventas', 'crear')")
+    public ResponseEntity<VentaProcesadaResponseDTO> convertir(@PathVariable UUID id, @Valid @RequestBody ConvertirCotizacionRequestDTO request) {
+        return ResponseEntity.ok(cotizacionService.convertir(id, request));
+    }
+
     /** Lists and transitions expired issued quotations. */
     @Operation(summary = "Cotizaciones vencidas", description = "Marca como vencidas las EMITIDAS cuya vigencia pasó y las devuelve.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK")
     })
-    @GetMapping("/vencidas") public ResponseEntity<List<CotizacionListadoDTO>> vencidas() { return ResponseEntity.ok(cotizacionService.vencidas()); }
+    @GetMapping("/vencidas")
+    public ResponseEntity<List<CotizacionListadoDTO>> vencidas() {
+        return ResponseEntity.ok(cotizacionService.vencidas());
+    }
+
     /** Returns commercial dashboard counters. */
     @Operation(summary = "Dashboard de cotizaciones", description = "Contadores comerciales por estado.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK")
     })
-    @GetMapping("/dashboard") public ResponseEntity<Map<String,Object>> dashboard() { return ResponseEntity.ok(cotizacionService.dashboard()); }
+    @GetMapping("/dashboard")
+    public ResponseEntity<Map<String, Object>> dashboard() {
+        return ResponseEntity.ok(cotizacionService.dashboard());
+    }
+
+    private User usuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
+            throw new ResourceNotFoundException("Usuario no autenticado");
+        }
+        return userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+    }
 }

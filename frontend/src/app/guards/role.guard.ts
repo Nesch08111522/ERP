@@ -1,31 +1,41 @@
 // src/app/guards/role.guard.ts
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
 import { TokenService } from '../services/token.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RoleGuard {
+export class RoleGuard implements CanActivate {
   constructor(
-    private tokenService: TokenService,
-    private router: Router,
+    private readonly tokenService: TokenService,
+    private readonly router: Router,
   ) {}
 
-  canActivate(route: any): boolean {
-    const expectedRoles = route.data.expectedRoles;
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
+    const expectedRoles = (route.data?.['expectedRoles'] as string[] | undefined) ?? null;
     const userRol = this.tokenService.getRol();
 
+    // 1. Sin sesión → login
     if (!userRol) {
-      this.router.navigate(['/login']);
+      void this.router.navigate(['/login']);
       return false;
     }
 
-    if (Array.isArray(expectedRoles) && expectedRoles.includes(userRol)) {
+    // 2. Ruta sin roles definidos → solo auth necesaria
+    if (!expectedRoles || expectedRoles.length === 0) {
       return true;
     }
 
-    void this.router.navigate(['/error', 'permisos']);
+    // 3. Rol permitido
+    if (expectedRoles.includes(userRol)) {
+      return true;
+    }
+
+    // 4. Sin permiso → /error/permisos con la URL intentada
+    void this.router.navigate(['/error/permisos'], {
+      queryParams: { denied: state.url },
+    });
     return false;
   }
 }

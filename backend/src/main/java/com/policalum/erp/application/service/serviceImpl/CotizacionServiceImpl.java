@@ -33,8 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(rollbackFor = Exception.class)
 @Slf4j
 public class CotizacionServiceImpl implements CotizacionService {
+
     private static final BigDecimal IGV = new BigDecimal("0.18");
     private static final BigDecimal IGV_PORCENTAJE = new BigDecimal("18.00");
+
     private final CotizacionRepository cotizacionRepository;
     private final DetalleCotizacionRepository detalleRepository;
     private final SedeRepository sedeRepository;
@@ -190,13 +192,19 @@ public class CotizacionServiceImpl implements CotizacionService {
         return response(cotizacion);
     }
 
-    @Override @Transactional(readOnly = true)
-    public CotizacionResponseDTO findById(UUID id) { return response(obtener(id)); }
+    @Override
+    @Transactional(readOnly = true)
+    public CotizacionResponseDTO findById(UUID id) {
+        return response(obtener(id));
+    }
 
-    @Override @Transactional(readOnly = true)
-    public Page<CotizacionListadoDTO> search(UUID clienteId, UUID sedeId, EstadoCotizacion estado, LocalDateTime desde, LocalDateTime hasta, Pageable pageable) {
-        if (desde != null && hasta != null && desde.isAfter(hasta)) throw new IllegalArgumentException("La fecha inicial no puede ser posterior a la fecha final");
-        return cotizacionRepository.buscar(clienteId, sedeId, estado, RangosConsulta.desde(desde), RangosConsulta.hasta(hasta), pageable).map(this::listado);
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CotizacionListadoDTO> search(UUID clienteId, UUID sedeId, UUID userId,
+                                             EstadoCotizacion estado, LocalDateTime desde,
+                                             LocalDateTime hasta, Pageable pageable) {
+        return cotizacionRepository.buscar(clienteId, sedeId, userId, estado, desde, hasta, pageable)
+                .map(this::listado);
     }
 
     @Override
@@ -215,7 +223,10 @@ public class CotizacionServiceImpl implements CotizacionService {
         Cotizacion cotizacion = obtener(id);
         exigirEstados(cotizacion, "aceptar", EstadoCotizacion.EMITIDA, EstadoCotizacion.PENDIENTE);
         exigirCreadorOAdmin(cotizacion);
-        if (cotizacion.getFechaVigencia().isBefore(LocalDate.now())) { cotizacion.setEstado(EstadoCotizacion.VENCIDA); throw new IllegalStateException("La cotización está vencida"); }
+        if (cotizacion.getFechaVigencia().isBefore(LocalDate.now())) {
+            cotizacion.setEstado(EstadoCotizacion.VENCIDA);
+            throw new IllegalStateException("La cotización está vencida");
+        }
         cotizacion.setEstado(EstadoCotizacion.ACEPTADA);
         auditService.registrar("cotizaciones", id, AccionAudit.UPDATE, Map.of("operacion", "aceptacion"));
         log.info("Cotización {} ACEPTADA", id);
@@ -286,7 +297,8 @@ public class CotizacionServiceImpl implements CotizacionService {
         return actualizadas.stream().map(this::listado).toList();
     }
 
-    @Override @Transactional(readOnly = true)
+    @Override
+    @Transactional(readOnly = true)
     public Map<String, Object> dashboard() {
         return Map.of("emitidas", cotizacionRepository.countByEstado(EstadoCotizacion.EMITIDA),
                 "pendientesWeb", cotizacionRepository.countByEstado(EstadoCotizacion.PENDIENTE),
@@ -295,34 +307,78 @@ public class CotizacionServiceImpl implements CotizacionService {
                 "vencidas", cotizacionRepository.countByEstado(EstadoCotizacion.VENCIDA));
     }
 
+    // ============================================================
+    // MÉTODOS PRIVADOS
+    // ============================================================
+
     private void recalcularLineas(Cotizacion cotizacion, List<DetalleCotizacionCommandDTO> lineas) {
         detalleRepository.deleteByCotizacion_Id(cotizacion.getId());
         BigDecimal total = BigDecimal.ZERO;
         for (DetalleCotizacionCommandDTO linea : lineas) {
             Calculada calculada = calcular(linea);
             DetalleCotizacion detalle = detalleMapper.toEntity(linea);
-            detalle.setCotizacion(cotizacion); detalle.setProducto(calculada.producto()); detalle.setFraccion(calculada.fraccion()); detalle.setServicio(calculada.servicio());
-            detalle.setPrecioUnitarioConIgv(calculada.precio()); detalle.setValorUnitarioNeto(calculada.neto()); detalle.setIgvLinea(calculada.igv()); detalle.setPorcentajeIgv(IGV_PORCENTAJE); detalle.setSubtotal(calculada.total());
-            detalleRepository.save(detalle); total = total.add(calculada.total());
+            detalle.setCotizacion(cotizacion);
+            detalle.setProducto(calculada.producto());
+            detalle.setFraccion(calculada.fraccion());
+            detalle.setServicio(calculada.servicio());
+            detalle.setPrecioUnitarioConIgv(calculada.precio());
+            detalle.setValorUnitarioNeto(calculada.neto());
+            detalle.setIgvLinea(calculada.igv());
+            detalle.setPorcentajeIgv(IGV_PORCENTAJE);
+            detalle.setSubtotal(calculada.total());
+            detalleRepository.save(detalle);
+            total = total.add(calculada.total());
         }
         cotizacion.setTotal(total.setScale(2, RoundingMode.HALF_UP));
         cotizacionRepository.save(cotizacion);
     }
+
     private Calculada calcular(DetalleCotizacionCommandDTO l) {
         boolean producto = l.productoId() != null, servicio = l.servicioId() != null;
         if (producto == servicio) throw new IllegalArgumentException("Cada línea debe ser un producto o un servicio, nunca ambos");
-        Producto p = null; Servicio s = null; CatalogoFraccion f = null; BigDecimal precio;
-        if (producto) { p = productoRepository.findById(l.productoId()).orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado")); if (!Boolean.TRUE.equals(p.getActivo())) throw new IllegalArgumentException("El producto está inactivo");
-            if (l.fraccionId() != null) { f = fraccionRepository.findWithProductoById(l.fraccionId()).orElseThrow(() -> new ResourceNotFoundException("Fracción no encontrada")); if (!f.getProducto().getId().equals(p.getId()) || !Boolean.TRUE.equals(f.getActivo())) throw new IllegalArgumentException("La fracción no es válida para el producto"); precio = com.policalum.erp.application.service.PrecioComercial.fraccion(p, f); }
-            else { if (Boolean.TRUE.equals(p.getEsFraccionable())) throw new IllegalArgumentException("Seleccione una fracción para el producto fraccionable"); precio = com.policalum.erp.application.service.PrecioComercial.venta(p); }
-        } else { if (l.fraccionId() != null) throw new IllegalArgumentException("Un servicio no admite fracción"); s = servicioRepository.findById(l.servicioId()).orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado")); if (!Boolean.TRUE.equals(s.getActivo())) throw new IllegalArgumentException("El servicio está inactivo"); precio = s.getPrecio(); }
-        BigDecimal bruto = precio.multiply(l.cantidad()).setScale(2, RoundingMode.HALF_UP); BigDecimal neto = bruto.divide(BigDecimal.ONE.add(IGV), 4, RoundingMode.HALF_UP);
+        Producto p = null;
+        Servicio s = null;
+        CatalogoFraccion f = null;
+        BigDecimal precio;
+        if (producto) {
+            p = productoRepository.findById(l.productoId()).orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
+            if (!Boolean.TRUE.equals(p.getActivo())) throw new IllegalArgumentException("El producto está inactivo");
+            if (l.fraccionId() != null) {
+                f = fraccionRepository.findWithProductoById(l.fraccionId()).orElseThrow(() -> new ResourceNotFoundException("Fracción no encontrada"));
+                if (!f.getProducto().getId().equals(p.getId()) || !Boolean.TRUE.equals(f.getActivo())) throw new IllegalArgumentException("La fracción no es válida para el producto");
+                precio = com.policalum.erp.application.service.PrecioComercial.fraccion(p, f);
+            } else {
+                if (Boolean.TRUE.equals(p.getEsFraccionable())) throw new IllegalArgumentException("Seleccione una fracción para el producto fraccionable");
+                precio = com.policalum.erp.application.service.PrecioComercial.venta(p);
+            }
+        } else {
+            if (l.fraccionId() != null) throw new IllegalArgumentException("Un servicio no admite fracción");
+            s = servicioRepository.findById(l.servicioId()).orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado"));
+            if (!Boolean.TRUE.equals(s.getActivo())) throw new IllegalArgumentException("El servicio está inactivo");
+            precio = s.getPrecio();
+        }
+        BigDecimal bruto = precio.multiply(l.cantidad()).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal neto = bruto.divide(BigDecimal.ONE.add(IGV), 4, RoundingMode.HALF_UP);
         return new Calculada(p, s, f, precio, neto, bruto.subtract(neto).setScale(2, RoundingMode.HALF_UP), bruto);
     }
-    private Cotizacion obtener(UUID id) { return cotizacionRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cotización no encontrada")); }
-    private Sede sede(UUID id) { return sedeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sede no encontrada")); }
-    private Cliente cliente(UUID id) { return id == null ? null : clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado")); }
-    private User usuarioActual() { String email = SecurityContextHolder.getContext().getAuthentication().getName(); return userRepository.findByEmailAndActivoTrue(email).orElseThrow(() -> new IllegalStateException("Usuario autenticado no válido")); }
+
+    private Cotizacion obtener(UUID id) {
+        return cotizacionRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cotización no encontrada"));
+    }
+
+    private Sede sede(UUID id) {
+        return sedeRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sede no encontrada"));
+    }
+
+    private Cliente cliente(UUID id) {
+        return id == null ? null : clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado"));
+    }
+
+    private User usuarioActual() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmailAndActivoTrue(email).orElseThrow(() -> new IllegalStateException("Usuario autenticado no válido"));
+    }
+
     private void exigirEstado(Cotizacion c, EstadoCotizacion estadoEsperado, String accion) {
         if (c.getEstado() != estadoEsperado) {
             throw new IllegalStateException(String.format(
@@ -330,12 +386,14 @@ public class CotizacionServiceImpl implements CotizacionService {
                     accion, c.getEstado().name(), estadoEsperado.name()));
         }
     }
+
     private void exigirEstados(Cotizacion c, String accion, EstadoCotizacion... esperados) {
         for (EstadoCotizacion esperado : esperados) {
             if (c.getEstado() == esperado) return;
         }
         throw new IllegalStateException(String.format("No se puede %s una cotización en estado %s.", accion, c.getEstado().name()));
     }
+
     private void exigirCreadorOAdmin(Cotizacion c) {
         User u = usuarioActual();
         var autoridades = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
@@ -349,12 +407,14 @@ public class CotizacionServiceImpl implements CotizacionService {
             throw new IllegalStateException("Solo el creador o un administrador puede ejecutar esta acción");
         }
     }
+
     private Sede sedeRecepcionWeb() {
         return sedeRepository.findAll().stream()
                 .filter(item -> !Boolean.FALSE.equals(item.getActiva()))
                 .min(Comparator.comparing(item -> item.getNombre() == null ? "" : item.getNombre(), String.CASE_INSENSITIVE_ORDER))
                 .orElseThrow(() -> new IllegalStateException("Registra una sede activa para recibir cotizaciones de la web"));
     }
+
     private Cliente clienteWeb(CotizacionWebRequestDTO request) {
         String ruc = request.ruc().trim();
         Cliente cliente = clienteRepository.findByNumeroDocumento(ruc).orElse(null);
@@ -373,16 +433,19 @@ public class CotizacionServiceImpl implements CotizacionService {
         if (cliente.getCelular() == null || cliente.getCelular().isBlank()) cliente.setCelular(request.telefono().trim());
         return cliente;
     }
+
     private String origenDe(Cotizacion c) {
         CanalCotizacion canal = c.getCanal() == null ? CanalCotizacion.INTERNO : c.getCanal();
         if (canal == CanalCotizacion.WEB && c.getEstado() == EstadoCotizacion.PENDIENTE && Boolean.TRUE.equals(c.getModificada())) return "MODIFICADA";
         if (canal == CanalCotizacion.WEB && c.getEstado() == EstadoCotizacion.PENDIENTE) return "NUEVO (WEB)";
         return canal == CanalCotizacion.WEB ? "WEB" : "INTERNO";
     }
+
     private CotizacionListadoDTO listado(Cotizacion c) {
         CanalCotizacion canal = c.getCanal() == null ? CanalCotizacion.INTERNO : c.getCanal();
         return new CotizacionListadoDTO(c.getId(), c.getSede().getId(), c.getCliente() == null ? null : c.getCliente().getId(), c.getCliente() == null ? null : c.getCliente().getNombre(), c.getEstado(), c.getTotal(), c.getFechaVigencia(), c.getCreatedAt(), canal, origenDe(c));
     }
+
     private CotizacionResponseDTO response(Cotizacion c) {
         List<DetalleCotizacionResponseDTO> lineas = detalleRepository.findByCotizacion_Id(c.getId()).stream().map(d -> new DetalleCotizacionResponseDTO(d.getId(), d.getProducto() == null ? null : d.getProducto().getId(), d.getProducto() == null ? null : d.getProducto().getNombre(), d.getFraccion() == null ? null : d.getFraccion().getId(), d.getFraccion() == null ? null : d.getFraccion().getNombreFraccion(), d.getServicio() == null ? null : d.getServicio().getId(), d.getServicio() == null ? null : d.getServicio().getNombre(), d.getCantidad(), d.getPrecioUnitarioConIgv(), d.getValorUnitarioNeto(), d.getIgvLinea(), d.getPorcentajeIgv(), d.getSubtotal())).toList();
         CanalCotizacion canal = c.getCanal() == null ? CanalCotizacion.INTERNO : c.getCanal();
@@ -390,6 +453,7 @@ public class CotizacionServiceImpl implements CotizacionService {
         String usuarioNombre = c.getUser() == null ? "Canal web" : ((c.getUser().getNombre() == null ? "" : c.getUser().getNombre()) + " " + (c.getUser().getApellido() == null ? "" : c.getUser().getApellido())).trim();
         return new CotizacionResponseDTO(c.getId(), c.getSede().getId(), c.getSede().getNombre(), usuarioId, usuarioNombre, c.getCliente() == null ? null : c.getCliente().getId(), c.getCliente() == null ? null : c.getCliente().getNombre(), c.getEstado(), c.getTotal(), c.getFechaVigencia(), c.getObservaciones(), c.getVenta() == null ? null : c.getVenta().getId(), c.getCreatedAt(), lineas, canal, origenDe(c), cargosDe(c));
     }
+
     private void aplicarCargos(Cotizacion cotizacion, CargosCotizacionDTO cargos) {
         cotizacion.setDistrito(cargos.distrito());
         cotizacion.setCantidadPiezas(cargos.cantidadPiezas());
@@ -404,18 +468,22 @@ public class CotizacionServiceImpl implements CotizacionService {
         cotizacion.setTotal(totalConCargos(cargos));
         cotizacionRepository.save(cotizacion);
     }
+
     private CargosCotizacionDTO cargosDe(Cotizacion c) {
         if (c.getDistrito() == null && c.getSubtotalMateriales() == null) return null;
         return new CargosCotizacionDTO(c.getDistrito(), c.getCantidadPiezas(), c.getSubtotalMateriales(), c.getUtilidadPorcentaje(),
                 c.getUtilidadMonto(), c.getMovilidadMonto(), c.getOtrosMonto(), c.getOtrosDetalle(),
                 Boolean.TRUE.equals(c.getModificada()), c.getNotaCambio());
     }
+
     private BigDecimal totalConCargos(CargosCotizacionDTO cargos) {
         return totalDe(cargos.subtotalMateriales(), cargos.utilidadMonto(), cargos.movilidadMonto(), cargos.otrosMonto());
     }
+
     private BigDecimal totalDe(BigDecimal materiales, BigDecimal utilidad, BigDecimal movilidad, BigDecimal otros) {
         return CalculoCotizacion.dinero(materiales).add(CalculoCotizacion.dinero(utilidad))
                 .add(CalculoCotizacion.dinero(movilidad)).add(CalculoCotizacion.dinero(otros));
     }
+
     private record Calculada(Producto producto, Servicio servicio, CatalogoFraccion fraccion, BigDecimal precio, BigDecimal neto, BigDecimal igv, BigDecimal total) { }
 }

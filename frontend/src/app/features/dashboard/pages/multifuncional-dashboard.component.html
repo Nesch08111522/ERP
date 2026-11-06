@@ -1,0 +1,224 @@
+<section class="mi-dia">
+  <!-- ═══════════════ SECCIÓN 1: ENCABEZADO PERSONAL ═══════════════ -->
+  <header class="mi-dia-header">
+    <div class="saludo">
+      <h1>Buenos días, {{ nombre }} 👋</h1>
+      <p class="subtitulo">{{ fechaHoy }}<span *ngIf="sede"> · {{ sede }}</span></p>
+    </div>
+    <div class="estado-dia" [class.en-turno]="estadoDia === 'En turno'">
+      <span class="dot"></span>
+      <span>{{ estadoDia }}</span>
+      <small *ngIf="estadoDiaDesde">desde {{ estadoDiaDesde }}</small>
+    </div>
+  </header>
+
+  <!-- ═══════════════ BANNER DE PAGO ═══════════════ -->
+  <div
+    *ngIf="bannerPago"
+    class="banner-pago"
+    [class.hoy]="bannerPago === 'hoy'"
+    [class.tres-dias]="bannerPago === '3dias'"
+    [class.siete-dias]="bannerPago === '7dias'"
+  >
+    <span class="banner-icono">
+      {{ bannerPago === 'hoy' ? '🎉' : (bannerPago === '3dias' ? '💰' : '💸') }}
+    </span>
+    <span class="banner-texto">
+      <strong *ngIf="bannerPago === 'hoy'">¡Hoy es día de pago!</strong>
+      <strong *ngIf="bannerPago === '3dias'">Faltan {{ info.diasParaPago }} días para tu pago</strong>
+      <strong *ngIf="bannerPago === '7dias'">Esta semana cobras ({{ info.diasParaPago }} días)</strong>
+      <small *ngIf="info.proximoPago">Próximo pago: {{ info.proximoPago }}</small>
+    </span>
+  </div>
+
+  <p *ngIf="cargando" class="estado-carga">Cargando tu información…</p>
+  <p *ngIf="error" class="estado-error">{{ error }}</p>
+
+  <div *ngIf="!cargando && !error" class="mi-dia-grid">
+
+    <!-- ═══════════════ SECCIÓN 2: ASISTENCIAS HOY ═══════════════ -->
+    <article class="tarjeta tarjeta-asistencias">
+      <header class="tarjeta-head">
+        <h2>Mis asistencias de hoy</h2>
+        <a routerLink="/asistencias" class="chip">Ver historial</a>
+      </header>
+      <div class="asistencia-resumen">
+        <div class="resumen-dato">
+          <span>Horas hoy</span>
+          <strong>{{ horasHoy | number:'1.0-2' }}h</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Horas esta semana</span>
+          <strong>{{ horasSemana | number:'1.0-2' }}h</strong>
+        </div>
+      </div>
+      <ul class="marcas-lista" *ngIf="marcasHoy.length; else sinMarcas">
+        <li *ngFor="let m of marcasHoy" class="marca" [class]="'marca-' + m.color">
+          <span class="marca-tipo">{{ m.tipo | titlecase }}</span>
+          <strong class="marca-hora">{{ m.hora }}</strong>
+        </li>
+      </ul>
+      <ng-template #sinMarcas>
+        <p class="vacio">Aún no has marcado hoy.</p>
+      </ng-template>
+    </article>
+
+    <!-- ═══════════════ SECCIÓN 3: VENTAS HOY ═══════════════ -->
+    <article class="tarjeta tarjeta-ventas">
+      <header class="tarjeta-head">
+        <h2>Mis ventas de hoy</h2>
+        <a routerLink="/ventas/pos" class="chip">Ir al POS</a>
+      </header>
+      <div class="ventas-resumen">
+        <div class="resumen-dato grande">
+          <span>Cantidad</span>
+          <strong>{{ ventasHoyCantidad }}</strong>
+        </div>
+        <div class="resumen-dato grande">
+          <span>Monto total</span>
+          <strong>{{ ventasHoyMonto | pen }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Ticket promedio</span>
+          <strong>{{ ticketPromedio | pen }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Última venta</span>
+          <strong>{{ ultimaVentaHace }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═══════════════ SECCIÓN 4: TURNO DE CAJA ═══════════════ -->
+    <article class="tarjeta tarjeta-turno">
+      <header class="tarjeta-head">
+        <h2>Mi turno de caja</h2>
+        <a routerLink="/modules/turnos-caja" class="chip">Ir a caja</a>
+      </header>
+      <div class="turno-estado" [class.abierto]="turnoCaja.abierto">
+        <span class="turno-badge">{{ turnoCaja.abierto ? 'ABIERTO' : 'CERRADO' }}</span>
+        <small *ngIf="turnoCaja.abierto && turnoCaja.horaApertura">
+          Desde las {{ turnoCaja.horaApertura }}
+        </small>
+      </div>
+      <div class="turno-datos" *ngIf="turnoCaja.abierto">
+        <div class="resumen-dato">
+          <span>Monto inicial</span>
+          <strong>{{ turnoCaja.montoInicial | pen }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═══════════════ SECCIÓN 5: DESEMPEÑO DEL MES ═══════════════ -->
+    <article class="tarjeta tarjeta-desempeno">
+      <header class="tarjeta-head">
+        <h2>Mi desempeño del mes</h2>
+      </header>
+      <div class="desempeno-grid">
+        <div class="resumen-dato">
+          <span>Ventas</span>
+          <strong>{{ desempenoMes.ventasCantidad }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Monto vendido</span>
+          <strong>{{ desempenoMes.ventasMonto | pen }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Ticket promedio</span>
+          <strong>{{ desempenoMes.ticketPromedio | pen }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Comisiones</span>
+          <strong>{{ desempenoMes.comisionesMonto | pen }}</strong>
+          <small>{{ desempenoMes.comisionesEstado }}</small>
+        </div>
+        <div class="resumen-dato sueldo">
+          <span>Sueldo base</span>
+          <strong>{{ desempenoMes.sueldoBase | pen }}</strong>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═══════════════ SECCIÓN 6: TAREAS PENDIENTES ═══════════════ -->
+    <article class="tarjeta tarjeta-tareas">
+      <header class="tarjeta-head">
+        <h2>Tareas pendientes</h2>
+      </header>
+      <ul class="tareas-lista">
+        <li>
+          <a routerLink="/modules/preformas">
+            <span>Borradores POS</span>
+            <strong [class.destacado]="tareas.preformasAbiertas > 0">{{ tareas.preformasAbiertas }}</strong>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/modules/cotizaciones">
+            <span>Cotizaciones por convertir</span>
+            <strong [class.destacado]="tareas.cotizacionesPendientes > 0">{{ tareas.cotizacionesPendientes }}</strong>
+          </a>
+        </li>
+        <li>
+          <a routerLink="/modules/despachos">
+            <span>Despachos pendientes</span>
+            <strong [class.destacado]="tareas.despachosPendientes > 0">{{ tareas.despachosPendientes }}</strong>
+          </a>
+        </li>
+      </ul>
+    </article>
+
+    <!-- ═══════════════ SECCIÓN 7: MI INFORMACIÓN ═══════════════ -->
+    <article class="tarjeta tarjeta-info">
+      <header class="tarjeta-head">
+        <h2>Mi información</h2>
+        <a routerLink="/modules/rrhh" class="chip" *ngIf="false">Ver legajo</a>
+      </header>
+      <div class="info-grid">
+        <div class="resumen-dato">
+          <span>Fecha de ingreso</span>
+          <strong>{{ info.fechaIngreso || '—' }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Antigüedad</span>
+          <strong>{{ info.antiguedad }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Tipo de contrato</span>
+          <strong>{{ info.tipoContrato }}</strong>
+        </div>
+        <div class="resumen-dato">
+          <span>Próximo pago</span>
+          <strong>{{ info.proximoPago || '—' }}</strong>
+          <small *ngIf="info.diasParaPago != null">
+            en {{ info.diasParaPago }} día{{ info.diasParaPago !== 1 ? 's' : '' }}
+          </small>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═══════════════ SECCIÓN 8: ACCESOS RÁPIDOS ═══════════════ -->
+    <article class="tarjeta tarjeta-atajos">
+      <header class="tarjeta-head">
+        <h2>Accesos rápidos</h2>
+      </header>
+      <div class="atajos-grid">
+        <a routerLink="/ventas/pos" class="atajo">
+          <span class="atajo-icono">💳</span>
+          <span class="atajo-texto">POS</span>
+        </a>
+        <a routerLink="/asistencias" class="atajo">
+          <span class="atajo-icono">📅</span>
+          <span class="atajo-texto">Asistencias</span>
+        </a>
+        <a routerLink="/modules/turnos-caja" class="atajo">
+          <span class="atajo-icono">💰</span>
+          <span class="atajo-texto">Mi turno</span>
+        </a>
+        <a routerLink="/modules/ventas" class="atajo">
+          <span class="atajo-icono">📊</span>
+          <span class="atajo-texto">Mis ventas</span>
+        </a>
+      </div>
+    </article>
+
+  </div>
+</section>

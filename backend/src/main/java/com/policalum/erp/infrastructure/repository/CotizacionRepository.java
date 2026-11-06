@@ -16,11 +16,27 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CotizacionRepository extends JpaRepository<Cotizacion, UUID> {
+
+    /**
+     * Búsqueda paginada de cotizaciones.
+     * Filtra por cliente, sede, usuario (creador), estado y rango de fechas.
+     * MULTIFUNCIONAL siempre pasa userId = su propio id (lo fuerza el controller).
+     */
     @EntityGraph(attributePaths = {"sede", "user", "cliente", "venta"})
-    @Query("select c from Cotizacion c where (CAST(:clienteId AS string) IS NULL or c.cliente.id = :clienteId) and (CAST(:sedeId AS string) IS NULL or c.sede.id = :sedeId) and (CAST(:estado AS string) IS NULL or c.estado = :estado) and (CAST(:desde AS string) IS NULL or c.createdAt >= CAST(CAST(:desde AS string) AS timestamp)) and (CAST(:hasta AS string) IS NULL or c.createdAt <= CAST(CAST(:hasta AS string) AS timestamp))")
-    Page<Cotizacion> buscar(@Param("clienteId") UUID clienteId, @Param("sedeId") UUID sedeId,
-                            @Param("estado") EstadoCotizacion estado, @Param("desde") LocalDateTime desde,
-                            @Param("hasta") LocalDateTime hasta, Pageable pageable);
+    @Query("SELECT c FROM Cotizacion c WHERE "
+            + "(CAST(:clienteId AS string) IS NULL OR c.cliente.id = :clienteId) AND "
+            + "(CAST(:sedeId AS string) IS NULL OR c.sede.id = :sedeId) AND "
+            + "(CAST(:userId AS string) IS NULL OR c.user.id = :userId) AND "
+            + "(CAST(:estado AS string) IS NULL OR c.estado = :estado) AND "
+            + "(CAST(:desde AS string) IS NULL OR c.createdAt >= CAST(CAST(:desde AS string) AS timestamp)) AND "
+            + "(CAST(:hasta AS string) IS NULL OR c.createdAt <= CAST(CAST(:hasta AS string) AS timestamp))")
+    Page<Cotizacion> buscar(@Param("clienteId") UUID clienteId,
+                            @Param("sedeId") UUID sedeId,
+                            @Param("userId") UUID userId,
+                            @Param("estado") EstadoCotizacion estado,
+                            @Param("desde") LocalDateTime desde,
+                            @Param("hasta") LocalDateTime hasta,
+                            Pageable pageable);
 
     @EntityGraph(attributePaths = {"sede", "user", "cliente", "venta"})
     List<Cotizacion> findByEstadoAndFechaVigenciaBefore(EstadoCotizacion estado, LocalDate fecha);

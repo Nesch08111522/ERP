@@ -7,6 +7,8 @@ export interface User {
   rol: UserRole;
   token?: string;
   totpConfigurado?: boolean;
+  sedeId?: string;
+  sedeNombre?: string;
 }
 
 export type UserRole = 'ROLE_ADMIN' | 'ROLE_MULTIFUNCIONAL';
@@ -23,6 +25,8 @@ export interface LoginResponse {
   email: string;
   rol: UserRole;
   totpConfigurado: boolean;
+  sedeId?: string;        // ← NUEVO
+  sedeNombre?: string;    // ← NUEVO
   refreshToken?: string;
 }
 

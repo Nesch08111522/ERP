@@ -1,8 +1,10 @@
 package com.policalum.erp.application.service.serviceImpl;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -10,6 +12,7 @@ import com.policalum.erp.application.dto.request.RolRequestDTO;
 import com.policalum.erp.application.dto.response.RolResponseDTO;
 import com.policalum.erp.application.mapper.RolMapper;
 import com.policalum.erp.application.service.RolService;
+import com.policalum.erp.domain.enums.RolNombre;
 import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.infrastructure.repository.RolRepository;
 
@@ -79,5 +82,39 @@ public class RolImpl implements RolService {
 
         return rolMapper.toResponseDto(rol);
     }
+
+    @Transactional
+@Override
+public RolResponseDTO actualizarPermisos(UUID id, String grupo, Map<String, Boolean> permisos) {
+    if (grupo == null || grupo.isBlank()) {
+        throw new ValidationException("El grupo de permisos es obligatorio.");
+    }
+    Rol rol = rolRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Rol no encontrado con id: " + id));
+
+    // No permitir editar permisos del ADMIN (dios).
+    if (rol.getNombre() == RolNombre.ROLE_ADMIN) {
+        throw new ValidationException("Los permisos del ADMIN no se pueden editar.");
+    }
+
+    Map<String, Object> actuales = rol.getPermisosJson() == null
+            ? new HashMap<>()
+            : new HashMap<>(rol.getPermisosJson());
+
+    Map<String, Boolean> permisosGrupo = new HashMap<>();
+    Object existente = actuales.get(grupo);
+    if (existente instanceof Map<?, ?> mapaExistente) {
+        for (Map.Entry<?, ?> e : mapaExistente.entrySet()) {
+            if (e.getKey() instanceof String clave && e.getValue() instanceof Boolean valor) {
+                permisosGrupo.put(clave, valor);
+            }
+        }
+    }
+    permisosGrupo.putAll(permisos);
+    actuales.put(grupo, permisosGrupo);
+
+    rol.setPermisosJson(actuales);
+    return rolMapper.toResponseDto(rolRepository.save(rol));
+}
 
 }

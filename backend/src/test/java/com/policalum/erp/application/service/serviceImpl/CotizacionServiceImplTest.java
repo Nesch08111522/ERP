@@ -33,8 +33,30 @@ import org.springframework.security.core.context.*;
 
 @ExtendWith(MockitoExtension.class)
 class CotizacionServiceImplTest {
- @Mock CotizacionRepository cotizacionRepository; @Mock DetalleCotizacionRepository detalleRepository; @Mock SedeRepository sedeRepository; @Mock ClienteRepository clienteRepository; @Mock ProductoRepository productoRepository; @Mock ServicioRepository servicioRepository; @Mock CatalogoFraccionRepository fraccionRepository; @Mock UserRepository userRepository; @Mock CotizacionMapper cotizacionMapper; @Mock DetalleCotizacionMapper detalleMapper; @Mock VentaService ventaService; @Mock VentaRepository ventaRepository; @Mock AuditService auditService; @Mock ConfiguracionService configuracionService; @InjectMocks CotizacionServiceImpl service;
- UUID cotizacionId=UUID.randomUUID(), sedeId=UUID.randomUUID(), productoId=UUID.randomUUID(); User usuario; Sede sede;
+
+    @Mock CotizacionRepository cotizacionRepository;
+    @Mock DetalleCotizacionRepository detalleRepository;
+    @Mock SedeRepository sedeRepository;
+    @Mock ClienteRepository clienteRepository;
+    @Mock ProductoRepository productoRepository;
+    @Mock ServicioRepository servicioRepository;
+    @Mock CatalogoFraccionRepository fraccionRepository;
+    @Mock UserRepository userRepository;
+    @Mock CotizacionMapper cotizacionMapper;
+    @Mock DetalleCotizacionMapper detalleMapper;
+    @Mock VentaService ventaService;
+    @Mock VentaRepository ventaRepository;
+    @Mock AuditService auditService;
+    @Mock ConfiguracionService configuracionService;
+    @Mock FormatoCotizacionService formatoCotizacion;
+    @InjectMocks CotizacionServiceImpl service;
+
+    UUID cotizacionId = UUID.randomUUID();
+    UUID sedeId = UUID.randomUUID();
+    UUID productoId = UUID.randomUUID();
+    User usuario;
+    Sede sede;
+
     /**
      * Stubs compartidos: no todos los tests los usan (p. ej. create() no consulta getAuthorities,
      * y los tests que fallan por estado no llegan a buscar la sede ni los detalles). Con la
@@ -44,7 +66,8 @@ class CotizacionServiceImplTest {
     @BeforeEach
     void setUp() {
         lenient().when(configuracionService.ventas()).thenReturn(ParametrosVentasDTO.DEFAULTS);
-        usuario = User.builder().id(UUID.randomUUID()).nombre("Admin").apellido("Prueba").email("test@policalum.com").activo(true).build();
+        usuario = User.builder().id(UUID.randomUUID()).nombre("Admin").apellido("Prueba")
+                .email("test@policalum.com").activo(true).build();
         sede = Sede.builder().id(sedeId).nombre("Central").build();
         SecurityContext context = mock(SecurityContext.class);
         Authentication auth = mock(Authentication.class);
@@ -56,83 +79,192 @@ class CotizacionServiceImplTest {
         lenient().when(sedeRepository.findById(sedeId)).thenReturn(Optional.of(sede));
         lenient().when(detalleRepository.findByCotizacion_Id(any())).thenReturn(List.of());
     }
- @AfterEach void tearDown(){ SecurityContextHolder.clearContext(); }
- @Test void create_calculaTotalCorrectamente(){ // given
-  Cotizacion c=cotizacion(EstadoCotizacion.EMITIDA); when(cotizacionMapper.toEntity(any())).thenReturn(c); when(cotizacionRepository.save(any())).thenAnswer(i->i.getArgument(0)); when(productoRepository.findById(productoId)).thenReturn(Optional.of(producto())); when(detalleMapper.toEntity(any())).thenReturn(new DetalleCotizacion()); ArgumentCaptor<DetalleCotizacion> captor=ArgumentCaptor.forClass(DetalleCotizacion.class);
-  // when
-  service.create(request(LocalDate.now().plusDays(3)));
-  // then
-  verify(detalleRepository).save(captor.capture()); assertEquals(new BigDecimal("236.00"),c.getTotal()); assertEquals(new BigDecimal("36.00"),captor.getValue().getIgvLinea()); }
- @Test void create_productoFraccionableRequiereFraccion(){ // given
-  Producto p=producto();p.setEsFraccionable(true); when(cotizacionMapper.toEntity(any())).thenReturn(cotizacion(EstadoCotizacion.EMITIDA));when(cotizacionRepository.save(any())).thenAnswer(i->i.getArgument(0));when(productoRepository.findById(productoId)).thenReturn(Optional.of(p));
-  // when / then
-  assertTrue(assertThrows(IllegalArgumentException.class,()->service.create(request(null))).getMessage().contains("fracción")); }
- @Test void create_fechaVigenciaPorDefectoEs15Dias(){ // given
-  Cotizacion c=cotizacion(EstadoCotizacion.EMITIDA); configurarCreate(c);
-  // when
-  service.create(request(null));
-  // then
-  assertEquals(LocalDate.now().plusDays(15),c.getFechaVigencia()); }
- @Test void create_fechaVigenciaEnElPasadoLanzaExcepcion(){ // given
-  when(cotizacionMapper.toEntity(any())).thenReturn(cotizacion(EstadoCotizacion.EMITIDA));
-  // when / then
-  assertThrows(IllegalArgumentException.class,()->service.create(request(LocalDate.now().minusDays(1)))); }
- @Test void update_soloPermiteEstadoEmitida(){ // given
-  when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(cotizacion(EstadoCotizacion.ACEPTADA)));
-  // when / then
-  assertThrows(IllegalStateException.class,()->service.update(cotizacionId,request(null))); }
- @Test void aceptar_cotizacionEmitida_cambiaEstadoAAceptada(){ // given
-  Cotizacion c=cotizacion(EstadoCotizacion.EMITIDA);when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
-  // when
-  service.aceptar(cotizacionId);
-  // then
-  assertEquals(EstadoCotizacion.ACEPTADA,c.getEstado()); }
- @Test void aceptar_cotizacionVencida_cambiaEstadoAVencidaYLanzaExcepcion(){ // given
-  Cotizacion c=cotizacion(EstadoCotizacion.EMITIDA);c.setFechaVigencia(LocalDate.now().minusDays(1));when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
-  // when / then
-  assertThrows(IllegalStateException.class,()->service.aceptar(cotizacionId));assertEquals(EstadoCotizacion.VENCIDA,c.getEstado()); }
- @Test void rechazar_guardaMotivoEnObservaciones(){ // given
-  Cotizacion c=cotizacion(EstadoCotizacion.EMITIDA);c.setObservaciones("Inicial");when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
-  // when
-  service.rechazar(cotizacionId,new RechazarCotizacionRequestDTO("Cliente pospone"));
-  // then
-  assertEquals(EstadoCotizacion.RECHAZADA,c.getEstado());assertTrue(c.getObservaciones().contains("Cliente pospone")); }
- @Test void convertir_soloPermiteEstadoAceptada(){ // given
-  when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(cotizacion(EstadoCotizacion.EMITIDA)));
-  // when
-  IllegalStateException e=assertThrows(IllegalStateException.class,()->service.convertir(cotizacionId,conversion()));
-  // then
-  assertTrue(e.getMessage().contains("EMITIDA"));assertTrue(e.getMessage().contains("ACEPTADA")); }
- @Test void convertir_cotizacionAceptada_llamaVentaServiceYVincula(){ // given
-  Cotizacion c=cotizacion(EstadoCotizacion.ACEPTADA);DetalleCotizacion d=new DetalleCotizacion();d.setProducto(producto());d.setCantidad(BigDecimal.ONE);UUID ventaId=UUID.randomUUID();Venta venta=new Venta();venta.setId(ventaId);when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));when(detalleRepository.findByCotizacion_Id(cotizacionId)).thenReturn(List.of(d));when(ventaService.registrar(any())).thenReturn(new VentaProcesadaResponseDTO(ventaId,"B001-1",BigDecimal.ZERO,BigDecimal.ZERO,new BigDecimal("118"),"COMPLETADA","T001-1","Pendiente SUNAT"));when(ventaRepository.findById(ventaId)).thenReturn(Optional.of(venta));when(cotizacionRepository.save(c)).thenReturn(c);
-  // when
-  service.convertir(cotizacionId,conversion());
-  // then
-  verify(ventaService).registrar(any());verify(cotizacionRepository).save(c);assertEquals(EstadoCotizacion.CONVERTIDA,c.getEstado());assertSame(venta,c.getVenta()); }
- @Test void delete_soloPermiteEstadoEmitida(){ // given
-  when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(cotizacion(EstadoCotizacion.ACEPTADA)));
-  // when / then
-  assertThrows(IllegalStateException.class,()->service.delete(cotizacionId)); }
- @Test void delete_eliminaDetallesAntesDeCotizacion(){ // given
-  Cotizacion c=cotizacion(EstadoCotizacion.EMITIDA);when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
-  // when
-  service.delete(cotizacionId);
-  // then
-  InOrder order=inOrder(detalleRepository,cotizacionRepository);order.verify(detalleRepository).deleteByCotizacion_Id(cotizacionId);order.verify(cotizacionRepository).delete(c); }
- private void configurarCreate(Cotizacion c){when(cotizacionMapper.toEntity(any())).thenReturn(c);when(cotizacionRepository.save(any())).thenAnswer(i->i.getArgument(0));when(productoRepository.findById(productoId)).thenReturn(Optional.of(producto()));when(detalleMapper.toEntity(any())).thenReturn(new DetalleCotizacion());}
- private CotizacionRequestDTO request(LocalDate fecha){return new CotizacionRequestDTO(sedeId,null,fecha,"",List.of(new DetalleCotizacionCommandDTO(productoId,null,null,new BigDecimal("2"))));}
- private ConvertirCotizacionRequestDTO conversion(){return new ConvertirCotizacionRequestDTO(UUID.randomUUID(),UUID.randomUUID(),TipoComprobante.BOLETA,CanalVenta.LOCAL,null,List.of(new PagoVentaCommandDTO(MetodoPago.EFECTIVO,new BigDecimal("118"),null)));}
- private Producto producto(){return Producto.builder().id(productoId).nombre("Plancha").precioVentaBase(new BigDecimal("118.00")).esFraccionable(false).activo(true).build();}
- private Cotizacion cotizacion(EstadoCotizacion estado){return Cotizacion.builder().id(cotizacionId).sede(sede).user(usuario).estado(estado).total(BigDecimal.ZERO).fechaVigencia(LocalDate.now().plusDays(5)).createdAt(LocalDateTime.now()).build();}
 
-    // ===================== Completado en auditoría de cobertura =====================
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void create_calculaTotalCorrectamente() {
+        Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
+        when(cotizacionMapper.toEntity(any())).thenReturn(c);
+        when(cotizacionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(productoRepository.findById(productoId)).thenReturn(Optional.of(producto()));
+        when(detalleMapper.toEntity(any())).thenReturn(new DetalleCotizacion());
+        ArgumentCaptor<DetalleCotizacion> captor = ArgumentCaptor.forClass(DetalleCotizacion.class);
+
+        service.create(request(LocalDate.now().plusDays(3)));
+
+        verify(detalleRepository).save(captor.capture());
+        assertEquals(new BigDecimal("236.00"), c.getTotal());
+        assertEquals(new BigDecimal("36.00"), captor.getValue().getIgvLinea());
+    }
+
+    @Test
+    void create_productoFraccionableRequiereFraccion() {
+        Producto p = producto();
+        p.setEsFraccionable(true);
+        when(cotizacionMapper.toEntity(any())).thenReturn(cotizacion(EstadoCotizacion.EMITIDA));
+        when(cotizacionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(productoRepository.findById(productoId)).thenReturn(Optional.of(p));
+
+        assertTrue(assertThrows(IllegalArgumentException.class, () -> service.create(request(null)))
+                .getMessage().contains("fracción"));
+    }
+
+    @Test
+    void create_fechaVigenciaPorDefectoEs15Dias() {
+        Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
+        configurarCreate(c);
+
+        service.create(request(null));
+
+        assertEquals(LocalDate.now().plusDays(15), c.getFechaVigencia());
+    }
+
+    @Test
+    void create_fechaVigenciaEnElPasadoLanzaExcepcion() {
+        when(cotizacionMapper.toEntity(any())).thenReturn(cotizacion(EstadoCotizacion.EMITIDA));
+
+        assertThrows(IllegalArgumentException.class, () -> service.create(request(LocalDate.now().minusDays(1))));
+    }
+
+    @Test
+    void update_soloPermiteEstadoEmitida() {
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(cotizacion(EstadoCotizacion.ACEPTADA)));
+
+        assertThrows(IllegalStateException.class, () -> service.update(cotizacionId, request(null)));
+    }
+
+    @Test
+    void aceptar_cotizacionEmitida_cambiaEstadoAAceptada() {
+        Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
+
+        service.aceptar(cotizacionId);
+
+        assertEquals(EstadoCotizacion.ACEPTADA, c.getEstado());
+    }
+
+    @Test
+    void aceptar_cotizacionVencida_cambiaEstadoAVencidaYLanzaExcepcion() {
+        Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
+        c.setFechaVigencia(LocalDate.now().minusDays(1));
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
+
+        assertThrows(IllegalStateException.class, () -> service.aceptar(cotizacionId));
+        assertEquals(EstadoCotizacion.VENCIDA, c.getEstado());
+    }
+
+    @Test
+    void rechazar_guardaMotivoEnObservaciones() {
+        Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
+        c.setObservaciones("Inicial");
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
+
+        service.rechazar(cotizacionId, new RechazarCotizacionRequestDTO("Cliente pospone"));
+
+        assertEquals(EstadoCotizacion.RECHAZADA, c.getEstado());
+        assertTrue(c.getObservaciones().contains("Cliente pospone"));
+    }
+
+    @Test
+    void convertir_soloPermiteEstadoAceptada() {
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(cotizacion(EstadoCotizacion.EMITIDA)));
+
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> service.convertir(cotizacionId, conversion()));
+
+        assertTrue(e.getMessage().contains("EMITIDA"));
+        assertTrue(e.getMessage().contains("ACEPTADA"));
+    }
+
+    @Test
+    void convertir_cotizacionAceptada_llamaVentaServiceYVincula() {
+        Cotizacion c = cotizacion(EstadoCotizacion.ACEPTADA);
+        DetalleCotizacion d = new DetalleCotizacion();
+        d.setProducto(producto());
+        d.setCantidad(BigDecimal.ONE);
+        UUID ventaId = UUID.randomUUID();
+        Venta venta = new Venta();
+        venta.setId(ventaId);
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
+        when(detalleRepository.findByCotizacion_Id(cotizacionId)).thenReturn(List.of(d));
+        when(ventaService.registrar(any())).thenReturn(new VentaProcesadaResponseDTO(ventaId, "B001-1",
+                BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("118"), "COMPLETADA", "T001-1", "Pendiente SUNAT"));
+        when(ventaRepository.findById(ventaId)).thenReturn(Optional.of(venta));
+        when(cotizacionRepository.save(c)).thenReturn(c);
+
+        service.convertir(cotizacionId, conversion());
+
+        verify(ventaService).registrar(any());
+        verify(cotizacionRepository).save(c);
+        assertEquals(EstadoCotizacion.CONVERTIDA, c.getEstado());
+        assertSame(venta, c.getVenta());
+    }
+
+    @Test
+    void delete_soloPermiteEstadoEmitida() {
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(cotizacion(EstadoCotizacion.ACEPTADA)));
+
+        assertThrows(IllegalStateException.class, () -> service.delete(cotizacionId));
+    }
+
+    @Test
+    void delete_eliminaDetallesAntesDeCotizacion() {
+        Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
+        when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
+
+        service.delete(cotizacionId);
+
+        InOrder order = inOrder(detalleRepository, cotizacionRepository);
+        order.verify(detalleRepository).deleteByCotizacion_Id(cotizacionId);
+        order.verify(cotizacionRepository).delete(c);
+    }
+
+    private void configurarCreate(Cotizacion c) {
+        when(cotizacionMapper.toEntity(any())).thenReturn(c);
+        when(cotizacionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(productoRepository.findById(productoId)).thenReturn(Optional.of(producto()));
+        when(detalleMapper.toEntity(any())).thenReturn(new DetalleCotizacion());
+    }
+
+    private CotizacionRequestDTO request(LocalDate fecha) {
+        return new CotizacionRequestDTO(sedeId, null, fecha, "",
+                List.of(new DetalleCotizacionCommandDTO(productoId, null, null, new BigDecimal("2"))));
+    }
+
+    private ConvertirCotizacionRequestDTO conversion() {
+        return new ConvertirCotizacionRequestDTO(UUID.randomUUID(), UUID.randomUUID(),
+                TipoComprobante.BOLETA, CanalVenta.LOCAL, null,
+                List.of(new PagoVentaCommandDTO(MetodoPago.EFECTIVO, new BigDecimal("118"), null)));
+    }
+
+    private Producto producto() {
+        return Producto.builder().id(productoId).nombre("Plancha")
+                .precioVentaBase(new BigDecimal("118.00"))
+                .esFraccionable(false).activo(true).build();
+    }
+
+    private Cotizacion cotizacion(EstadoCotizacion estado) {
+        return Cotizacion.builder().id(cotizacionId).sede(sede).user(usuario).estado(estado)
+                .total(BigDecimal.ZERO).fechaVigencia(LocalDate.now().plusDays(5))
+                .createdAt(LocalDateTime.now()).build();
+    }
+
+    // ============================================================
+    // TESTS ADICIONALES (auditoría de cobertura)
+    // ============================================================
+
     @Test
     void findById_armaRespuestaConLineasYUsuario() {
         Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
         c.setCliente(Cliente.builder().id(UUID.randomUUID()).nombre("Constructora Lima").build());
         when(cotizacionRepository.findById(cotizacionId)).thenReturn(Optional.of(c));
         when(detalleRepository.findByCotizacion_Id(cotizacionId)).thenReturn(List.of(
-                DetalleCotizacion.builder().id(UUID.randomUUID()).producto(producto()).cantidad(new BigDecimal("2")).build()));
+                DetalleCotizacion.builder().id(UUID.randomUUID()).producto(producto())
+                        .cantidad(new BigDecimal("2")).build()));
 
         CotizacionResponseDTO r = service.findById(cotizacionId);
 
@@ -154,9 +286,12 @@ class CotizacionServiceImplTest {
     void search_mapeaListadoConClienteOpcional() {
         Pageable p = PageRequest.of(0, 10);
         Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
-        when(cotizacionRepository.buscar(null, sedeId, EstadoCotizacion.EMITIDA, RangosConsulta.DESDE_ABIERTO, RangosConsulta.HASTA_ABIERTO, p)).thenReturn(new PageImpl<>(List.of(c)));
+        // Firma nueva: buscar(clienteId, sedeId, userId, estado, desde, hasta, pageable)
+        when(cotizacionRepository.buscar(null, sedeId, null, EstadoCotizacion.EMITIDA, null, null, p))
+                .thenReturn(new PageImpl<>(List.of(c)));
 
-        Page<CotizacionListadoDTO> r = service.search(null, sedeId, EstadoCotizacion.EMITIDA, null, null, p);
+        // Firma nueva: search(clienteId, sedeId, userId, estado, desde, hasta, pageable)
+        Page<CotizacionListadoDTO> r = service.search(null, sedeId, null, EstadoCotizacion.EMITIDA, null, null, p);
 
         assertEquals(1, r.getTotalElements());
         assertNull(r.getContent().get(0).clienteId());
@@ -164,19 +299,27 @@ class CotizacionServiceImplTest {
     }
 
     @Test
-    void search_desdePosteriorAHasta_lanzaIllegalArgument() {
-        LocalDateTime ahora = LocalDateTime.now();
+    void search_conUserId_mapeaListadoConUsuarioFiltrado() {
+        Pageable p = PageRequest.of(0, 10);
+        UUID userId = UUID.randomUUID();
+        Cotizacion c = cotizacion(EstadoCotizacion.EMITIDA);
+        when(cotizacionRepository.buscar(null, sedeId, userId, EstadoCotizacion.EMITIDA, null, null, p))
+                .thenReturn(new PageImpl<>(List.of(c)));
 
-        assertThrows(IllegalArgumentException.class, () -> service.search(null, null, null, ahora, ahora.minusHours(1), PageRequest.of(0, 10)));
-        verifyNoInteractions(cotizacionRepository);
+        Page<CotizacionListadoDTO> r = service.search(null, sedeId, userId, EstadoCotizacion.EMITIDA, null, null, p);
+
+        assertEquals(1, r.getTotalElements());
+        verify(cotizacionRepository).buscar(null, sedeId, userId, EstadoCotizacion.EMITIDA, null, null, p);
     }
 
     @Test
     void vencidas_marcaComoVencidasLasEmitidasConVigenciaPasada() {
         Cotizacion a = cotizacion(EstadoCotizacion.EMITIDA);
-        Cotizacion b = Cotizacion.builder().id(UUID.randomUUID()).sede(sede).user(usuario).estado(EstadoCotizacion.EMITIDA)
-                .total(BigDecimal.TEN).fechaVigencia(LocalDate.now().minusDays(1)).build();
-        when(cotizacionRepository.findByEstadoAndFechaVigenciaBefore(EstadoCotizacion.EMITIDA, LocalDate.now())).thenReturn(List.of(a, b));
+        Cotizacion b = Cotizacion.builder().id(UUID.randomUUID()).sede(sede).user(usuario)
+                .estado(EstadoCotizacion.EMITIDA).total(BigDecimal.TEN)
+                .fechaVigencia(LocalDate.now().minusDays(1)).build();
+        when(cotizacionRepository.findByEstadoAndFechaVigenciaBefore(EstadoCotizacion.EMITIDA, LocalDate.now()))
+                .thenReturn(List.of(a, b));
         when(cotizacionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         List<CotizacionListadoDTO> r = service.vencidas();

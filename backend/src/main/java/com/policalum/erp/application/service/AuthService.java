@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +39,8 @@ public class AuthService {
     public LoginResponseDTO login(LoginRequestDTO request, String ip) {
         // 1. Buscar usuario por email
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadCredentialsException("Credenciales inválidas. Verifica tu email y contraseña."));
+                .orElseThrow(
+                        () -> new BadCredentialsException("Credenciales inválidas. Verifica tu email y contraseña."));
 
         if (!user.getActivo()) {
             throw new AccessDeniedException("Tu cuenta está inactiva. Contacta al administrador del sistema.");
@@ -51,7 +51,8 @@ public class AuthService {
         }
 
         user.setUltimoLogin(LocalDateTime.now());
-        if (ip != null && !ip.isBlank()) user.setUltimoIp(ip.length() > 45 ? ip.substring(0, 45) : ip);
+        if (ip != null && !ip.isBlank())
+            user.setUltimoIp(ip.length() > 45 ? ip.substring(0, 45) : ip);
         userRepository.save(user);
 
         return respuesta(user);
@@ -75,11 +76,15 @@ public class AuthService {
         return respuesta(user);
     }
 
-    /** Revoca solo el refresh de este navegador y su access token. Las demás sesiones siguen. */
+    /**
+     * Revoca solo el refresh de este navegador y su access token. Las demás
+     * sesiones siguen.
+     */
     @Transactional
     public void cerrarSesion(String refreshToken, String accessToken) {
         tokenDenylist.revocar(accessToken);
-        if (refreshToken == null || refreshToken.isBlank()) return;
+        if (refreshToken == null || refreshToken.isBlank())
+            return;
         refreshTokenRepository.findByTokenHash(hash(refreshToken)).ifPresent(guardado -> {
             guardado.setRevocado(true);
             refreshTokenRepository.save(guardado);
@@ -93,17 +98,24 @@ public class AuthService {
         return emitirRefresh(user);
     }
 
+    // ✅ MÉTODO QUE FALTABA: arma el LoginResponseDTO con sedeId y sedeNombre
     private LoginResponseDTO respuesta(User user) {
         String token = jwtUtil.generateToken(user);
-        String refresh = emitirRefresh(user);
+        String refreshToken = emitirRefresh(user);
+
+        String sedeId = user.getSede() != null ? user.getSede().getId().toString() : null;
+        String sedeNombre = user.getSede() != null ? user.getSede().getNombre() : null;
+
         return new LoginResponseDTO(
                 token,
-                user.getId(),
-                user.getNombre() + " " + user.getApellido(),
+                user.getId().toString(),
+                user.getNombre(),
                 user.getEmail(),
                 user.getRol().getNombre().name(),
-                user.getTotpEnabled() != null && user.getTotpEnabled(),
-                refresh
+                user.getTotpEnabled(),
+                sedeId,
+                sedeNombre,
+                refreshToken
         );
     }
 

@@ -1,0 +1,460 @@
+/* =========================================================
+   DASHBOARD "MI DÍA" — MULTIFUNCIONAL
+   Responsive: XXS / XS / S / M / L / XL / XXL
+   ========================================================= */
+
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  color: var(--color-text);
+}
+
+.mi-dia {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ─────────── ENCABEZADO ─────────── */
+
+.mi-dia-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-info) 100%);
+  border-radius: var(--radius-lg);
+  color: #fff;
+}
+
+.saludo h1 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.5vw, 1.6rem);
+  font-weight: 700;
+  color: #fff;
+}
+
+.subtitulo {
+  margin: 0.35rem 0 0;
+  font-size: var(--text-sm);
+  opacity: 0.9;
+  text-transform: capitalize;
+}
+
+.estado-dia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+}
+
+.estado-dia .dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--color-danger);
+}
+
+.estado-dia.en-turno .dot {
+  background: var(--color-success);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25); }
+  50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+}
+
+/* ─────────── BANNER DE PAGO ─────────── */
+
+.banner-pago {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  border-left: 4px solid;
+  font-size: var(--text-sm);
+}
+
+.banner-pago.hoy {
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.banner-pago.tres-dias {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.banner-pago.siete-dias {
+  background: var(--color-info-bg);
+  border-color: var(--color-info);
+  color: var(--color-info);
+}
+
+.banner-icono {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.banner-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.banner-texto strong {
+  font-size: var(--text-md);
+}
+
+.banner-texto small {
+  opacity: 0.85;
+}
+
+/* ─────────── GRID ─────────── */
+
+.mi-dia-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tarjeta-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.tarjeta-head h2 {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.chip:hover {
+  background: var(--color-info-bg);
+  border-color: var(--color-info);
+  color: var(--color-info);
+}
+
+/* ─────────── DATOS RESUMEN ─────────── */
+
+.asistencia-resumen,
+.ventas-resumen,
+.turno-datos,
+.desempeno-grid,
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.resumen-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.resumen-dato span {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.resumen-dato strong {
+  color: var(--color-text);
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.resumen-dato.grande strong {
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
+}
+
+.resumen-dato small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.resumen-dato.sueldo {
+  grid-column: 1 / -1;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* ─────────── ASISTENCIAS ─────────── */
+
+.marcas-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.marca {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.45rem 0.65rem;
+  background: var(--color-bg-subtle);
+  border-left: 3px solid;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.marca-success { border-color: var(--color-success); }
+.marca-info    { border-color: var(--color-info); }
+.marca-warning { border-color: var(--color-warning); }
+.marca-muted   { border-color: var(--color-border); }
+
+.marca-tipo {
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.marca-hora {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+/* ─────────── TURNO ─────────── */
+
+.turno-estado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--color-danger-bg);
+  border-radius: var(--radius-md);
+}
+
+.turno-estado.abierto {
+  background: var(--color-success-bg);
+}
+
+.turno-badge {
+  padding: 0.3rem 0.8rem;
+  background: var(--color-danger);
+  color: #fff;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.turno-estado.abierto .turno-badge {
+  background: var(--color-success);
+}
+
+.turno-estado small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+/* ─────────── DESEMPEÑO ─────────── */
+
+.desempeno-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.desempeno-grid .resumen-dato:first-child,
+.desempeno-grid .resumen-dato:nth-child(2) {
+  grid-column: span 1;
+}
+
+/* ─────────── TAREAS ─────────── */
+
+.tareas-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tareas-lista li a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  overflow-wrap: anywhere;
+}
+
+.tareas-lista li a:hover {
+  background: var(--color-info-bg);
+}
+
+.tareas-lista strong {
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.tareas-lista strong.destacado {
+  color: var(--color-primary);
+}
+
+/* ─────────── ATAJOS ─────────── */
+
+.atajos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.atajo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 1rem 0.5rem;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.atajo:hover {
+  background: var(--color-info-bg);
+  border-color: var(--color-info);
+  transform: translateY(-2px);
+}
+
+.atajo-icono {
+  font-size: 1.6rem;
+}
+
+.atajo-texto {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ─────────── ESTADOS ─────────── */
+
+.vacio {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: 1rem;
+}
+
+.estado-carga,
+.estado-error {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.estado-error {
+  color: var(--color-danger);
+}
+
+/* ─────────── RESPONSIVE ─────────── */
+
+@media (max-width: 767px) {
+  .mi-dia-header {
+    padding: 1rem 1.2rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .estado-dia {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .mi-dia-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .asistencia-resumen,
+  .ventas-resumen,
+  .desempeno-grid,
+  .info-grid,
+  .turno-datos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .atajos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .banner-pago {
+    padding: 0.85rem 1rem;
+  }
+
+  .banner-icono {
+    font-size: 1.4rem;
+  }
+}
