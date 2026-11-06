@@ -34,6 +34,9 @@ public interface StockRepository extends JpaRepository<Stock, UUID> {
     @EntityGraph(attributePaths = {"producto", "almacen"})
     List<Stock> findByProducto_Id(UUID productoId);
 
+    @EntityGraph(attributePaths = {"producto", "almacen"})
+    List<Stock> findByProducto_IdAndAlmacen_Sede_Id(UUID productoId, UUID sedeId);
+
     /**
      * Búsqueda paginada de stock por almacén.
      *

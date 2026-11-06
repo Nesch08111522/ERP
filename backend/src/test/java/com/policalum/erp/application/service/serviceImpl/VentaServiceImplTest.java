@@ -59,7 +59,8 @@ class VentaServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        vendedor = User.builder().id(UUID.randomUUID()).nombre("Ana").apellido("Ruiz").email(EMAIL).build();
+        vendedor = User.builder().id(UUID.randomUUID()).nombre("Ana").apellido("Ruiz").email(EMAIL)
+                .rol(Rol.builder().nombre(RolNombre.ROLE_MULTIFUNCIONAL).build()).build();
         SecurityContext context = mock(SecurityContext.class);
         auth = mock(Authentication.class);
         lenient().when(auth.getName()).thenReturn(EMAIL);
@@ -69,6 +70,7 @@ class VentaServiceImplTest {
         lenient().when(userRepository.findByEmailAndActivoTrue(EMAIL)).thenReturn(Optional.of(vendedor));
 
         sede = Sede.builder().id(UUID.randomUUID()).nombre("Centro").build();
+        vendedor.setSede(sede);
         almacen = Almacen.builder().id(UUID.randomUUID()).sede(sede).build();
         turno = TurnoCaja.builder().id(UUID.randomUUID()).user(vendedor).sede(sede).estado(EstadoTurno.ABIERTO).build();
         producto = Producto.builder().id(UUID.randomUUID()).nombre("Vidrio 6mm").activo(true).esFraccionable(false)
@@ -418,6 +420,16 @@ class VentaServiceImplTest {
         when(ventaRepository.findDetalleById(id)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.obtener(id));
+    }
+
+    @Test
+    void obtener_multifuncionalNoPuedeVerVentaDeOtraSede() {
+        Venta v = ventaRegistrada(EstadoVenta.COMPLETADA, vendedor);
+        v.setSede(Sede.builder().id(UUID.randomUUID()).nombre("Otra sede").build());
+        when(ventaRepository.findDetalleById(v.getId())).thenReturn(Optional.of(v));
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.obtener(v.getId()));
+        verifyNoInteractions(detalleRepository, pagoRepository);
     }
 
     @Test

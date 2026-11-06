@@ -1,44 +1,75 @@
-<section class="escenario">
-  <div class="brillo brillo-a"></div>
-  <div class="brillo brillo-b"></div>
+<main class="escenario">
+  <div class="brillo brillo-a" aria-hidden="true"></div>
+  <div class="brillo brillo-b" aria-hidden="true"></div>
+  <div class="rejilla-fondo" aria-hidden="true"></div>
 
   <header class="bienvenida">
-    <img class="logo" [src]="marca.logoSrc()" [alt]="marca.nombre()" />
-    <p class="empresa">{{ marca.nombre() }}</p>
+    <div class="marca-linea">
+      <span class="marca-orb"><img class="logo" [src]="marca.logoSrc()" [alt]="marca.nombre()" /></span>
+      <span class="empresa">{{ marca.nombre() }}</span>
+    </div>
+    <p class="eyebrow">Espacio de trabajo</p>
     <h1>{{ administrador ? 'Bienvenido, administrador' : 'Bienvenido, ' + nombre }}</h1>
     <p class="pregunta">
-      {{ administrador ? '¿Qué sede quieres visualizar?' : '¿Dónde quieres trabajar hoy?' }}
+      {{ administrador ? '¿Qué sede quieres visualizar?' : '¿En dónde quieres trabajar el día de hoy?' }}
+    </p>
+    <p class="subpregunta">
+      {{ administrador ? 'Elige el espacio que quieres gestionar para continuar.' : 'Tu operación se adaptará a la sede que elijas.' }}
     </p>
   </header>
 
-  <p class="estado" *ngIf="cargando">Cargando sedes…</p>
-  <p class="estado fallo" *ngIf="error">{{ error }}</p>
+  <div class="estado estado-carga" *ngIf="cargando" role="status" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    Cargando sedes disponibles…
+  </div>
+  <p class="estado fallo" *ngIf="error" role="alert">{{ error }}</p>
 
-  <div class="rejilla" *ngIf="!cargando && !error">
-    <button type="button" class="tarjeta" *ngFor="let sede of sedes" (click)="elegir(sede)">
+  <section class="rejilla" *ngIf="!cargando && !error" aria-label="Sedes disponibles">
+    <button
+      type="button"
+      class="tarjeta"
+      *ngFor="let sede of sedes"
+      (click)="elegir(sede)"
+      [attr.aria-label]="'Entrar a ' + sede.nombre"
+    >
+      <span class="tarjeta-topline">
+        <span class="tipo-sede">Sede operativa</span>
+        <span class="flecha" aria-hidden="true">↗</span>
+      </span>
       <span class="medalla" *ngIf="foto(sede) as src; else iconoSede">
         <img [src]="src" alt="" />
       </span>
       <ng-template #iconoSede>
-        <span class="medalla" *ngIf="!sede.imagen; else edificio"><img [src]="marca.logoSrc()" alt="" /></span>
+        <span class="medalla" *ngIf="!sede.imagen; else edificio"><app-icon name="building"></app-icon></span>
         <ng-template #edificio><span class="medalla"><app-icon name="building"></app-icon></span></ng-template>
       </ng-template>
       <strong>{{ sede.nombre }}</strong>
       <span class="lugar"><app-icon name="pin"></app-icon>{{ lugar(sede) }}</span>
+      <span class="entrar">Entrar a esta sede <span aria-hidden="true">→</span></span>
     </button>
 
-    <button type="button" class="tarjeta general" (click)="todas()">
+    <button type="button" class="tarjeta general" (click)="todas()" [attr.aria-label]="administrador ? 'Ver todas las sedes' : 'Trabajar en todas las sedes'">
+      <span class="tarjeta-topline">
+        <span class="tipo-sede">Vista consolidada</span>
+        <span class="flecha" aria-hidden="true">↗</span>
+      </span>
       <span class="medalla"><app-icon name="layers"></app-icon></span>
       <strong>{{ administrador ? 'Ver todas las sedes' : 'Multisedes' }}</strong>
-      <span class="lugar">{{ administrador ? 'Gestión general, como está ahora' : 'Trabajar en todas las sedes' }}</span>
+      <span class="lugar">{{ administrador ? 'Gestión general de toda la operación' : 'Trabajar en todas las sedes' }}</span>
+      <span class="entrar">Continuar con vista general <span aria-hidden="true">→</span></span>
     </button>
 
-    <button type="button" class="tarjeta crear" *ngIf="administrador" (click)="crear()">
+    <button type="button" class="tarjeta crear" *ngIf="administrador" (click)="crear()" aria-label="Crear una nueva sede">
+      <span class="tarjeta-topline">
+        <span class="tipo-sede">Configuración</span>
+        <span class="flecha" aria-hidden="true">＋</span>
+      </span>
       <span class="medalla"><app-icon name="plus"></app-icon></span>
-      <strong>Crear una sede</strong>
-      <span class="lugar">Para monitorear desde dónde se venderá</span>
+      <strong>Crear una nueva sede</strong>
+      <span class="lugar">Agrega un nuevo punto donde se venderá</span>
+      <span class="entrar">Configurar sede <span aria-hidden="true">→</span></span>
     </button>
-  </div>
+  </section>
 
   <button type="button" class="salir" (click)="salir()">Cerrar sesión</button>
-</section>
+</main>

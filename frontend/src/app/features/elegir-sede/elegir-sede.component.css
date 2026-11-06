@@ -1,152 +1,1024 @@
+
+/* ============================================================
+   POLICALUM ERP
+   SELECTOR DE SEDES — PROFILE SELECTION UI
+   Inspiración: Netflix / Prime Video
+   Responsive: XS / S / M / L / XL
+   Tema: Dark / Light
+   ============================================================ */
+
+/* ============================================================
+   01. CONFIGURACIÓN GENERAL
+   ============================================================ */
+
 :host {
   display: block;
   min-height: 100vh;
-  color: #f4f8ff;
-  background:
-    radial-gradient(900px 420px at 50% -10%, rgba(31, 162, 214, 0.35), transparent 60%),
-    linear-gradient(180deg, #071426 0%, #0c2344 48%, #07111f 100%);
+  min-height: 100dvh;
+
+  font-family: var(
+    --font-sans,
+    "Segoe UI",
+    Inter,
+    system-ui,
+    sans-serif
+  );
+
+  color: var(--color-text, #f4f7fb);
+  background: var(--color-bg, #1A1C2B);
 }
 
 .escenario {
+  --accent: var(--color-primary, #1fa2d6);
+  --accent-light: var(--color-info, #61d4e8);
+
   position: relative;
-  min-height: 100vh;
+  isolation: isolate;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.6rem;
-  padding: 3rem 1.25rem 2rem;
+
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  box-sizing: border-box;
+  padding: clamp(2rem, 5vh, 4rem) 1.5rem;
+
+  gap: clamp(1.5rem, 3vh, 2.5rem);
+
   overflow: hidden;
+
+  background:
+    radial-gradient(
+      ellipse at 50% -20%,
+      rgba(31, 162, 214, 0.14),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 100% 100%,
+      rgba(7, 85, 145, 0.10),
+      transparent 45%
+    ),
+    var(--color-bg, #1A1C2B);
+}
+
+.escenario *,
+.escenario *::before,
+.escenario *::after {
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   02. FONDO DECORATIVO
+   ============================================================ */
+
+.escenario::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.018),
+      transparent 45%,
+      rgba(31, 162, 214, 0.025)
+    );
+}
+
+.rejilla-fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  pointer-events: none;
+
+  opacity: 0.13;
+
+  background-image:
+    linear-gradient(
+      rgba(97, 212, 232, 0.10) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(97, 212, 232, 0.10) 1px,
+      transparent 1px
+    );
+
+  background-size: 64px 64px;
+
+  mask-image: linear-gradient(
+    to bottom,
+    black,
+    transparent 85%
+  );
 }
 
 .brillo {
   position: absolute;
+  z-index: -1;
+
   width: 28rem;
   height: 28rem;
+
   border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.35;
+  filter: blur(100px);
+
+  opacity: 0.12;
   pointer-events: none;
 }
 
-.brillo-a { top: -8rem; left: -6rem; background: #1fa2d6; }
-.brillo-b { right: -8rem; bottom: -10rem; background: #075591; }
+.brillo-a {
+  top: -19rem;
+  left: -10rem;
+  background: #1fa2d6;
+}
+
+.brillo-b {
+  right: -16rem;
+  bottom: -18rem;
+  background: #075591;
+}
+
+/* ============================================================
+   03. CAPAS PRINCIPALES
+   ============================================================ */
 
 .bienvenida,
 .rejilla,
 .estado,
-.salir { position: relative; z-index: 1; }
-
-.bienvenida { text-align: center; max-width: 46rem; }
-
-.logo {
-  width: 4.5rem;
-  height: 4.5rem;
-  object-fit: contain;
-  border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0.35rem;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+.salir {
+  position: relative;
+  z-index: 1;
 }
 
-.empresa {
-  margin: 0.85rem 0 0;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  color: #9fd8f2;
-}
+/* ============================================================
+   04. ENCABEZADO CORPORATIVO
+   ============================================================ */
 
-h1 {
-  margin: 0.35rem 0 0;
-  font-size: clamp(1.7rem, 3vw, 2.5rem);
-  font-weight: 750;
-  letter-spacing: -0.03em;
-}
+.bienvenida {
+  width: min(100%, 850px);
 
-.pregunta {
-  margin: 0.45rem 0 0;
-  color: #c5d7ea;
-  font-size: 1.05rem;
-}
-
-.estado { color: #c5d7ea; }
-.estado.fallo { color: #ffb4b4; }
-
-.rejilla {
-  width: min(1120px, 100%);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 260px));
-  gap: 1rem;
-  justify-content: center;
-}
-
-.tarjeta {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.7rem;
-  min-height: 13.5rem;
-  padding: 1.4rem 1rem 1.2rem;
+
   text-align: center;
-  color: inherit;
-  background: rgba(16, 42, 82, 0.55);
-  border: 1px solid rgba(180, 214, 245, 0.22);
-  border-radius: 1.15rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 16px 40px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(10px);
-  cursor: pointer;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+
+  animation: aparecer 500ms ease both;
 }
 
-.tarjeta:hover,
-.tarjeta:focus-visible {
-  transform: translateY(-4px);
-  border-color: #7fd4f5;
-  background: rgba(22, 62, 116, 0.72);
-  outline: none;
-}
-
-.medalla {
-  width: 3.4rem;
-  height: 3.4rem;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(31, 162, 214, 0.18);
-  color: #9fd8f2;
-  overflow: hidden;
-}
-
-.medalla img { width: 100%; height: 100%; object-fit: cover; }
-
-.tarjeta strong { font-size: 1.05rem; line-height: 1.3; }
-
-.lugar {
+.marca-linea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  color: #b7cbe0;
-  font-size: 0.86rem;
-  line-height: 1.35;
+
+  gap: 0.75rem;
+  margin-bottom: 2rem;
 }
 
-.crear { border-style: dashed; }
+.marca-orb {
+  display: grid;
+  place-items: center;
+
+  width: 2.8rem;
+  height: 2.8rem;
+  padding: 0.35rem;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+
+  box-shadow: var(--shadow-md);
+}
+
+.logo {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+  border-radius: 7px;
+}
+
+.empresa {
+  color: var(--color-text);
+
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.65rem;
+  margin: 0 0 0.8rem;
+
+  color: var(--color-info);
+
+  font-size: 0.73rem;
+  font-weight: 750;
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+}
+
+.eyebrow::before,
+.eyebrow::after {
+  content: "";
+
+  width: 1.5rem;
+  height: 1px;
+
+  background: currentColor;
+  opacity: 0.55;
+}
+
+/* ============================================================
+   05. SALUDO PERSONALIZADO
+   ============================================================ */
+
+.bienvenida h1 {
+  max-width: 100%;
+
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+
+  overflow-wrap: anywhere;
+}
+
+.pregunta {
+  margin: 1rem 0 0;
+
+  color: var(--color-text);
+
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.subpregunta {
+  max-width: 39rem;
+
+  margin: 0.55rem auto 0;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.92rem;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+/* ============================================================
+   06. ESTADO DE CARGA
+   ============================================================ */
+
+.estado {
+  position: relative;
+  z-index: 1;
+
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.estado-carga {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.75rem;
+
+  padding: 0.9rem 1.3rem;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.spinner {
+  display: inline-block;
+
+  width: 1.1rem;
+  height: 1.1rem;
+
+  flex: 0 0 auto;
+
+  border: 2px solid var(--color-border-strong);
+  border-top-color: var(--color-primary);
+
+  border-radius: 50%;
+
+  animation: girar 0.8s linear infinite;
+}
+
+/* ============================================================
+   07. ESTADO DE ERROR
+   ============================================================ */
+
+.estado.fallo {
+  width: min(100%, 36rem);
+
+  padding: 1rem 1.2rem;
+
+  color: var(--color-danger);
+
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(225, 91, 100, 0.3);
+  border-radius: var(--radius-md);
+
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   08. CUADRÍCULA DINÁMICA DE SEDES
+   ============================================================ */
+
+.rejilla {
+  display: grid;
+
+  width: min(100%, 1120px);
+
+  /*
+    Auto-fit permite adaptar automáticamente
+    la cantidad de tarjetas por fila.
+
+    No depende de cuántas sedes existan.
+  */
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+
+  gap: clamp(0.85rem, 1.8vw, 1.5rem);
+
+  justify-content: center;
+  align-items: stretch;
+
+  margin: 0 auto;
+
+  animation: aparecer 650ms ease both;
+}
+
+/* ============================================================
+   09. TARJETAS TIPO PERFIL
+   ============================================================ */
+
+.tarjeta {
+  --card-accent: var(--color-primary, #1fa2d6);
+
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 0;
+  min-height: 190px;
+
+  gap: 0.7rem;
+
+  padding: 1.3rem 1rem;
+
+  overflow: hidden;
+
+  color: var(--color-text);
+  font-family: inherit;
+
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-xl);
+
+  cursor: pointer;
+
+  transition:
+    transform var(--transition-base),
+    background var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+/* Línea decorativa */
+
+.tarjeta::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 18%;
+  right: 18%;
+
+  height: 2px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--card-accent),
+    transparent
+  );
+
+  opacity: 0;
+
+  transition: opacity var(--transition-base);
+}
+
+/* ============================================================
+   10. ENCABEZADO INTERNO DE TARJETA
+   ============================================================ */
+
+.tarjeta-topline {
+  display: none;
+}
+
+.tipo-sede {
+  color: var(--color-text-muted);
+}
+
+.flecha {
+  color: var(--color-primary);
+}
+
+/* ============================================================
+   11. ICONOS E IMÁGENES DE SEDE
+   ============================================================ */
+
+.medalla {
+  display: grid;
+  place-items: center;
+
+  width: clamp(5rem, 7vw, 6.5rem);
+  height: clamp(5rem, 7vw, 6.5rem);
+
+  flex: 0 0 auto;
+
+  margin: 0.15rem 0 0.5rem;
+
+  overflow: hidden;
+
+  color: var(--color-info);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31, 162, 214, 0.18),
+      rgba(31, 162, 214, 0.07)
+    );
+
+  border: 2px solid var(--color-border-strong);
+  border-radius: 20px;
+
+  box-shadow: var(--shadow-sm);
+
+  transition:
+    transform var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    background var(--transition-base);
+}
+
+.medalla app-icon {
+  font-size: 2.5rem;
+}
+
+.medalla img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+/* ============================================================
+   12. NOMBRE DE LA SEDE
+   ============================================================ */
+
+.tarjeta strong {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.4;
+
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   13. UBICACIÓN
+   ============================================================ */
+
+.lugar {
+  display: inline-flex;
+
+  width: 100%;
+  min-height: 2rem;
+
+  align-items: flex-start;
+  justify-content: center;
+
+  gap: 0.4rem;
+
+  color: var(--color-text-muted);
+
+  font-size: 0.79rem;
+  line-height: 1.45;
+
+  text-align: center;
+}
+
+.lugar app-icon {
+  flex: 0 0 auto;
+
+  margin-top: 0.1rem;
+
+  color: var(--color-info);
+}
+
+/* ============================================================
+   14. ACCIÓN ENTRAR
+   ============================================================ */
+
+.entrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.35rem;
+
+  margin-top: 0.2rem;
+
+  color: var(--color-primary);
+
+  font-size: 0.78rem;
+  font-weight: 750;
+
+  opacity: 0;
+
+  transition:
+    opacity var(--transition-base),
+    gap var(--transition-base),
+    color var(--transition-base);
+}
+
+.entrar span {
+  font-size: 1.05rem;
+}
+
+/* ============================================================
+   15. INTERACCIONES
+   ============================================================ */
+
+.tarjeta:hover {
+  transform: translateY(-4px);
+
+  background: rgba(31, 162, 214, 0.055);
+
+  border-color: var(--color-border-strong);
+
+  box-shadow: var(--shadow-md);
+}
+
+.tarjeta:hover::before {
+  opacity: 1;
+}
+
+.tarjeta:hover .medalla {
+  transform: scale(1.07);
+
+  border-color: var(--card-accent);
+
+  box-shadow:
+    0 0 0 4px rgba(31, 162, 214, 0.06),
+    0 8px 25px rgba(31, 162, 214, 0.13);
+}
+
+.tarjeta:hover .entrar,
+.tarjeta:focus-visible .entrar {
+  opacity: 1;
+  gap: 0.65rem;
+}
+
+.tarjeta:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+/* ============================================================
+   16. VISTA CONSOLIDADA
+   ============================================================ */
+
+.tarjeta.general {
+  --card-accent: #61d4e8;
+}
+
+.tarjeta.general .medalla {
+  color: #61d4e8;
+
+  background: rgba(97, 212, 232, 0.12);
+
+  border-color: rgba(97, 212, 232, 0.3);
+}
+
+.tarjeta.general:hover .medalla {
+  background: rgba(97, 212, 232, 0.2);
+  border-color: #61d4e8;
+}
+
+/* ============================================================
+   17. CREAR NUEVA SEDE
+   ============================================================ */
+
+.tarjeta.crear {
+  --card-accent: var(--color-success);
+
+  border: 1px dashed rgba(31, 157, 98, 0.4);
+
+  background: rgba(31, 157, 98, 0.025);
+}
+
+.tarjeta.crear .medalla {
+  color: var(--color-success);
+
+  background: var(--color-success-bg);
+
+  border: 2px dashed rgba(31, 157, 98, 0.55);
+}
+
+.tarjeta.crear .entrar {
+  color: var(--color-success);
+}
+
+.tarjeta.crear:hover {
+  border-color: var(--color-success);
+
+  background: rgba(31, 157, 98, 0.07);
+
+  box-shadow: 0 8px 25px rgba(31, 157, 98, 0.08);
+}
+
+/* ============================================================
+   18. CERRAR SESIÓN
+   ============================================================ */
 
 .salir {
-  margin-top: 0.4rem;
-  color: #9fb4c9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+  z-index: 1;
+
+  margin-top: 0.2rem;
+  padding: 0.65rem 1.1rem;
+
+  color: var(--color-text-muted);
+
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+
   background: transparent;
-  border: 0;
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+
+  transition:
+    color var(--transition-base),
+    background var(--transition-base),
+    border-color var(--transition-base);
 }
 
-.salir:hover { color: white; }
+.salir:hover {
+  color: var(--color-danger);
 
-@media (max-width: 640px) {
-  .rejilla { grid-template-columns: 1fr; }
-  .tarjeta { min-height: 0; }
+  background: var(--color-danger-bg);
+
+  border-color: rgba(225, 91, 100, 0.25);
+}
+
+.salir:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   19. ANIMACIONES
+   ============================================================ */
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   20. XL — ESCRITORIOS GRANDES
+   ============================================================ */
+
+@media (min-width: 1200px) {
+  .rejilla {
+    grid-template-columns:
+      repeat(auto-fit, minmax(190px, 220px));
+
+    max-width: 1120px;
+  }
+
+  .tarjeta {
+    min-height: 205px;
+  }
+}
+
+/* ============================================================
+   21. L — LAPTOPS Y TABLETS GRANDES
+   ============================================================ */
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .escenario {
+    justify-content: center;
+  }
+
+  .rejilla {
+    grid-template-columns:
+      repeat(auto-fit, minmax(190px, 1fr));
+
+    max-width: 850px;
+  }
+}
+
+/* ============================================================
+   22. M — TABLETS PEQUEÑAS
+   ============================================================ */
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .escenario {
+    justify-content: flex-start;
+    padding-top: 3rem;
+  }
+
+  .rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 600px;
+  }
+
+  .tarjeta {
+    min-height: 175px;
+  }
+
+  .medalla {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .entrar {
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   23. S — MÓVILES
+   ============================================================ */
+
+@media (min-width: 375px) and (max-width: 639px) {
+  .escenario {
+    justify-content: flex-start;
+
+    padding: 2.5rem 1rem 1.5rem;
+
+    gap: 1.6rem;
+  }
+
+  .bienvenida {
+    margin-top: 0.5rem;
+  }
+
+  .marca-linea {
+    margin-bottom: 1.5rem;
+  }
+
+  .bienvenida h1 {
+    font-size: clamp(1.85rem, 7vw, 2.4rem);
+  }
+
+  .rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    width: 100%;
+    max-width: 480px;
+
+    gap: 0.65rem;
+  }
+
+  .tarjeta {
+    min-height: 165px;
+    padding: 0.9rem 0.45rem;
+    gap: 0.6rem;
+  }
+
+  .medalla {
+    width: 4.4rem;
+    height: 4.4rem;
+
+    border-radius: 15px;
+  }
+
+  .medalla app-icon {
+    font-size: 2rem;
+  }
+
+  .tarjeta strong {
+    font-size: 0.9rem;
+  }
+
+  .lugar {
+    font-size: 0.73rem;
+  }
+
+  .entrar {
+    font-size: 0.72rem;
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   24. XS — MÓVILES COMPACTOS
+   ============================================================ */
+
+@media (max-width: 374px) {
+  .escenario {
+    justify-content: flex-start;
+
+    padding: 2rem 0.7rem 1.2rem;
+
+    gap: 1.3rem;
+  }
+
+  .marca-linea {
+    gap: 0.55rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .marca-orb {
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+
+  .empresa {
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+  }
+
+  .bienvenida h1 {
+    font-size: 1.75rem;
+  }
+
+  .pregunta {
+    font-size: 0.98rem;
+  }
+
+  .subpregunta {
+    font-size: 0.82rem;
+  }
+
+  .rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .tarjeta {
+    min-height: 145px;
+    padding: 0.7rem 0.35rem;
+    gap: 0.5rem;
+  }
+
+  .medalla {
+    width: 3.7rem;
+    height: 3.7rem;
+
+    border-radius: 13px;
+  }
+
+  .medalla app-icon {
+    font-size: 1.7rem;
+  }
+
+  .tarjeta strong {
+    font-size: 0.82rem;
+  }
+
+  .lugar {
+    font-size: 0.69rem;
+  }
+
+  .entrar {
+    font-size: 0.67rem;
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+   25. TEMA CLARO
+   ============================================================ */
+
+[data-theme="light"] .escenario {
+  background:
+    radial-gradient(
+      ellipse at 50% -15%,
+      rgba(31, 162, 214, 0.10),
+      transparent 60%
+    ),
+    var(--color-bg);
+}
+
+[data-theme="light"] .rejilla-fondo {
+  opacity: 0.35;
+
+  background-image:
+    linear-gradient(
+      rgba(7, 85, 145, 0.055) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(7, 85, 145, 0.055) 1px,
+      transparent 1px
+    );
+}
+
+[data-theme="light"] .brillo {
+  opacity: 0.06;
+}
+
+[data-theme="light"] .tarjeta:hover {
+  background: rgba(31, 162, 214, 0.055);
+}
+
+[data-theme="light"] .medalla {
+  background: #e8f6fc;
+  border-color: #d1e2ec;
+}
+
+[data-theme="light"] .tarjeta.general .medalla {
+  background: #e3f6fa;
+}
+
+[data-theme="light"] .tarjeta.crear {
+  background: rgba(31, 157, 98, 0.035);
+}
+
+/* ============================================================
+   26. ACCESIBILIDAD Y MOVIMIENTO REDUCIDO
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .escenario *,
+  .escenario *::before,
+  .escenario *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

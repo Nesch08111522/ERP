@@ -8,13 +8,19 @@ import com.policalum.erp.application.dto.request.KardexMovimientoRequestDTO;
 import com.policalum.erp.application.dto.request.StockRequestDTO;
 import com.policalum.erp.application.mapper.StockMapper;
 import com.policalum.erp.application.service.KardexService;
+import com.policalum.erp.domain.enums.RolNombre;
 import com.policalum.erp.domain.enums.TipoMovimiento;
 import com.policalum.erp.domain.enums.TipoReferencia;
 import com.policalum.erp.domain.model.Almacen;
 import com.policalum.erp.domain.model.Producto;
+import com.policalum.erp.domain.model.Rol;
+import com.policalum.erp.domain.model.Sede;
 import com.policalum.erp.domain.model.Stock;
+import com.policalum.erp.domain.model.User;
 import com.policalum.erp.exception.ResourceNotFoundException;
+import com.policalum.erp.infrastructure.repository.AlmacenRepository;
 import com.policalum.erp.infrastructure.repository.StockRepository;
+import com.policalum.erp.infrastructure.repository.UserRepository;
 import jakarta.validation.ValidationException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,6 +29,8 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.*;
 
 /** Consulta y carga directa de stock. */
@@ -32,16 +40,32 @@ class StockServiceImplTest {
     @Mock StockRepository stockRepository;
     @Mock StockMapper stockMapper;
     @Mock KardexService kardexService;
+    @Mock AlmacenRepository almacenRepository;
+    @Mock UserRepository userRepository;
     @InjectMocks StockServiceImpl service;
 
     Producto producto;
     Almacen almacen;
+    Sede sede;
+    User actual;
 
     @BeforeEach
     void setUp() {
         producto = Producto.builder().id(UUID.randomUUID()).build();
-        almacen = Almacen.builder().id(UUID.randomUUID()).build();
+        sede = Sede.builder().id(UUID.randomUUID()).build();
+        almacen = Almacen.builder().id(UUID.randomUUID()).sede(sede).build();
+        actual = User.builder().id(UUID.randomUUID()).email("admin@policalum.com")
+                .rol(Rol.builder().nombre(RolNombre.ROLE_ADMIN).build()).sede(sede).activo(true).build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(actual.getEmail(), "test"));
+        lenient().when(userRepository.findByEmailAndActivoTrue(actual.getEmail())).thenReturn(Optional.of(actual));
+        lenient().when(almacenRepository.findWithSedeById(almacen.getId())).thenReturn(Optional.of(almacen));
         lenient().when(stockRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -149,5 +173,15 @@ class StockServiceImplTest {
         when(stockRepository.findByProducto_Id(producto.getId())).thenReturn(List.of(new Stock(), new Stock()));
 
         assertEquals(2, service.findByProducto(producto.getId()).size());
+    }
+
+    @Test
+    void multifuncional_noPuedeLeerStockDeOtraSede() {
+        actual.setRol(Rol.builder().nombre(RolNombre.ROLE_MULTIFUNCIONAL).build());
+        actual.setSede(Sede.builder().id(UUID.randomUUID()).build());
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class,
+                () -> service.findByAlmacenAndProducto(almacen.getId(), producto.getId()));
+        verify(stockRepository, never()).findByAlmacen_IdAndProducto_Id(any(), any());
     }
 }

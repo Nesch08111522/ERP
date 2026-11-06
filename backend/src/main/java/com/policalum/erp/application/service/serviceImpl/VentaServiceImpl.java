@@ -15,6 +15,7 @@ import java.util.*;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -93,6 +94,7 @@ public class VentaServiceImpl implements VentaService {
     @Override @Transactional(readOnly = true)
     public VentaDetalleResponseDTO obtener(UUID id) {
         Venta venta = ventaRepository.findDetalleById(id).orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada"));
+        exigirAccesoSede(venta);
         return detalle(venta);
     }
 
@@ -100,7 +102,9 @@ public class VentaServiceImpl implements VentaService {
     public Page<VentaListadoResponseDTO> buscar(UUID sedeId, UUID userId, UUID clienteId, EstadoVenta estado,
                                                   CanalVenta canal, LocalDateTime desde, LocalDateTime hasta, Pageable pageable) {
         if (desde != null && hasta != null && desde.isAfter(hasta)) throw new IllegalArgumentException("La fecha inicial no puede ser posterior a la fecha final");
-        return ventaRepository.buscar(sedeId, userId, clienteId, estado, canal, RangosConsulta.desde(desde), RangosConsulta.hasta(hasta), pageable).map(v ->
+        User actual = usuarioActual();
+        UUID sedePermitida = esAdmin(actual) ? sedeId : sedeIdPermitida(actual, sedeId);
+        return ventaRepository.buscar(sedePermitida, userId, clienteId, estado, canal, RangosConsulta.desde(desde), RangosConsulta.hasta(hasta), pageable).map(v ->
                 new VentaListadoResponseDTO(v.getId(), v.getSerieCorrelativo(), v.getEstado(), v.getCanalVenta(),
                         v.getTipoComprobante(), v.getTotal(), v.getCliente() == null ? null : v.getCliente().getId(),
                         v.getCliente() == null ? null : v.getCliente().getNombre(), v.getUser().getId(), v.getCreatedAt()));
@@ -116,6 +120,7 @@ public class VentaServiceImpl implements VentaService {
                         com.policalum.erp.domain.enums.EstadoDevolucion.APROBADA)))
             throw new IllegalStateException("La venta tiene devoluciones pendientes o aprobadas; no se puede anular. Gestione la devolución en su lugar.");
         User usuario = usuarioActual();
+        exigirAccesoSede(venta);
         boolean esAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         if (!esAdmin && !venta.getUser().getId().equals(usuario.getId())) throw new IllegalStateException("Solo el vendedor responsable o un administrador puede anular la venta");
@@ -175,5 +180,21 @@ public class VentaServiceImpl implements VentaService {
         return new LineaCalculada(p, s, f, precio, neto, total.subtract(neto).setScale(2, RoundingMode.HALF_UP), total);
     }
     private User usuarioActual() { String email = SecurityContextHolder.getContext().getAuthentication().getName(); return userRepository.findByEmailAndActivoTrue(email).orElseThrow(() -> new IllegalStateException("Usuario autenticado no válido")); }
+    private boolean esAdmin(User user) { return user.getRol() != null && user.getRol().getNombre() == RolNombre.ROLE_ADMIN; }
+    private UUID sedeId(User user) {
+        if (user.getSede() == null || user.getSede().getId() == null) throw new AccessDeniedException("El usuario no tiene una sede asignada");
+        return user.getSede().getId();
+    }
+    private UUID sedeIdPermitida(User user, UUID solicitada) {
+        UUID propia = sedeId(user);
+        if (solicitada != null && !Objects.equals(propia, solicitada)) throw new AccessDeniedException("No tiene acceso a otra sede");
+        return propia;
+    }
+    private void exigirAccesoSede(Venta venta) {
+        User actual = usuarioActual();
+        if (!esAdmin(actual) && (venta.getSede() == null || !Objects.equals(sedeId(actual), venta.getSede().getId()))) {
+            throw new AccessDeniedException("No tiene acceso a una venta de otra sede");
+        }
+    }
     private record LineaCalculada(Producto producto, Servicio servicio, CatalogoFraccion fraccion, BigDecimal precio, BigDecimal neto, BigDecimal igv, BigDecimal total) { }
 }

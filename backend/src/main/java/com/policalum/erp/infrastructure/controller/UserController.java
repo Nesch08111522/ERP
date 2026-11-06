@@ -56,7 +56,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'usuarios', 'crear')")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'usuarios', 'editar')")
     public ResponseEntity<UserResponseDTO> actualizarUsuario(
             @PathVariable UUID id,
             @Valid @RequestBody UserRequestDTO request) {
