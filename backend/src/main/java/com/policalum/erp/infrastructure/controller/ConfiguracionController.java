@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -114,6 +115,7 @@ public class ConfiguracionController {
         Resource resource = service.cargarLogo();
         String nombre = resource.getFilename();
         return ResponseEntity.ok()
+                .cacheControl(CacheControl.noCache())
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + (nombre != null ? nombre : "logo") + "\"")
                 .contentType(tipoLogo(nombre))
                 .body(resource);

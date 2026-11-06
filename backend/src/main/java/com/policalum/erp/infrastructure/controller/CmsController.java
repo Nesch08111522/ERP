@@ -5,6 +5,7 @@ import com.policalum.erp.application.dto.request.HorarioOperativoRequestDTO;
 import com.policalum.erp.application.dto.request.OfertaManualRequestDTO;
 import com.policalum.erp.application.dto.request.ProyectoPortafolioRequestDTO;
 import com.policalum.erp.application.dto.response.CmsPublicoDTO;
+import com.policalum.erp.application.dto.response.EmpresaSitioDTO;
 import com.policalum.erp.application.dto.response.ProyectoPortafolioResponseDTO;
 import com.policalum.erp.application.service.serviceImpl.CmsMedioService;
 import com.policalum.erp.application.service.serviceImpl.CmsPublicador;
@@ -43,6 +44,12 @@ public class CmsController {
     @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'sitio_web', 'leer')")
     public CmsPublicoDTO leerAjustes() {
         return cms.actual();
+    }
+
+    @GetMapping("/api/v1/cms/empresa")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'sitio_web', 'leer')")
+    public EmpresaSitioDTO empresaSitio() {
+        return cms.empresaSitio();
     }
 
     @PutMapping("/api/v1/cms/settings")

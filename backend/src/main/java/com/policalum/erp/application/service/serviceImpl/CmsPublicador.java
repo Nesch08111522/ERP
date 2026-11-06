@@ -3,6 +3,7 @@ package com.policalum.erp.application.service.serviceImpl;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import com.policalum.erp.infrastructure.config.SoltarConexion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -18,6 +19,7 @@ public class CmsPublicador {
 
     private static final long TIMEOUT_MS = 15 * 60 * 1000L;
     private final CacheManager cacheManager;
+    private final SoltarConexion soltarConexion;
     private final CopyOnWriteArrayList<SseEmitter> emisores = new CopyOnWriteArrayList<>();
 
     public SseEmitter suscribir() {
@@ -31,6 +33,7 @@ public class CmsPublicador {
         } catch (IOException ex) {
             emisores.remove(emisor);
         }
+        soltarConexion.ahora();
         return emisor;
     }
 

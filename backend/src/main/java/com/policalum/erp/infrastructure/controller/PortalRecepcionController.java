@@ -3,6 +3,7 @@ package com.policalum.erp.infrastructure.controller;
 import com.policalum.erp.application.dto.request.ChatClienteRequest;
 import com.policalum.erp.application.dto.request.ContactoWebRequestDTO;
 import com.policalum.erp.application.dto.request.CotizacionWebRequestDTO;
+import com.policalum.erp.application.dto.request.PedidoWhatsappRequestDTO;
 import com.policalum.erp.application.dto.request.PresenciaChatRequest;
 import com.policalum.erp.application.dto.request.VistaCotizacionRequestDTO;
 import com.policalum.erp.application.dto.response.CotizacionResponseDTO;
@@ -16,6 +17,7 @@ import com.policalum.erp.application.service.serviceImpl.ChatWebService;
 import com.policalum.erp.application.service.serviceImpl.CotizacionDocumentoService;
 import com.policalum.erp.application.service.serviceImpl.LimitePublico;
 import com.policalum.erp.application.service.serviceImpl.MensajeWebService;
+import com.policalum.erp.application.service.serviceImpl.PedidoWhatsappService;
 import com.policalum.erp.domain.enums.CanalCotizacion;
 import com.policalum.erp.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +47,7 @@ public class PortalRecepcionController {
     private final MensajeWebService mensajes;
     private final ChatWebService chat;
     private final CanalWebNotificador notificador;
+    private final PedidoWhatsappService pedidosWhatsapp;
     private final LimitePublico limite;
 
     @GetMapping("/cotizaciones/formato")
@@ -77,6 +80,13 @@ public class PortalRecepcionController {
             throw new ResourceNotFoundException("Cotización no encontrada");
         }
         return documentos.descargar(id, "pdf");
+    }
+
+    @PostMapping("/pedidos-whatsapp")
+    public ResponseEntity<Void> pedidoWhatsapp(@Valid @RequestBody PedidoWhatsappRequestDTO request, HttpServletRequest http) {
+        exigirCupo("whatsapp:" + http.getRemoteAddr());
+        pedidosWhatsapp.recibir(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/contacto")

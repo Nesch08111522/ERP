@@ -91,6 +91,10 @@ export class PortalApi {
     return `${this.base}/cotizaciones/${id}/pdf`;
   }
 
+  pedidoWhatsapp(cuerpo: { website?: string; lineas: Array<{ productoId: string; fraccionId?: string | null; cantidad: number }> }): Observable<string> {
+    return this.http.post(`${this.base}/pedidos-whatsapp`, cuerpo, { responseType: 'text' });
+  }
+
   contacto(cuerpo: unknown): Observable<ContactoCreado> {
     return this.http.post<ContactoCreado>(`${this.base}/contacto`, cuerpo);
   }

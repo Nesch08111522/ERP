@@ -44,6 +44,8 @@ export class NotificacionesPageComponent implements OnInit {
       case 'STOCK_MINIMO': return 'Stock mínimo';
       case 'MENSAJE_WEB': return 'Mensaje web';
       case 'COTIZACION_WEB': return 'Cotización web';
+      case 'COMPRA_WHATSAPP': return 'Compra por WhatsApp';
+      case 'RECLAMO_WEB': return 'Libro de reclamaciones';
       default: return 'Notificación';
     }
   }

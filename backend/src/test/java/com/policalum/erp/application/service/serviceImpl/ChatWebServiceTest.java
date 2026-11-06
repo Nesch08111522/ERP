@@ -95,4 +95,19 @@ class ChatWebServiceTest {
         Optional<ConversacionWeb> creada = Optional.of(guardadas.get(0));
         assertTrue(creada.get().getClave().length() == 36);
     }
+
+    @Test
+    void noLeidoVuelveAContarYArchivarLoSacaDelTotal() {
+        HiloPublicoDTO publico = servicio.enviarCliente(new ChatClienteRequest(
+                null, "Luis", "luis@correo.pe", "999111222", null, "Quiero cotizar", null));
+        servicio.marcarLeidoEquipo(publico.id());
+        assertEquals(0, guardadas.get(0).getNoLeidosEquipo());
+
+        servicio.marcarNoLeido(publico.id());
+        when(conversaciones.findAll()).thenReturn(List.copyOf(guardadas));
+        assertEquals(1, servicio.sinLeer());
+
+        servicio.archivar(publico.id(), true);
+        assertEquals(0, servicio.sinLeer());
+    }
 }

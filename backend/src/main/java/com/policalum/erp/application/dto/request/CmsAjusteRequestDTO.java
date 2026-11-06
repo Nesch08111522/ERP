@@ -33,5 +33,13 @@ public record CmsAjusteRequestDTO(
         @Size(max = 80) String materialesKicker,
         @Size(max = 180) String materialesTitulo,
         @Size(max = 400) String materialesTexto,
-        @Valid @Size(max = 24) List<MaterialPublicoDTO> materiales
+        @Valid @Size(max = 24) List<MaterialPublicoDTO> materiales,
+        @Size(max = 150) String nombreComercial,
+        @Size(max = 200) String razonSocial,
+        @Pattern(regexp = "^$|^\\d{11}$", message = "El RUC tiene 11 dígitos") String ruc,
+        @Size(max = 20) String telefono,
+        @Size(max = 150) String email,
+        @Size(max = 300) String direccionFiscal,
+        @Pattern(regexp = "^$|^\\d{6}$", message = "El ubigeo tiene 6 dígitos") String ubigeo,
+        @Size(max = 7) List<@Size(max = 40) String> descartados
 ) {}

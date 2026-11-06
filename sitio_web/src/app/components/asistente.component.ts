@@ -1,5 +1,7 @@
 import { Component, OnDestroy, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AvisoCompraService } from '../core/aviso-compra.service';
+import { CarritoService } from '../core/carrito.service';
 import { EmpresaStore } from '../core/empresa.store';
 import { LineaChat, PortalApi, mensajeError } from '../core/portal.api';
 
@@ -80,9 +82,9 @@ type Paso = 'menu' | 'pedido' | 'cotizar' | 'comprar' | 'stock' | 'escribir' | '
         @if (noLeidos() > 0) { <span class="chat-badge">{{ noLeidos() > 9 ? '9+' : noLeidos() }}</span> }
       </button>
       @if (whatsapp(); as enlace) {
-        <a class="flotante wa" [href]="enlace" target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
+        <button type="button" class="flotante wa" (click)="escribirWhatsapp()" aria-label="Escribir por WhatsApp">
           <svg class="marca-wa" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 2.1 16.8L1 23l6.4-1.1A11 11 0 0 0 12 23a11 11 0 0 0 8.5-19.5zM12 21a9 9 0 0 1-4.6-1.3l-.3-.2-3.7.6.7-3.6-.2-.3A9 9 0 1 1 12 21zm5-6.8c-.3-.1-1.6-.8-1.8-.9s-.4-.1-.6.1-.7.9-.8 1-.3.2-.6.1a7.4 7.4 0 0 1-2.2-1.4 8 8 0 0 1-1.5-1.9c-.2-.3 0-.4.1-.6l.4-.4c.1-.2.1-.3 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 2.9 2.9 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4.1c.6.2 1.1.4 1.5.5a3.6 3.6 0 0 0 1.7.1 2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .2-1.3c-.1-.2-.3-.2-.6-.3z"/></svg>
-        </a>
+        </button>
       }
     </div>
   `,
@@ -90,6 +92,8 @@ type Paso = 'menu' | 'pedido' | 'cotizar' | 'comprar' | 'stock' | 'escribir' | '
 export class AsistenteComponent implements OnDestroy {
   private readonly api = inject(PortalApi);
   private readonly marca = inject(EmpresaStore);
+  private readonly carrito = inject(CarritoService);
+  private readonly compra = inject(AvisoCompraService);
   private reloj = 0;
   private ultimaPresencia = 0;
   readonly abierto = signal(false);
@@ -129,9 +133,13 @@ export class AsistenteComponent implements OnDestroy {
   }
 
   whatsapp(): string | null {
-    const numero = this.marca.empresa().whatsapp;
-    if (!numero) return null;
-    return `https://wa.me/${numero}?text=${encodeURIComponent('Hola POLICALUM, quiero hablar con un asesor.')}`;
+    const total = this.carrito.snapshot().reduce((suma, linea) => suma + linea.precio * linea.cantidad, 0);
+    return this.compra.enlace(total);
+  }
+
+  escribirWhatsapp(): void {
+    const total = this.carrito.snapshot().reduce((suma, linea) => suma + linea.precio * linea.cantidad, 0);
+    this.compra.comprar(total);
   }
 
   opciones(): { id: string; texto: string }[] {

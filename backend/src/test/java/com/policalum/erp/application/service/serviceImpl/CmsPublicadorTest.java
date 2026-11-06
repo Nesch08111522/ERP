@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.policalum.erp.infrastructure.config.SoltarConexion;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -20,6 +21,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 class CmsPublicadorTest {
 
     @Mock CacheManager cacheManager;
+    @Mock SoltarConexion soltarConexion;
     @InjectMocks CmsPublicador publicador;
 
     @AfterEach

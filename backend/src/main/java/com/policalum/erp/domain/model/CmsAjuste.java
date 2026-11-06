@@ -92,4 +92,33 @@ public class CmsAjuste {
 
     @Column(name = "materiales_json", columnDefinition = "TEXT")
     private String materialesJson;
+
+    /** El sitio ya guardó su propia copia. Hasta entonces el público lee la configuración global. */
+    @Column(name = "identidad_propia")
+    private Boolean identidadPropia = false;
+
+    @Column(name = "web_nombre", length = 150)
+    private String webNombre;
+
+    @Column(name = "web_razon_social", length = 200)
+    private String webRazonSocial;
+
+    @Column(name = "web_ruc", length = 11)
+    private String webRuc;
+
+    @Column(name = "web_telefono", length = 20)
+    private String webTelefono;
+
+    @Column(name = "web_email", length = 150)
+    private String webEmail;
+
+    @Column(name = "web_direccion", length = 300)
+    private String webDireccion;
+
+    @Column(name = "web_ubigeo", length = 6)
+    private String webUbigeo;
+
+    /** Últimos datos del ERP que el sitio ya aceptó o decidió no usar. */
+    @Column(name = "origen_empresa", columnDefinition = "TEXT")
+    private String origenEmpresa;
 }

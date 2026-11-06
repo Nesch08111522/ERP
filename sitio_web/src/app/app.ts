@@ -11,13 +11,17 @@ import { PortalApi, media, pen } from './core/portal.api';
 import { TemaService } from './core/tema.service';
 import { AsistenteComponent } from './components/asistente.component';
 
+interface FraseVoz { transcript: string; }
+interface ResultadoVoz extends ArrayLike<FraseVoz> { isFinal: boolean; }
 interface Reconocimiento extends EventTarget {
   lang: string;
   interimResults: boolean;
+  continuous: boolean;
   maxAlternatives: number;
   start: () => void;
-  onresult: ((evento: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
-  onerror: (() => void) | null;
+  stop: () => void;
+  onresult: ((evento: { resultIndex: number; results: ArrayLike<ResultadoVoz> }) => void) | null;
+  onerror: ((evento: { error?: string }) => void) | null;
   onend: (() => void) | null;
 }
 
@@ -40,7 +44,9 @@ export class App implements OnDestroy {
   readonly pen = pen;
   readonly menu = signal(false);
   readonly angosto = signal(false);
-  private readonly consultaAncho = window.matchMedia('(max-width: 1023px)');
+  private readonly consultaAncho = window.matchMedia('(max-width: 991px)');
+  private motor: Reconocimiento | null = null;
+  private dictadoFinal = '';
   private readonly alCambiarAncho = () => this.aplicarAncho();
   readonly preguntarCarrito = signal(false);
   readonly anio = new Date().getFullYear();
@@ -147,31 +153,92 @@ export class App implements OnDestroy {
   }
 
   dictar(): void {
+    if (this.escuchando()) {
+      this.motor?.stop();
+      return;
+    }
+    void this.empezarDictado();
+  }
+
+  private async empezarDictado(): Promise<void> {
     const ventana = window as Window & { SpeechRecognition?: new () => Reconocimiento; webkitSpeechRecognition?: new () => Reconocimiento };
     const Motor = ventana.SpeechRecognition || ventana.webkitSpeechRecognition;
     if (!Motor) {
       this.vozAviso.set('Este navegador no tiene dictado. Escribe el producto en el buscador.');
       return;
     }
+    if (!window.isSecureContext) {
+      this.vozAviso.set('El dictado solo funciona con https o en esta computadora.');
+      return;
+    }
+    try {
+      const flujo = await navigator.mediaDevices.getUserMedia({ audio: true });
+      flujo.getTracks().forEach((pista) => pista.stop());
+    } catch {
+      this.vozAviso.set('Permite el micrófono para buscar por voz.');
+      this.escuchando.set(false);
+      return;
+    }
     const reconocimiento = new Motor();
+    this.motor = reconocimiento;
+    this.dictadoFinal = '';
     reconocimiento.lang = 'es-PE';
-    reconocimiento.interimResults = false;
-    reconocimiento.maxAlternatives = 1;
+    reconocimiento.interimResults = true;
+    reconocimiento.continuous = true;
+    reconocimiento.maxAlternatives = 3;
     this.escuchando.set(true);
     this.vozAviso.set('Di el producto que buscas.');
     reconocimiento.onresult = (evento) => {
-      const dicho = evento.results[0]?.[0]?.transcript?.trim() ?? '';
-      this.escuchando.set(false);
-      this.vozAviso.set(dicho ? `Buscando “${dicho}”.` : '');
-      if (this.caja) this.caja.nativeElement.value = dicho;
-      if (dicho) this.irBusqueda(dicho);
+      let texto = '';
+      let cerro = false;
+      for (let i = evento.resultIndex ?? 0; i < evento.results.length; i += 1) {
+        const frase = evento.results[i];
+        texto += frase?.[0]?.transcript ?? '';
+        if (frase?.isFinal) cerro = true;
+      }
+      const dicho = texto.trim();
+      if (dicho && this.caja) this.caja.nativeElement.value = dicho;
+      if (dicho) this.vozAviso.set(`Escuché “${dicho}”.`);
+      if (cerro && dicho) {
+        this.dictadoFinal = dicho;
+        reconocimiento.stop();
+      }
     };
-    reconocimiento.onerror = () => {
+    reconocimiento.onerror = (evento) => {
+      const codigo = evento.error ?? '';
+      if (codigo === 'aborted' || codigo === 'no-speech') return;
+      if (codigo === 'not-allowed' || codigo === 'service-not-allowed') {
+        this.vozAviso.set('Permite el micrófono para buscar por voz.');
+      } else if (codigo === 'audio-capture') {
+        this.vozAviso.set('No encuentro un micrófono en este aparato.');
+      } else if (codigo === 'language-not-supported' && reconocimiento.lang !== 'es-ES') {
+        reconocimiento.lang = 'es-ES';
+        try { reconocimiento.start(); return; } catch { /* el cierre avisa */ }
+      } else if (codigo === 'network') {
+        this.vozAviso.set('El dictado necesita internet. Escribe el producto.');
+      } else {
+        this.vozAviso.set('No se escuchó la frase. Intenta de nuevo.');
+      }
       this.escuchando.set(false);
-      this.vozAviso.set('No se escuchó la frase. Intenta de nuevo.');
     };
-    reconocimiento.onend = () => this.escuchando.set(false);
-    reconocimiento.start();
+    reconocimiento.onend = () => {
+      this.escuchando.set(false);
+      const dicho = this.dictadoFinal.trim();
+      if (dicho) {
+        this.vozAviso.set(`Buscando “${dicho}”.`);
+        this.irBusqueda(dicho);
+        return;
+      }
+      if (this.vozAviso() === 'Di el producto que buscas.' || this.vozAviso().startsWith('Escuché')) {
+        this.vozAviso.set('No se escuchó la frase. Intenta de nuevo.');
+      }
+    };
+    try {
+      reconocimiento.start();
+    } catch {
+      this.escuchando.set(false);
+      this.vozAviso.set('No pude abrir el micrófono. Intenta de nuevo.');
+    }
   }
 
   irBusqueda(texto: string): void {

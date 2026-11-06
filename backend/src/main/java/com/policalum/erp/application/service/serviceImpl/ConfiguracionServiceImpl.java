@@ -94,6 +94,7 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
     private final SerieComprobanteMapper serieMapper;
     private final AuditService auditService;
     private final FileStorageService fileStorageService;
+    private final CmsPublicador cmsPublicador;
 
     private static final long LOGO_MAX_BYTES = 2L * 1024 * 1024;
     private static final Set<String> LOGO_EXTENSIONES = Set.of("jpg", "jpeg", "png", "webp");
@@ -136,6 +137,7 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         e.setActualizadoPor(admin);
         ConfiguracionEmpresa guardada = empresaRepository.save(e);
         auditar(TABLA_EMPRESA, actual.isPresent() ? AccionAudit.UPDATE : AccionAudit.INSERT, antes, despues);
+        cmsPublicador.publicar("empresa");
         log.info("Datos de empresa actualizados: RUC {}", guardada.getRuc());
         return mapper.toResponseDto(guardada);
     }
@@ -180,6 +182,7 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         e.setActualizadoPor(admin);
         ConfiguracionEmpresa guardada = empresaRepository.save(e);
         auditar(TABLA_EMPRESA, actual.isPresent() ? AccionAudit.UPDATE : AccionAudit.INSERT, antes, despues);
+        cmsPublicador.publicar("empresa");
         if (request.logoUrl() != null && logoAnterior != null && !logoAnterior.equals(logo)
                 && logoAnterior.startsWith("empresa/") && !logoAnterior.contains("..")) {
             fileStorageService.eliminar(logoAnterior);

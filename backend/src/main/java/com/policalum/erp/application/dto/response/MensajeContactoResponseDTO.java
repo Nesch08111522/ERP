@@ -11,9 +11,18 @@ public record MensajeContactoResponseDTO(
         String telefono,
         String empresa,
         String asunto,
+        String tipoMensaje,
+        String documentoTipo,
+        String documentoNumero,
+        String direccion,
+        String bien,
+        String monto,
+        String pedido,
         String mensaje,
         EstadoMensajeWeb estado,
         String notaGestion,
         LocalDateTime createdAt,
-        LocalDateTime gestionadoAt
+        LocalDateTime gestionadoAt,
+        Boolean leido,
+        Boolean archivado
 ) {}

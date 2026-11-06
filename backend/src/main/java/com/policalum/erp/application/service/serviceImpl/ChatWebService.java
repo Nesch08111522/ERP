@@ -44,6 +44,8 @@ public class ChatWebService {
         if (vacio(request.dispositivo()) != null) conversacion.setDispositivo(request.dispositivo().trim());
         if ("CERRADA".equals(conversacion.getEstado())) conversacion.setEstado("ABIERTA");
         LineaChat linea = agregar(conversacion, AutorChat.CLIENTE, request.nombre().trim(), request.texto());
+        conversacion.setArchivado(false);
+        conversacion.setMarcadoNoLeido(false);
         conversacion.setNoLeidosEquipo(conversacion.getNoLeidosEquipo() + 1);
         conversacion.setClienteEscribeHasta(null);
         conversaciones.save(conversacion);
@@ -98,9 +100,35 @@ public class ChatWebService {
     @Transactional
     public void marcarLeidoEquipo(UUID id) {
         ConversacionWeb conversacion = exigir(id);
-        if (conversacion.getNoLeidosEquipo() == 0) return;
+        if (conversacion.getNoLeidosEquipo() == 0 && !Boolean.TRUE.equals(conversacion.getMarcadoNoLeido())) return;
         conversacion.setNoLeidosEquipo(0);
+        conversacion.setMarcadoNoLeido(false);
         conversaciones.save(conversacion);
+        notificador.refrescar();
+    }
+
+    @Transactional
+    public void marcarNoLeido(UUID id) {
+        ConversacionWeb conversacion = exigir(id);
+        conversacion.setMarcadoNoLeido(true);
+        conversaciones.save(conversacion);
+        notificador.refrescar();
+    }
+
+    @Transactional
+    public void archivar(UUID id, boolean archivado) {
+        ConversacionWeb conversacion = exigir(id);
+        conversacion.setArchivado(archivado);
+        conversaciones.save(conversacion);
+        notificador.refrescar();
+    }
+
+    @Transactional(readOnly = true)
+    public long sinLeer() {
+        return conversaciones.findAll().stream()
+                .filter(conversacion -> !Boolean.TRUE.equals(conversacion.getArchivado()))
+                .mapToLong(this::visibles)
+                .sum();
     }
 
     @Transactional
@@ -173,7 +201,7 @@ public class ChatWebService {
                 conversacion.getCorreo(),
                 conversacion.getTelefono(),
                 conversacion.getEmpresa(),
-                conversacion.getNoLeidosEquipo(),
+                visibles(conversacion),
                 vigente(conversacion.getClienteEscribeHasta()),
                 lineasDe(conversacion.getId()),
                 conversacion.getEstado() == null ? "ABIERTA" : conversacion.getEstado(),
@@ -189,10 +217,16 @@ public class ChatWebService {
                 conversacion.getEmpresa(),
                 conversacion.getUltimoTexto(),
                 conversacion.getUltimoMensajeAt(),
-                conversacion.getNoLeidosEquipo(),
+                visibles(conversacion),
                 vigente(conversacion.getClienteEscribeHasta()),
                 conversacion.getEstado() == null ? "ABIERTA" : conversacion.getEstado(),
-                conversacion.getClienteId());
+                conversacion.getClienteId(),
+                Boolean.TRUE.equals(conversacion.getArchivado()));
+    }
+
+    private int visibles(ConversacionWeb conversacion) {
+        if (conversacion.getNoLeidosEquipo() > 0) return conversacion.getNoLeidosEquipo();
+        return Boolean.TRUE.equals(conversacion.getMarcadoNoLeido()) ? 1 : 0;
     }
 
     @Transactional(readOnly = true)
@@ -242,6 +276,7 @@ public class ChatWebService {
         exigir(id);
         lineas.deleteByConversacionId(id);
         conversaciones.deleteById(id);
+        notificador.refrescar();
     }
 
     @Transactional

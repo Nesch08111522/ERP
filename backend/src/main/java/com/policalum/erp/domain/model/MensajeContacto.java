@@ -45,12 +45,39 @@ public class MensajeContacto {
     @Column(nullable = false, length = 120)
     private String asunto;
 
+    @Column(name = "tipo_mensaje", length = 20)
+    private String tipoMensaje;
+
+    @Column(name = "documento_tipo", length = 20)
+    private String documentoTipo;
+
+    @Column(name = "documento_numero", length = 20)
+    private String documentoNumero;
+
+    @Column(length = 200)
+    private String direccion;
+
+    @Column(length = 160)
+    private String bien;
+
+    @Column(length = 40)
+    private String monto;
+
+    @Column(length = 1000)
+    private String pedido;
+
     @Column(nullable = false, length = 2000)
     private String mensaje;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoMensajeWeb estado = EstadoMensajeWeb.NUEVO;
+
+    /** Null o falso: todavía no lo abrieron en la bandeja. */
+    private Boolean leido;
+
+    /** Null o falso: sigue en la bandeja principal. */
+    private Boolean archivado;
 
     @Column(length = 500)
     private String notaGestion;

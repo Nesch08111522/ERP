@@ -68,6 +68,12 @@ public class ConversacionWeb {
     @Column(nullable = false)
     private int noLeidosCliente;
 
+    /** El equipo la marcó como no leída aunque no haya un mensaje nuevo. */
+    private Boolean marcadoNoLeido;
+
+    /** Sale de la bandeja principal, como un chat archivado. */
+    private Boolean archivado;
+
     private LocalDateTime clienteEscribeHasta;
 
     private LocalDateTime equipoEscribeHasta;

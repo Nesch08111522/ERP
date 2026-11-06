@@ -72,19 +72,6 @@ function lineasDe(texto?: string): string[] {
 export class EnviosComponent {}
 
 @Component({
-  selector: 'app-reclamaciones',
-  template: `
-    <article class="legal section">
-      <h1>Libro de reclamaciones</h1>
-      <p>Puedes dejar un reclamo o un requerimiento con tu nombre, documento, correo, teléfono y el detalle de lo ocurrido. El mensaje llega a la bandeja de Mensajes web del ERP para que el equipo lo atienda.</p>
-      <p>También puedes usar el formulario de contacto y poner en el asunto «Reclamo». Conserva el número de cotización si ya enviaste una.</p>
-      <p><a href="/contacto">Ir al formulario de contacto</a></p>
-    </article>
-  `,
-})
-export class ReclamacionesComponent {}
-
-@Component({
   selector: 'app-nosotros',
   template: `
     <article class="legal section">
@@ -94,7 +81,7 @@ export class ReclamacionesComponent {}
       @if (marca.empresa().direccion) { <p>Dirección: {{ marca.empresa().direccion }}</p> }
       @if (marca.empresa().telefono) { <p>Teléfono: {{ marca.empresa().telefono }}</p> }
       @if (marca.empresa().email) { <p>Correo: {{ marca.empresa().email }}</p> }
-      <p><a routerLink="/contacto">Hablar con el equipo</a></p>
+      <p><a routerLink="/reclamaciones">Libro de reclamaciones</a></p>
     </article>
     <app-galeria-materiales />
   `,
@@ -113,7 +100,7 @@ export class NosotrosComponent {
         @for (parrafo of partes(); track $index) { <p>{{ parrafo }}</p> }
       } @else {
         <p>La garantía cubre defectos de fabricación del material, no el daño por un corte, una fijación o un almacenaje distintos a la recomendación de ventas.</p>
-        <p>Para revisarla necesitamos la cotización o el pedido, fotos del material y la fecha de entrega. El aviso entra por Contacto o por el libro de reclamaciones y queda en Mensajes web.</p>
+        <p>Para revisarla necesitamos la cotización o el pedido, fotos del material y la fecha de entrega. El aviso entra por el libro de reclamaciones y queda en Mensajes web.</p>
         <p>El cambio o la reposición se confirma después de esa revisión. Este sitio no reemplaza el comprobante de venta.</p>
       }
     </article>

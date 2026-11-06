@@ -71,15 +71,28 @@ interface ProductoOferta {
   oferta?: boolean;
 }
 
-interface Empresa {
-  ruc?: string;
-  razonSocial?: string;
+interface DatoEmpresa {
   nombreComercial?: string;
-  direccionFiscal?: string;
-  ubigeo?: string;
+  razonSocial?: string;
+  ruc?: string;
   telefono?: string;
   email?: string;
-  logoUrl?: string;
+  direccionFiscal?: string;
+  ubigeo?: string;
+}
+
+interface PropuestaEmpresa {
+  campo: keyof DatoEmpresa;
+  etiqueta: string;
+  actual: string;
+  nuevo: string;
+}
+
+interface EmpresaSitio {
+  personalizado: boolean;
+  sitio: DatoEmpresa;
+  global: DatoEmpresa;
+  propuestas: PropuestaEmpresa[];
 }
 
 const SEMANA = [
@@ -98,19 +111,37 @@ const SEMANA = [
   imports: [ReactiveFormsModule, PageHeaderComponent, RouterLink],
   template: `
     <section class="stack">
-      <app-page-header title="Sitio web" subtitle="Cada bloque es un formulario. El teléfono, el RUC, el correo y el nombre son los de la empresa. Las sedes se editan en Sedes y la cotización en Configuración." />
+      <app-page-header title="Sitio web" subtitle="El nombre, el RUC, el teléfono y la dirección se copian de Parámetros globales. Si los cambias aquí, solo cambia el sitio web." />
       <form [formGroup]="forma" (ngSubmit)="guardar()">
         <div class="acordeon">
           <details open>
             <summary>Datos principales</summary>
             <div class="acordeon-cuerpo form-grid">
-              <label class="field">Nombre comercial <input class="input" type="text" formControlName="nombreComercial" /></label>
-              <label class="field">Razón social <input class="input" type="text" formControlName="razonSocial" /></label>
+              <p class="nota span-2">Estos campos salen de <a routerLink="/modules/configuracion">Parámetros globales</a>. Guardar el sitio no modifica el ERP. Si allá cambia un dato, aquí te pregunta si quieres usarlo.</p>
+              @if (propuestas.length) {
+                <div class="propuestas span-2">
+                  <strong>Hay datos nuevos en la configuración global</strong>
+                  <p class="nota">El sitio sigue con lo que ya guardaste. Acepta el dato que quieras mostrar y luego pulsa Guardar sitio.</p>
+                  @for (dato of propuestas; track dato.campo) {
+                    <article>
+                      <p><b>{{ dato.etiqueta }}</b></p>
+                      <p>En el sitio: {{ dato.actual || 'vacío' }}</p>
+                      <p>Nuevo en el ERP: {{ dato.nuevo || 'vacío' }}</p>
+                      <div class="actions">
+                        <button type="button" class="btn btn-primary" (click)="usarDato(dato)">Usar en el sitio</button>
+                        <button type="button" class="btn btn-outline" (click)="dejarDato(dato)">Dejar el del sitio</button>
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+              <label class="field">Nombre comercial <input class="input" type="text" formControlName="nombreComercial" maxlength="150" /></label>
+              <label class="field">Razón social <input class="input" type="text" formControlName="razonSocial" maxlength="200" /></label>
               <label class="field">RUC <input class="input" type="text" formControlName="ruc" maxlength="11" inputmode="numeric" /></label>
-              <label class="field">Teléfono <input class="input" type="text" formControlName="telefono" /></label>
-              <label class="field">Correo <input class="input" type="email" formControlName="email" /></label>
+              <label class="field">Teléfono <input class="input" type="text" formControlName="telefono" maxlength="20" /></label>
+              <label class="field">Correo <input class="input" type="email" formControlName="email" maxlength="150" /></label>
               <label class="field">Ubigeo <input class="input" type="text" formControlName="ubigeo" maxlength="6" inputmode="numeric" /></label>
-              <label class="field span-2">Dirección <input class="input" type="text" formControlName="direccionFiscal" /></label>
+              <label class="field span-2">Dirección <input class="input" type="text" formControlName="direccionFiscal" maxlength="300" /></label>
               <p class="nota span-2">Las sedes y su dirección se cambian en <a routerLink="/modules/sedes">Sedes</a>. La utilidad y la movilidad de la cotización se cambian en <a routerLink="/modules/configuracion">Configuración → Cotización</a>.</p>
             </div>
           </details>
@@ -217,7 +248,7 @@ const SEMANA = [
           </details>
         </div>
         <div class="actions">
-          <button type="submit" class="btn btn-primary" [disabled]="guardando">Guardar sitio</button>
+          <button type="submit" class="btn btn-primary" [disabled]="guardando || !empresaCargada">Guardar sitio</button>
           <button type="button" class="btn btn-outline" (click)="sincronizar()" [disabled]="sincronizando">Marcar ofertas de 90 días</button>
         </div>
       </form>
@@ -262,6 +293,9 @@ const SEMANA = [
     .preview { border-radius: 12px; padding: 16px; background: var(--color-bg-subtle); color: var(--color-text); border: 1px solid var(--color-border); display: grid; gap: 6px; }
     .franja { margin: 0; text-align: center; color: var(--color-primary); font-size: 12px; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .propuestas { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--color-primary); border-radius: 12px; background: var(--color-bg-subtle); }
+    .propuestas article { display: grid; gap: 4px; padding: 10px; border-radius: 10px; background: var(--color-surface); }
+    .propuestas p { margin: 0; }
     .material-fila { display: grid; gap: 8px; margin: 12px 0; padding: 12px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
     .ofertas-margen { display: grid; gap: 12px; margin-top: 16px; }
     .corto { max-width: 10rem; }
@@ -280,12 +314,14 @@ export class GestorWebPageComponent implements OnInit {
   guardando = false;
   sincronizando = false;
   cargandoProductos = false;
+  empresaCargada = false;
   errorProductos = '';
   subiendoMedio = -1;
   diasOferta = 15;
+  propuestas: PropuestaEmpresa[] = [];
   productosOferta: ProductoOferta[] = [];
   private readonly porcentajes: Record<string, number> = {};
-  private logoUrl = '';
+  private readonly descartados = new Set<string>();
   readonly materiales = this.fb.array([this.filaMaterial()]);
   readonly dias = this.fb.array(SEMANA.map((dia) => this.fb.nonNullable.group({
     dia: [dia.dia],
@@ -333,7 +369,13 @@ export class GestorWebPageComponent implements OnInit {
     this.http.get<CmsPublico>(`${environment.apiUrl}/api/v1/cms/settings`).subscribe({
       next: (paquete) => {
         const { materiales: lista, ...resto } = paquete;
-        this.forma.patchValue(resto);
+        this.forma.patchValue({
+          ...resto,
+          primaryColor: this.colorHex(resto.primaryColor, '#1FA2D6'),
+          secondaryColor: this.colorHex(resto.secondaryColor, '#FFFFFF'),
+          themeMode: resto.themeMode === 'claro' ? 'claro' : 'aether',
+          baseFontSize: this.fuente(resto.baseFontSize),
+        });
         this.materiales.clear();
         for (const item of lista ?? []) this.materiales.push(this.filaMaterial(item));
         if (!this.materiales.length) this.materiales.push(this.filaMaterial());
@@ -348,21 +390,26 @@ export class GestorWebPageComponent implements OnInit {
       },
       error: (error: unknown) => this.toast.error(problemText(error)),
     });
-    this.http.get<Empresa>(`${environment.apiUrl}/api/v1/configuracion/empresa`).subscribe({
+    this.http.get<EmpresaSitio>(`${environment.apiUrl}/api/v1/cms/empresa`).subscribe({
       next: (empresa) => {
-        this.logoUrl = empresa.logoUrl ?? '';
-        this.forma.patchValue({
-          nombreComercial: empresa.nombreComercial ?? '',
-          razonSocial: empresa.razonSocial ?? '',
-          ruc: empresa.ruc ?? '',
-          telefono: empresa.telefono ?? '',
-          email: empresa.email ?? '',
-          direccionFiscal: empresa.direccionFiscal ?? '',
-          ubigeo: empresa.ubigeo ?? '',
-        });
+        this.aplicarEmpresa(empresa);
+        this.empresaCargada = true;
       },
       error: (error: unknown) => this.toast.error(problemText(error)),
     });
+  }
+
+  usarDato(dato: PropuestaEmpresa): void {
+    this.descartados.delete(dato.campo);
+    this.forma.patchValue({ [dato.campo]: dato.nuevo });
+    this.propuestas = this.propuestas.filter((item) => item.campo !== dato.campo);
+    this.pintar();
+  }
+
+  dejarDato(dato: PropuestaEmpresa): void {
+    this.descartados.add(dato.campo);
+    this.propuestas = this.propuestas.filter((item) => item.campo !== dato.campo);
+    this.pintar();
   }
 
   get vistaHoy(): string {
@@ -385,41 +432,40 @@ export class GestorWebPageComponent implements OnInit {
   }
 
   guardar(): void {
-    if (this.forma.invalid || this.guardando) {
+    if (!this.empresaCargada || this.guardando) return;
+    if (this.forma.invalid) {
       this.forma.markAllAsTouched();
+      this.toast.error('Revisa los campos del sitio antes de guardar.');
       return;
     }
-    const valor = this.forma.getRawValue();
-    const empresaLista = valor.ruc.length === 11 && valor.razonSocial.trim() && valor.direccionFiscal.trim() && valor.ubigeo.length === 6;
     this.guardando = true;
-    if (!empresaLista) {
-      this.guardarCms(valor, 'El sitio quedó guardado. El RUC, la razón social, la dirección y el ubigeo siguen pendientes, así que el registro de la empresa no cambió.');
-      return;
-    }
-    this.http.put(`${environment.apiUrl}/api/v1/configuracion/empresa`, {
-      ruc: valor.ruc,
-      razonSocial: valor.razonSocial,
-      nombreComercial: valor.nombreComercial || undefined,
-      direccionFiscal: valor.direccionFiscal,
-      ubigeo: valor.ubigeo,
-      telefono: valor.telefono || undefined,
-      email: valor.email || undefined,
-      logoUrl: this.logoUrl || undefined,
-    }).subscribe({
-      next: () => this.guardarCms(valor),
-      error: (error: unknown) => {
-        this.guardando = false;
-        this.toast.error(problemText(error));
-      },
-    });
+    this.pintar();
+    this.guardarCms(this.forma.getRawValue());
   }
 
-  private guardarCms(valor: ReturnType<GestorWebPageComponent['forma']['getRawValue']>, aviso = 'El ERP, la base y el sitio quedaron con estos datos.'): void {
+  private aplicarEmpresa(empresa: EmpresaSitio): void {
+    const sitio = empresa.sitio ?? {};
+    this.forma.patchValue({
+      nombreComercial: sitio.nombreComercial ?? '',
+      razonSocial: sitio.razonSocial ?? '',
+      ruc: sitio.ruc ?? '',
+      telefono: sitio.telefono ?? '',
+      email: sitio.email ?? '',
+      direccionFiscal: sitio.direccionFiscal ?? '',
+      ubigeo: sitio.ubigeo ?? '',
+    });
+    this.propuestas = empresa.propuestas ?? [];
+    this.descartados.clear();
+    this.empresaCargada = true;
+    this.pintar();
+  }
+
+  private guardarCms(valor: ReturnType<GestorWebPageComponent['forma']['getRawValue']>): void {
     this.http.put<CmsPublico>(`${environment.apiUrl}/api/v1/cms/settings`, {
-      primaryColor: valor.primaryColor,
-      secondaryColor: valor.secondaryColor,
-      baseFontSize: Number(valor.baseFontSize),
-      themeMode: valor.themeMode,
+      primaryColor: this.colorHex(valor.primaryColor, '#1FA2D6'),
+      secondaryColor: this.colorHex(valor.secondaryColor, '#FFFFFF'),
+      baseFontSize: this.fuente(valor.baseFontSize),
+      themeMode: valor.themeMode === 'claro' ? 'claro' : 'aether',
       banner: valor.banner,
       resumen: valor.resumen,
       horarioSemana: this.textoHorario(['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']),
@@ -442,6 +488,14 @@ export class GestorWebPageComponent implements OnInit {
       materiales: this.materiales.getRawValue()
         .filter((item) => item.nombre.trim())
         .map((item) => ({ ...item, nombre: item.nombre.trim(), activo: item.activo })),
+      nombreComercial: valor.nombreComercial,
+      razonSocial: valor.razonSocial,
+      ruc: valor.ruc,
+      telefono: valor.telefono,
+      email: valor.email,
+      direccionFiscal: valor.direccionFiscal,
+      ubigeo: valor.ubigeo,
+      descartados: [...this.descartados],
     }).subscribe({
       next: () => {
         this.http.put(`${environment.apiUrl}/api/v1/cms/horario`, {
@@ -450,18 +504,33 @@ export class GestorWebPageComponent implements OnInit {
           dias: this.dias.getRawValue().map((dia) => ({ dia: dia.dia, abierto: dia.abierto, desde: dia.desde, hasta: dia.hasta })),
         }).subscribe({
           next: () => {
-            this.guardando = false;
-            this.toast.success(aviso);
+            this.http.get<EmpresaSitio>(`${environment.apiUrl}/api/v1/cms/empresa`).subscribe({
+              next: (empresa) => {
+                this.propuestas = empresa.propuestas ?? [];
+                this.descartados.clear();
+                this.guardando = false;
+                this.toast.success('Sitio guardado. La configuración global sigue igual.');
+                this.pintar();
+              },
+              error: () => {
+                this.guardando = false;
+                this.descartados.clear();
+                this.toast.success('Sitio guardado. La configuración global sigue igual.');
+                this.pintar();
+              },
+            });
           },
           error: (error: unknown) => {
             this.guardando = false;
             this.toast.error(problemText(error));
+            this.pintar();
           },
         });
       },
       error: (error: unknown) => {
         this.guardando = false;
         this.toast.error(problemText(error));
+        this.pintar();
       },
     });
   }
@@ -617,6 +686,18 @@ export class GestorWebPageComponent implements OnInit {
       videoUrl: [item?.videoUrl ?? '', Validators.maxLength(300)],
       activo: [item?.activo !== false],
     });
+  }
+
+  private colorHex(valor: string | null | undefined, respaldo: string): string {
+    const limpio = (valor ?? '').trim();
+    const conNumero = limpio.startsWith('#') ? limpio : `#${limpio}`;
+    return /^#[0-9A-Fa-f]{6}$/.test(conNumero) ? conNumero.toUpperCase() : respaldo;
+  }
+
+  private fuente(valor: number | null | undefined): number {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return 16;
+    return Math.min(22, Math.max(14, Math.round(numero)));
   }
 
   private textoHorario(claves: string[]): string {

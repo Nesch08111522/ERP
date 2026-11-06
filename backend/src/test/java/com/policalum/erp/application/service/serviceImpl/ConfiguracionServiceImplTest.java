@@ -82,6 +82,7 @@ class ConfiguracionServiceImplTest {
     @Mock UserRepository userRepository;
     @Mock AuditService auditService;
     @Mock FileStorageService fileStorageService;
+    @Mock CmsPublicador cmsPublicador;
     @Spy ConfiguracionMapper mapper = Mappers.getMapper(ConfiguracionMapper.class);
     @Spy SerieComprobanteMapper serieMapper = Mappers.getMapper(SerieComprobanteMapper.class);
     @InjectMocks ConfiguracionServiceImpl service;

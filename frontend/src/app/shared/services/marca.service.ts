@@ -13,6 +13,7 @@ export class MarcaService {
   readonly nombre = signal('POLICALUM');
   readonly logoUrl = signal<string | null>(null);
   private readonly logoRota = signal(false);
+  private readonly revision = signal(0);
 
   cargar(): void {
     this.http.get<ConfiguracionPublicaDTO>(`${environment.apiUrl}/api/v1/configuracion/publica`).subscribe({
@@ -26,14 +27,34 @@ export class MarcaService {
     this.nombre.set(limpio || 'POLICALUM');
     this.logoUrl.set(logo?.trim() || null);
     this.logoRota.set(false);
+    this.revision.update((valor) => valor + 1);
+    this.favicon(this.logoSrc());
   }
 
   logoSrc(): string {
+    const marca = this.revision();
     if (this.logoRota()) return '/POLICALUM.png';
     const logo = this.logoUrl();
     if (!logo) return '/POLICALUM.png';
     if (/^https?:\/\//i.test(logo)) return logo;
-    return `${environment.apiUrl}/api/v1/configuracion/logo`;
+    return `${environment.apiUrl}/api/v1/configuracion/logo?v=${marca}`;
+  }
+
+  private favicon(href: string): void {
+    if (typeof document === 'undefined') return;
+    this.enlaceIcono('icon', href);
+    this.enlaceIcono('apple-touch-icon', href);
+  }
+
+  private enlaceIcono(rel: string, href: string): void {
+    let enlace = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+    if (!enlace) {
+      enlace = document.createElement('link');
+      enlace.rel = rel;
+      document.head.appendChild(enlace);
+    }
+    enlace.type = href.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+    enlace.href = href;
   }
 
   usarRespaldo(): void {

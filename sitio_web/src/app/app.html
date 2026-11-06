@@ -1,7 +1,7 @@
 <div class="shell" [class.menu-abierto]="menu()">
   <div class="marco">
   <aside class="browse" aria-label="Menú">
-    <a class="brand side-brand" routerLink="/"><span class="mark">P</span><span>{{ marca.empresa().nombreComercial }}</span></a>
+    <a class="brand side-brand" routerLink="/">@if (marca.logo(); as logo) { <img class="mark" [src]="logo" [alt]="marca.empresa().nombreComercial" /> } @else { <span class="mark">{{ (marca.empresa().nombreComercial || 'P').charAt(0) }}</span> }<span>{{ marca.empresa().nombreComercial }}</span></a>
     <nav class="browse-scroll">
       <p class="side-kicker">Tienda</p>
       <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
@@ -15,7 +15,6 @@
       <a routerLink="/nosotros" routerLinkActive="on">Nosotros</a>
       <a routerLink="/blog" routerLinkActive="on">Blog y noticias</a>
       <a routerLink="/cotizar" routerLinkActive="on">Cotizar proyecto</a>
-      <a routerLink="/contacto" routerLinkActive="on">Contacto</a>
       <p class="side-kicker">Legal</p>
       <a routerLink="/privacidad" routerLinkActive="on">Privacidad</a>
       <a routerLink="/terminos" routerLinkActive="on">Términos</a>
@@ -35,13 +34,12 @@
     <button type="button" class="icon-btn mast-menu" (click)="alternarMenu()" [attr.aria-expanded]="menu()" [attr.aria-label]="menu() ? 'Cerrar menú' : 'Abrir menú'">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
     </button>
-    <a class="brand" routerLink="/"><span class="mark">P</span><span>{{ marca.empresa().nombreComercial }}</span></a>
+    <a class="brand" routerLink="/">@if (marca.logo(); as logo) { <img class="mark" [src]="logo" [alt]="marca.empresa().nombreComercial" /> } @else { <span class="mark">{{ (marca.empresa().nombreComercial || 'P').charAt(0) }}</span> }<span>{{ marca.empresa().nombreComercial }}</span></a>
     <nav class="mast-links" aria-label="Principal">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
       <a routerLink="/catalogo" [class.active]="enProductos()">Productos</a>
       <a routerLink="/servicios" routerLinkActive="active">Servicios</a>
       <a routerLink="/portafolio" routerLinkActive="active">Proyectos</a>
-      <a routerLink="/contacto" routerLinkActive="active">Contacto</a>
     </nav>
     <form class="search" (submit)="$event.preventDefault(); irBusqueda(caja.value)">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16.5 20 20.5"/></svg>
@@ -89,7 +87,7 @@
     <footer class="pie">
       <div class="pie-grid">
         <div>
-          <a class="brand" routerLink="/"><span class="mark">P</span><span>{{ marca.empresa().nombreComercial }}</span></a>
+          <a class="brand" routerLink="/">@if (marca.logo(); as logo) { <img class="mark" [src]="logo" [alt]="marca.empresa().nombreComercial" /> } @else { <span class="mark">{{ (marca.empresa().nombreComercial || 'P').charAt(0) }}</span> }<span>{{ marca.empresa().nombreComercial }}</span></a>
           <p>{{ cms.paquete()?.resumen || 'Soluciones de policarbonato y coberturas para obras e industria. El precio y el stock salen del almacén.' }}</p>
           @if (marca.empresa().ruc) { <p>RUC {{ marca.empresa().ruc }}</p> }
           @if (marca.empresa().razonSocial) { <p>{{ marca.empresa().razonSocial }}</p> }
@@ -160,5 +158,4 @@
   <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
   <a routerLink="/catalogo" routerLinkActive="active">Productos</a>
   <a routerLink="/carrito" routerLinkActive="active">Carrito</a>
-  <a routerLink="/contacto" routerLinkActive="active">Contacto</a>
 </nav>

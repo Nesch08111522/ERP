@@ -10,6 +10,7 @@ import com.policalum.erp.application.dto.response.SedePublicaDTO;
 import com.policalum.erp.application.dto.response.ServicioPublicoDTO;
 import com.policalum.erp.domain.model.CatalogoFraccion;
 import com.policalum.erp.domain.model.Categoria;
+import com.policalum.erp.domain.model.CmsAjuste;
 import com.policalum.erp.domain.model.ConfiguracionEmpresa;
 import com.policalum.erp.domain.model.Producto;
 import com.policalum.erp.domain.model.ProyectoPortafolio;
@@ -17,6 +18,7 @@ import com.policalum.erp.domain.model.Sede;
 import com.policalum.erp.domain.model.Servicio;
 import com.policalum.erp.exception.ResourceNotFoundException;
 import com.policalum.erp.infrastructure.repository.CategoriaRepository;
+import com.policalum.erp.infrastructure.repository.CmsAjusteRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionEmpresaRepository;
 import com.policalum.erp.infrastructure.repository.ProductoRepository;
 import com.policalum.erp.infrastructure.repository.ProyectoPortafolioRepository;
@@ -50,6 +52,7 @@ public class PortalPublicoService {
     private final ProyectoPortafolioRepository portafolioRepository;
     private final SedeRepository sedeRepository;
     private final ServicioRepository servicioRepository;
+    private final CmsAjusteRepository cmsAjustes;
 
     public PaginaPublicaDTO<ProductoPublicoDTO> catalogo(UUID categoriaId, String busqueda, boolean soloDestacados, Pageable pageable) {
         int tamano = Math.min(Math.max(pageable.getPageSize(), 1), 48);
@@ -98,6 +101,25 @@ public class PortalPublicoService {
 
     public EmpresaPublicaDTO empresa() {
         ConfiguracionEmpresa empresa = empresaRepository.findById(ConfiguracionEmpresa.ID_UNICO).orElse(null);
+        CmsAjuste sitio = cmsAjustes.findById(CmsAjuste.ID).orElse(null);
+        String logo = empresa == null ? null : empresa.getLogoUrl();
+        if (logo != null && !logo.startsWith("http://") && !logo.startsWith("https://")) {
+            logo = "/api/v1/configuracion/logo";
+        }
+        if (sitio != null && Boolean.TRUE.equals(sitio.getIdentidadPropia())) {
+            String nombre = texto(sitio.getWebNombre());
+            if (nombre == null) nombre = "POLICALUM";
+            String telefono = texto(sitio.getWebTelefono());
+            return new EmpresaPublicaDTO(
+                    nombre,
+                    texto(sitio.getWebDireccion()),
+                    telefono,
+                    texto(sitio.getWebEmail()),
+                    whatsapp(telefono),
+                    logo,
+                    texto(sitio.getWebRuc()),
+                    texto(sitio.getWebRazonSocial()));
+        }
         String nombre = empresa == null || empresa.getNombreComercial() == null || empresa.getNombreComercial().isBlank()
                 ? "POLICALUM" : empresa.getNombreComercial();
         Sede sede = sedeRepository.findByActivaTrueOrderByNombreAsc().stream().findFirst().orElse(null);
@@ -106,10 +128,6 @@ public class PortalPublicoService {
         String direccion = empresa == null ? null : empresa.getDireccionFiscal();
         if (direccion == null || direccion.isBlank()) {
             direccion = sede == null ? null : unir(sede.getDireccion(), sede.getCiudad());
-        }
-        String logo = empresa == null ? null : empresa.getLogoUrl();
-        if (logo != null && !logo.startsWith("http://") && !logo.startsWith("https://")) {
-            logo = "/api/v1/configuracion/logo";
         }
         return new EmpresaPublicaDTO(
                 nombre,
@@ -180,6 +198,12 @@ public class PortalPublicoService {
 
     private ServicioPublicoDTO servicioPublico(Servicio servicio) {
         return new ServicioPublicoDTO(servicio.getId(), servicio.getNombre(), servicio.getDescripcion(), servicio.getPrecio());
+    }
+
+    private static String texto(String valor) {
+        if (valor == null) return null;
+        String limpio = valor.trim();
+        return limpio.isEmpty() ? null : limpio;
     }
 
     private static String unir(String direccion, String ciudad) {

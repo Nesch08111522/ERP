@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.policalum.erp.application.dto.response.ProyectoPortafolioPublicoDTO;
 import com.policalum.erp.domain.model.ProyectoPortafolio;
 import com.policalum.erp.infrastructure.repository.CategoriaRepository;
+import com.policalum.erp.infrastructure.repository.CmsAjusteRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionEmpresaRepository;
 import com.policalum.erp.infrastructure.repository.ProductoRepository;
 import com.policalum.erp.infrastructure.repository.ProyectoPortafolioRepository;
@@ -29,8 +30,9 @@ class PortalPublicoPortafolioTest {
     private final ProyectoPortafolioRepository portafolio = mock(ProyectoPortafolioRepository.class);
     private final SedeRepository sedes = mock(SedeRepository.class);
     private final ServicioRepository servicios = mock(ServicioRepository.class);
+    private final CmsAjusteRepository cms = mock(CmsAjusteRepository.class);
     private final PortalPublicoService service = new PortalPublicoService(
-            productos, categorias, stock, empresa, portafolio, sedes, servicios);
+            productos, categorias, stock, empresa, portafolio, sedes, servicios, cms);
 
     @Test
     void listaSoloPublicadosYExponeElDtoPublicoSinCamposAdministrativos() {

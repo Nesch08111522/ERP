@@ -110,6 +110,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
   width: 28px; height: 28px; display: grid; place-items: center;
   border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-size: 14px;
 }
+img.mark { background: transparent; object-fit: contain; }
 .mast-links { display: flex; gap: 16px; }
 .mast-links a { color: var(--muted); font-weight: 600; }
 .mast-links a.active, .mast-links a:hover { color: var(--ink); }
@@ -143,11 +144,11 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
   border-radius: 99px; background: var(--ink); color: var(--paper); font-size: 10px; font-weight: 700;
   display: grid; place-items: center;
 }
-.mast-menu { display: grid; }
+.mast-menu { display: none; }
 .marco { display: flex; align-items: stretch; min-height: 100dvh; min-width: 0; }
 .columna { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 .browse {
-  display: flex; flex-direction: column; gap: 8px;
+  display: none; flex-direction: column; gap: 8px;
   width: clamp(15rem, 18vw, 18rem); flex: 0 0 clamp(15rem, 18vw, 18rem);
   position: sticky; top: 0; align-self: flex-start; height: 100dvh; overflow: hidden;
   background: var(--paper); border-right: 1px solid var(--line); z-index: 40;
@@ -547,6 +548,28 @@ dialog.visor-reel::backdrop { background: transparent; }
 .mapa-pie { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
 .mapa-pie p { margin: 4px 0 0; color: var(--muted); }
 .mapa-lado, .sede-lista { display: grid; gap: 8px; }
+.libro-lado { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.libro-figura { margin: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: var(--paper); }
+.libro-figura img { width: 100%; height: auto; display: block; }
+.libro-frase {
+  flex: 1;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 28px 22px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  text-align: center;
+}
+.libro-form { padding: 1rem; display: grid; gap: 0.7rem; }
+.libro-par { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.libro-form select.input { width: 100%; }
 .sede-lista p { margin: 0; color: var(--muted); }
 .pie {
   width: 100%; max-width: 100%; margin-top: auto; border-radius: 0;
@@ -578,14 +601,12 @@ dialog.visor-reel::backdrop { background: transparent; }
   .pie-grid { grid-template-columns: 1fr 1fr; }
   .band { grid-template-columns: 1fr 1fr; }
 }
-@media (min-width: 1024px) {
-  .shell:not(.menu-abierto) .browse { width: 0; flex-basis: 0; border-right-width: 0; overflow: hidden; }
-  .shell:not(.menu-abierto) .side-brand, .shell:not(.menu-abierto) .browse-scroll { display: none; }
-}
-@media (max-width: 1023px) {
+@media (max-width: 991px) {
+  .mast-menu { display: grid; }
   .browse {
+    display: flex;
     position: fixed; left: 0; top: 0; height: 100dvh; width: min(18rem, 86vw); flex: none;
-    transform: translateX(-105%); transition: transform .25s ease; box-shadow: var(--shadow);
+    transform: translateX(-105%); transition: transform .25s ease; box-shadow: var(--shadow); z-index: 40;
   }
   .shell.menu-abierto .browse { transform: translateX(0); }
   .shell.menu-abierto .velo {
@@ -598,11 +619,11 @@ dialog.visor-reel::backdrop { background: transparent; }
 @media (max-width: 991px) {
   .mast-links, .cotizar-nav { display: none; }
   .search { width: auto; flex: 1; min-width: 0; margin-left: 0; }
-  .hero-grid, .catalogo, .product, .quote-grid, .contact { grid-template-columns: 1fr; }
+  .hero-grid, .catalogo, .product, .quote-grid, .contact, .libro-par { grid-template-columns: 1fr; }
   .works { grid-template-columns: 1fr 1fr; }
   .hero-visual { min-height: 280px; }
   .dock {
-    display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    display: grid; grid-template-columns: repeat(3, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     background: var(--paper); border-top: 1px solid var(--line); padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
   }
   .dock a { text-align: center; color: var(--muted); font-size: 12px; font-weight: 700; }

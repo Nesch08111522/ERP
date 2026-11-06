@@ -1,5 +1,6 @@
 package com.policalum.erp.infrastructure.controller;
 
+import com.policalum.erp.application.dto.request.ArchivoBandejaRequest;
 import com.policalum.erp.application.dto.request.ChatTextoRequest;
 import com.policalum.erp.application.dto.request.GestionarMensajeRequestDTO;
 import com.policalum.erp.application.dto.request.PresenciaChatRequest;
@@ -57,6 +58,37 @@ public class CanalWebController {
         return ResponseEntity.ok(Map.of("nuevos", mensajes.nuevos()));
     }
 
+    @GetMapping("/mensajes-web/sin-leer")
+    public ResponseEntity<Map<String, Long>> sinLeer() {
+        return ResponseEntity.ok(Map.of("sinLeer", mensajes.sinLeer() + chat.sinLeer()));
+    }
+
+    @PostMapping("/mensajes-web/{id}/leido")
+    public ResponseEntity<Void> mensajeLeido(@PathVariable UUID id) {
+        mensajes.marcarLeido(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/mensajes-web/{id}/no-leido")
+    public ResponseEntity<Void> mensajeNoLeido(@PathVariable UUID id) {
+        mensajes.marcarNoLeido(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/mensajes-web/{id}/archivo")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'mensajes_web', 'gestionar')")
+    public ResponseEntity<Void> archivarMensaje(@PathVariable UUID id, @Valid @RequestBody ArchivoBandejaRequest request) {
+        mensajes.archivar(id, Boolean.TRUE.equals(request.archivado()));
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/mensajes-web/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'mensajes_web', 'gestionar')")
+    public ResponseEntity<Void> eliminarMensaje(@PathVariable UUID id) {
+        mensajes.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/mensajes-web/{id}/gestionar")
     @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'mensajes_web', 'gestionar')")
     public ResponseEntity<MensajeContactoResponseDTO> gestionar(@PathVariable UUID id, @Valid @RequestBody(required = false) GestionarMensajeRequestDTO request) {
@@ -82,6 +114,19 @@ public class CanalWebController {
     @PostMapping("/chats/{id}/leido")
     public ResponseEntity<Void> leido(@PathVariable UUID id) {
         chat.marcarLeidoEquipo(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/chats/{id}/no-leido")
+    public ResponseEntity<Void> chatNoLeido(@PathVariable UUID id) {
+        chat.marcarNoLeido(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/chats/{id}/archivo")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'mensajes_web', 'gestionar')")
+    public ResponseEntity<Void> archivarChat(@PathVariable UUID id, @Valid @RequestBody ArchivoBandejaRequest request) {
+        chat.archivar(id, Boolean.TRUE.equals(request.archivado()));
         return ResponseEntity.noContent().build();
     }
 

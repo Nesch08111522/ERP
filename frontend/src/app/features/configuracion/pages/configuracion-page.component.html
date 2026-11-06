@@ -2,7 +2,7 @@
   <app-page-header title="Configuración" subtitle="Datos de la empresa, parámetros operativos, series y el formato de cotización."></app-page-header>
   <article class="card card-body">
     <h2>Notificaciones de este dispositivo</h2>
-    <p class="text-muted">Si lo enciendes, este navegador recibe las alertas del ERP aunque la pestaña esté en segundo plano. Cada dispositivo donde inicies sesión puede tener su propio aviso.</p>
+    <p class="text-muted">En la computadora y en el televisor el aviso sale en la esquina del sistema. En el celular queda en la barra de estado, aunque el ERP esté en segundo plano. En el iPhone hay que agregar POLICALUM a la pantalla de inicio.</p>
     <button type="button" class="btn" [class.btn-primary]="!pushActivo" [class.btn-ghost]="pushActivo" (click)="alternarPush()" [disabled]="pushTrabajando">{{ pushActivo ? 'Apagar notificaciones aquí' : 'Encender notificaciones aquí' }}</button>
   </article>
   <app-tabs [tabs]="tabs" [active]="tab" (activeChange)="cambiarTab($event)"></app-tabs>
@@ -38,7 +38,7 @@
     <app-form-field class="span-2" label="Dirección fiscal" inputId="emp-dir" [required]="true" [error]="errorEmpresa('direccionFiscal')"><input id="emp-dir" class="input" formControlName="direccionFiscal" /></app-form-field>
     <app-form-field label="Correo" inputId="emp-mail" [error]="errorEmpresa('email')"><input id="emp-mail" class="input" type="email" formControlName="email" /></app-form-field>
     <app-form-field label="Teléfono" inputId="emp-tel"><input id="emp-tel" class="input" formControlName="telefono" /></app-form-field>
-    <div class="filter-actions span-2"><button type="submit" class="btn btn-primary" [disabled]="empresa.invalid || guardando">Guardar empresa</button></div>
+    <div class="filter-actions span-2"><button type="submit" class="btn btn-primary" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar empresa' }}</button></div>
   </form>
   </details>
   </div>

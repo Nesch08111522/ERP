@@ -18,7 +18,7 @@
       <p class="fecha" *ngIf="aviso.createdAt">{{ aviso.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
     </div>
     <div class="cluster">
-      <button type="button" class="btn btn-primary btn-sm" (click)="abrir(aviso)">Ir al problema</button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="abrir(aviso)">{{ aviso.tipo === 'COMPRA_WHATSAPP' ? 'Ver el pedido' : aviso.tipo === 'RECLAMO_WEB' || aviso.tipo === 'MENSAJE_WEB' ? 'Ver el mensaje' : 'Ir al problema' }}</button>
       <button type="button" class="btn btn-ghost btn-sm" *ngIf="!aviso.leida" (click)="leida(aviso)">Marcar leída</button>
       <button type="button" class="btn btn-danger btn-sm" *ngIf="!aviso.eliminada" (click)="archivar(aviso)">Eliminar</button>
     </div>

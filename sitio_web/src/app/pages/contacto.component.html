@@ -1,39 +1,56 @@
 <section class="section">
-  <p class="kicker">Contacto</p>
+  <p class="kicker">Libro de reclamaciones</p>
   <h1>Habla con ventas</h1>
-  <p class="lead">El mensaje entra a Mensajes web del ERP. Deja tus datos para que puedan devolverte la llamada.</p>
+  <p class="lead">Consultas, reclamos y quejas entran a Mensajes web del ERP. Deja tus datos completos para que puedan llamarte o escribirte.</p>
   <div class="contact-facts">
     @if (marca.empresa().telefono) { <a [href]="'tel:' + marca.empresa().telefono">{{ marca.empresa().telefono }}</a> }
     @if (marca.empresa().email) { <a [href]="'mailto:' + marca.empresa().email">{{ marca.empresa().email }}</a> }
-    @if (!marca.empresa().telefono && !marca.empresa().email) {
-      <span>El teléfono y el correo se toman de la empresa o de la sede en el ERP.</span>
-    }
+    @if (marca.empresa().direccion) { <span>{{ marca.empresa().direccion }}</span> }
   </div>
 </section>
 <div class="contact">
-  <aside class="mapa-lado">
-    <app-mapa-local compacto [direccionFija]="direccionMapa()" />
-    @if (sedes().length > 1) {
-      <div class="sede-lista">
-        @for (sede of sedes(); track sede.id) {
-          <p><strong>{{ sede.nombre }}</strong>@if (sede.direccion) { · {{ sede.direccion }}{{ sede.ciudad ? ', ' + sede.ciudad : '' }} }</p>
-        }
-      </div>
-    }
-  </aside>
+  <div class="libro-lado">
+    <figure class="libro-figura">
+      <img src="/libro-reclamaciones.png" alt="Asesor de POLICALUM con el libro de reclamaciones" />
+    </figure>
+    <p class="libro-frase">Déjanos tu nombre, tu teléfono y el pedido. Ventas lo lee y te llama.</p>
+  </div>
   @if (enviado()) {
-    <div class="okbox">Mensaje recibido. Ventas lo verá en la bandeja del ERP.</div>
+    <div class="okbox">Recibimos tu mensaje. Ventas lo verá en el ERP, con tu nombre, tu contacto y tu pedido.</div>
   } @else {
-    <form class="panel" style="padding:1rem; display:grid; gap:0.7rem" [formGroup]="form" (ngSubmit)="enviar()">
+    <form class="panel libro-form" [formGroup]="form" (ngSubmit)="enviar()">
       <label class="field trap" aria-hidden="true">Web<input formControlName="website" tabindex="-1" autocomplete="off" /></label>
-      <label class="field"><span>Nombre</span><input class="input" formControlName="nombre" /></label>
-      <label class="field"><span>Correo</span><input class="input" type="email" formControlName="correo" /></label>
-      <label class="field"><span>Teléfono</span><input class="input" formControlName="telefono" /></label>
+      <label class="field"><span>Tipo</span>
+        <select class="input" formControlName="tipo">
+          <option value="CONSULTA">Consulta</option>
+          <option value="RECLAMO">Reclamo</option>
+          <option value="QUEJA">Queja</option>
+        </select>
+      </label>
+      <label class="field"><span>Nombre completo</span><input class="input" formControlName="nombre" autocomplete="name" /></label>
+      <div class="libro-par">
+        <label class="field"><span>Documento</span>
+          <select class="input" formControlName="documentoTipo">
+            <option value="DNI">DNI</option>
+            <option value="CE">CE</option>
+            <option value="RUC">RUC</option>
+            <option value="PASAPORTE">Pasaporte</option>
+          </select>
+        </label>
+        <label class="field"><span>Número</span><input class="input" formControlName="documentoNumero" /></label>
+      </div>
+      <label class="field"><span>Correo</span><input class="input" type="email" formControlName="correo" autocomplete="email" /></label>
+      <label class="field"><span>Teléfono</span><input class="input" formControlName="telefono" autocomplete="tel" /></label>
       <label class="field"><span>Empresa</span><input class="input" formControlName="empresa" /></label>
-      <label class="field"><span>Asunto</span><input class="input" formControlName="asunto" /></label>
-      <label class="field"><span>Mensaje</span><textarea class="textarea" formControlName="mensaje"></textarea></label>
+      <label class="field"><span>Dirección</span><input class="input" formControlName="direccion" autocomplete="street-address" /></label>
+      <div class="libro-par">
+        <label class="field"><span>Producto o servicio</span><input class="input" formControlName="bien" /></label>
+        <label class="field"><span>Monto</span><input class="input" formControlName="monto" placeholder="S/ 0.00" /></label>
+      </div>
+      <label class="field"><span>Pedido</span><textarea class="textarea" formControlName="pedido" placeholder="Qué necesitas que hagamos"></textarea></label>
+      <label class="field"><span>Detalle</span><textarea class="textarea" formControlName="mensaje" placeholder="Cuéntanos qué ocurrió"></textarea></label>
       @if (error()) { <p class="alert">{{ error() }}</p> }
-      <button type="submit" class="btn btn-primary" [disabled]="enviando()">{{ enviando() ? 'Enviando...' : 'Enviar mensaje' }}</button>
+      <button type="submit" class="btn btn-primary" [disabled]="enviando()">{{ enviando() ? 'Enviando...' : 'Enviar al libro' }}</button>
     </form>
   }
 </div>

@@ -14,6 +14,7 @@ import { CajaGateService } from '../../../shared/services/caja-gate.service';
 import { AvatarService } from '../../../shared/services/avatar.service';
 import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { CanalWebAvisos } from '../../../shared/services/canal-web-avisos.service';
+import { AvisosSistema } from '../../../shared/services/avisos-sistema.service';
 import { AvisoSonoro } from '../../../shared/services/aviso-sonoro.service';
 import { environment } from '../../../../environments/environment';
 import { ThemeService } from '../../../shared/services/theme.service';
@@ -46,6 +47,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private primeraCarga = true;
   private readonly anunciadas = new Set<string>();
   private readonly canal = inject(CanalWebAvisos);
+  private readonly sistema = inject(AvisosSistema);
   private readonly sonido = inject(AvisoSonoro);
 
   constructor(
@@ -67,15 +69,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.lookup.loadSedes().subscribe((rows) => { this.sedes = rows.filter((sede) => sede.activa !== false); });
     this.cargarAvisos();
     this.escucharCanal();
+    this.sistema.preparar();
     this.reloj = window.setInterval(() => this.cargarAvisos(), 12000);
     const pedir = () => {
       this.sonido.preparar();
-      if (typeof Notification !== 'undefined' && Notification.permission === 'default') void Notification.requestPermission();
+      void this.sistema.pedir();
       document.removeEventListener('pointerdown', pedir);
     };
     document.addEventListener('pointerdown', pedir);
     navigator.serviceWorker?.addEventListener('message', (event: MessageEvent) => {
       if (event.data?.tipo === 'sonido-erp') this.sonido.erp();
+      if (event.data?.tipo === 'abrir' && typeof event.data.url === 'string') void this.router.navigateByUrl(event.data.url);
     });
   }
 
@@ -99,15 +103,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private anunciar(frescas: Notificacion[]): void {
     this.sonido.erp();
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     const titulo = frescas.length > 1 ? `${frescas.length} avisos nuevos en POLICALUM` : frescas[0].titulo;
     const cuerpo = frescas.length > 1 ? frescas.map((aviso) => aviso.titulo).join(' · ') : frescas[0].detalle;
-    const aviso = new Notification(titulo, { body: cuerpo, tag: 'policalum-erp' });
-    aviso.onclick = () => {
-      window.focus();
-      aviso.close();
-      void this.router.navigateByUrl(frescas[0].ruta || '/modules/notificaciones');
-    };
+    void this.sistema.mostrar(titulo, cuerpo, frescas[0].ruta || '/modules/notificaciones');
   }
 
   private escucharCanal(): void {

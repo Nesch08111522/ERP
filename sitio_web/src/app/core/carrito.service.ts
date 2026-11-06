@@ -88,6 +88,6 @@ export function enlaceWhatsapp(numero: string, lineas: LineaCarrito[], total: nu
     const corte = linea.fraccionNombre ? ` (${linea.fraccionNombre})` : '';
     return `• ${linea.nombre}${corte} x ${linea.cantidad} = ${formato(linea.precio * linea.cantidad)}`;
   }).join('\n');
-  const texto = `Hola POLICALUM, quiero consultar este pedido:\n${detalle}\nTotal aproximado: ${formato(total)}`;
+  const texto = `Hola POLICALUM, quiero comprar este pedido:\n${detalle}\nTotal aproximado: ${formato(total)}`;
   return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
 }

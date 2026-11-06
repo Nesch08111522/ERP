@@ -2,7 +2,7 @@
   <header class="wa-titulo">
     <div>
       <h1>Mensajes</h1>
-      <p>Conversaciones del sitio. Aquí se responde al cliente y se ve cuando está escribiendo.</p>
+      <p>Conversaciones, reclamos, cotizaciones y compras. Al abrir uno se marca como leído.</p>
     </div>
   </header>
 
@@ -15,21 +15,32 @@
           <button type="button" class="btn btn-sm" [class.btn-primary]="filtro === 'nuevos'" [class.btn-ghost]="filtro !== 'nuevos'" (click)="filtro = 'nuevos'">Nuevos</button>
           <button type="button" class="btn btn-sm" [class.btn-primary]="filtro === 'espera'" [class.btn-ghost]="filtro !== 'espera'" (click)="filtro = 'espera'">En espera</button>
           <button type="button" class="btn btn-sm" [class.btn-primary]="filtro === 'cerradas'" [class.btn-ghost]="filtro !== 'cerradas'" (click)="filtro = 'cerradas'">Cerradas</button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="filtro === 'archivados'" [class.btn-ghost]="filtro !== 'archivados'" (click)="filtro = 'archivados'">Archivados</button>
         </div>
       </div>
       <p class="wa-vacio" *ngIf="cargando">Cargando conversaciones...</p>
-      <p class="wa-vacio" *ngIf="!cargando && !visibles.length">No hay conversaciones para mostrar.</p>
-      <button type="button" class="wa-item" *ngFor="let item of visibles" [class.activo]="abierto?.id === item.id" (click)="abrir(item)">
-        <span class="wa-avatar" aria-hidden="true">{{ inicial(item.nombre) }}</span>
-        <span class="wa-item-texto">
-          <span class="wa-item-cabeza">
-            <strong>{{ item.nombre }}</strong>
-            <time *ngIf="item.cuando">{{ item.cuando | date:'dd/MM HH:mm' }}</time>
+      <p class="wa-vacio" *ngIf="!cargando && !visibles.length">{{ filtro === 'archivados' ? 'No hay conversaciones archivadas.' : 'No hay conversaciones para mostrar.' }}</p>
+      <div class="wa-fila" *ngFor="let item of visibles">
+        <button type="button" class="wa-item" [class.activo]="abierto?.id === item.id" [class.nuevo]="item.noLeidos > 0" (click)="abrir(item)">
+          <span class="wa-avatar" aria-hidden="true">{{ inicial(item.nombre) }}</span>
+          <span class="wa-item-texto">
+            <span class="wa-item-cabeza">
+              <strong>{{ item.nombre }}</strong>
+              <time *ngIf="item.cuando">{{ item.cuando | date:'dd/MM HH:mm' }}</time>
+            </span>
+            <span class="wa-preview" [class.escribiendo]="item.escribiendo">{{ item.preview }}</span>
           </span>
-          <span class="wa-preview" [class.escribiendo]="item.escribiendo">{{ item.preview }}</span>
-        </span>
-        <span class="wa-punto" *ngIf="item.noLeidos > 0">{{ item.noLeidos > 9 ? '9+' : item.noLeidos }}</span>
-      </button>
+        </button>
+        <div class="wa-lado">
+          <button type="button" class="wa-kebab" (click)="alternarMenu(item.id, $event)" aria-label="Opciones de la conversación">⋯</button>
+          <span class="wa-punto" *ngIf="item.noLeidos > 0">{{ item.noLeidos > 9 ? '9+' : item.noLeidos }}</span>
+        </div>
+        <div class="wa-menu" *ngIf="menuId === item.id" (click)="$event.stopPropagation()">
+          <button type="button" (click)="noLeido(item, $event)">{{ item.noLeidos > 0 ? 'Marcar como leído' : 'Marcar como no leído' }}</button>
+          <button type="button" (click)="archivar(item, $event)">{{ item.archivado ? 'Desarchivar' : 'Archivar' }}</button>
+          <button type="button" class="peligro" (click)="borrar(item, $event)">{{ confirmarId === item.id ? 'Confirmar eliminación' : 'Eliminar' }}</button>
+        </div>
+      </div>
     </aside>
 
     <section class="wa-hilo" *ngIf="abierto as chat; else sinChat">
@@ -41,12 +52,18 @@
           <p>{{ hilo?.clienteEscribiendo ? 'Escribiendo…' : chat.correo }}<span *ngIf="chat.telefono"> · {{ chat.telefono }}</span></p>
           <p class="wa-estado" *ngIf="chat.vivo">{{ chat.estado === 'CERRADA' ? 'Cerrada' : chat.estado === 'EN_ESPERA' ? 'En espera' : (chat.noLeidos ? 'Nueva' : 'Leída') }}</p>
         </div>
-        <div class="wa-acciones" *ngIf="chat.vivo">
-          <button type="button" class="btn btn-ghost btn-sm" (click)="marcarEstado('ABIERTA')">Leída</button>
-          <button type="button" class="btn btn-ghost btn-sm" (click)="marcarEstado('EN_ESPERA')">En espera</button>
-          <button type="button" class="btn btn-ghost btn-sm" (click)="marcarEstado('CERRADA')">Cerrar</button>
-          <button type="button" class="btn btn-ghost btn-sm" (click)="abrirFicha()">Guardar cliente</button>
-          <button type="button" class="btn btn-danger btn-sm" (click)="borrar()">Borrar</button>
+        <div class="wa-acciones">
+          <button type="button" class="btn btn-ghost btn-sm" *ngIf="chat.vivo" (click)="marcarEstado('EN_ESPERA')">En espera</button>
+          <button type="button" class="btn btn-ghost btn-sm" *ngIf="chat.vivo" (click)="marcarEstado('CERRADA')">Cerrar</button>
+          <button type="button" class="btn btn-ghost btn-sm" *ngIf="chat.vivo" (click)="abrirFicha()">Guardar cliente</button>
+          <div class="wa-mas">
+            <button type="button" class="btn btn-ghost btn-sm" (click)="alternarCabeza($event)">Más</button>
+            <div class="wa-menu" *ngIf="menuCabeza" (click)="$event.stopPropagation()">
+              <button type="button" (click)="noLeido(chat, $event)">{{ chat.noLeidos > 0 ? 'Marcar como leído' : 'Marcar como no leído' }}</button>
+              <button type="button" (click)="archivar(chat, $event)">{{ chat.archivado ? 'Desarchivar' : 'Archivar' }}</button>
+              <button type="button" class="peligro" (click)="borrar(chat, $event)">{{ confirmarId === chat.id ? 'Confirmar eliminación' : 'Eliminar' }}</button>
+            </div>
+          </div>
         </div>
       </header>
       <form class="wa-ficha" *ngIf="fichaAbierta && chat.vivo" (ngSubmit)="guardarCliente()">
@@ -73,11 +90,20 @@
         <p class="wa-escribiendo" *ngIf="hilo?.clienteEscribiendo">{{ chat.nombre }} está escribiendo…</p>
       </div>
       <div class="wa-cuerpo" *ngIf="!chat.vivo">
-        <article class="wa-burbuja entrada">
-          <small>{{ chat.nombre }}</small>
-          <p>{{ chat.cuerpo }}</p>
-        </article>
-        <p class="wa-nota">Esta consulta llegó por el formulario de contacto. Las respuestas en vivo se hacen cuando la persona escribe desde el chat del sitio.</p>
+        <dl class="wa-datos">
+          <div><dt>Tipo</dt><dd>{{ etiquetaTipo(chat.tipoMensaje) }}</dd></div>
+          <div><dt>Nombre completo</dt><dd>{{ chat.nombre }}</dd></div>
+          <div *ngIf="chat.documentoNumero"><dt>Documento</dt><dd>{{ chat.documentoTipo }} {{ chat.documentoNumero }}</dd></div>
+          <div><dt>Correo</dt><dd>{{ chat.correo }}</dd></div>
+          <div *ngIf="chat.telefono"><dt>Teléfono</dt><dd>{{ chat.telefono }}</dd></div>
+          <div *ngIf="chat.empresa"><dt>Empresa</dt><dd>{{ chat.empresa }}</dd></div>
+          <div *ngIf="chat.direccion"><dt>Dirección</dt><dd>{{ chat.direccion }}</dd></div>
+          <div *ngIf="chat.bien"><dt>Producto o servicio</dt><dd>{{ chat.bien }}</dd></div>
+          <div *ngIf="chat.monto"><dt>Monto</dt><dd>{{ chat.monto }}</dd></div>
+          <div *ngIf="chat.pedido"><dt>Pedido</dt><dd>{{ chat.pedido }}</dd></div>
+          <div><dt>Detalle</dt><dd>{{ chat.cuerpo }}</dd></div>
+        </dl>
+        <p class="wa-nota">{{ nota(chat) }}</p>
       </div>
 
       <form class="wa-composer" *ngIf="chat.vivo" (ngSubmit)="enviar()">

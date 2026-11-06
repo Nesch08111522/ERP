@@ -1,11 +1,12 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, effect, inject, untracked } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, effect, inject, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Routes } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { TokenService } from '../../services/token.service';
 import { CanalWebAvisos } from '../../shared/services/canal-web-avisos.service';
+import { MensajesSinLeer } from '../../shared/services/mensajes-sin-leer.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { problemText } from '../../shared/utils/feedback';
 
@@ -42,6 +43,7 @@ interface ResumenChat {
   clienteEscribiendo: boolean;
   estado?: string;
   clienteId?: string;
+  archivado?: boolean;
 }
 
 interface MensajeFormulario {
@@ -51,9 +53,18 @@ interface MensajeFormulario {
   telefono?: string;
   empresa?: string;
   asunto: string;
+  tipoMensaje?: string;
+  documentoTipo?: string;
+  documentoNumero?: string;
+  direccion?: string;
+  bien?: string;
+  monto?: string;
+  pedido?: string;
   mensaje: string;
   estado: 'NUEVO' | 'GESTIONADO';
   createdAt?: string;
+  leido?: boolean;
+  archivado?: boolean;
 }
 
 interface Pagina { content?: MensajeFormulario[]; }
@@ -70,8 +81,16 @@ interface ItemChat {
   noLeidos: number;
   escribiendo: boolean;
   cuerpo?: string;
+  tipoMensaje?: string;
+  documentoTipo?: string;
+  documentoNumero?: string;
+  direccion?: string;
+  bien?: string;
+  monto?: string;
+  pedido?: string;
   estado?: string;
   clienteId?: string;
+  archivado?: boolean;
 }
 
 @Component({
@@ -83,9 +102,12 @@ interface ItemChat {
 })
 export class MensajesWebPageComponent implements OnInit, OnDestroy {
   items: ItemChat[] = [];
-  filtro: 'todos' | 'nuevos' | 'espera' | 'cerradas' = 'todos';
+  filtro: 'todos' | 'nuevos' | 'espera' | 'cerradas' | 'archivados' = 'todos';
   busca = '';
   cargando = true;
+  menuId: string | null = null;
+  menuCabeza = false;
+  confirmarId: string | null = null;
   abierto: ItemChat | null = null;
   hilo: HiloEquipo | null = null;
   borrador = '';
@@ -94,10 +116,13 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
   ficha = { nombre: '', tipoDocumento: 'DNI', numeroDocumento: '', celular: '', email: '', direccion: '' };
   private correoInicial = '';
   private readonly ruta = inject(ActivatedRoute);
+  private readonly vistos = new Set<string>();
+  private readonly archivadosLocal = new Map<string, boolean>();
   private reloj = 0;
   private ultimaPresencia = 0;
   private readonly tokens = inject(TokenService);
   private readonly canal = inject(CanalWebAvisos);
+  private readonly bandeja = inject(MensajesSinLeer);
   private readonly alLlegarWeb = effect(() => {
     if (this.canal.revision() === 0) return;
     untracked(() => this.cargar());
@@ -119,9 +144,22 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
     window.clearInterval(this.reloj);
   }
 
+  @HostListener('document:click')
+  cerrarMenus(): void {
+    if (!this.menuId && !this.menuCabeza) return;
+    this.menuId = null;
+    this.menuCabeza = false;
+    this.confirmarId = null;
+  }
+
   get visibles(): ItemChat[] {
     const texto = this.busca.trim().toLowerCase();
     return this.items.filter((item) => {
+      if (this.filtro === 'archivados') {
+        if (!item.archivado) return false;
+      } else if (item.archivado) {
+        return false;
+      }
       if (this.filtro === 'nuevos' && item.noLeidos < 1) return false;
       if (this.filtro === 'espera' && item.estado !== 'EN_ESPERA') return false;
       if (this.filtro === 'cerradas' && item.estado !== 'CERRADA') return false;
@@ -132,12 +170,16 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
 
   cargar(conAviso = true): void {
     if (conAviso) this.cargando = true;
-    const params = new HttpParams().set('size', '50');
+    const params = new HttpParams().set('size', '100');
     this.http.get<ResumenChat[]>(`${environment.apiUrl}/api/v1/chats`).subscribe({
       next: (chats) => {
         this.http.get<Pagina>(`${environment.apiUrl}/api/v1/mensajes-web`, { params }).subscribe({
           next: (pagina) => {
             this.items = this.unir(chats ?? [], pagina.content ?? []);
+            if (this.abierto) {
+              const fresco = this.items.find((item) => item.id === this.abierto?.id);
+              if (fresco) this.abierto = fresco;
+            }
             this.cargando = false;
             if (this.correoInicial) {
               const hallado = this.items.find((item) => item.vivo && item.correo === this.correoInicial);
@@ -154,12 +196,74 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
   }
 
   abrir(item: ItemChat): void {
+    this.menuId = null;
+    this.menuCabeza = false;
+    this.confirmarId = null;
     this.abierto = item;
     this.hilo = null;
     this.borrador = '';
-    if (!item.vivo) return;
-    this.http.post(`${environment.apiUrl}/api/v1/chats/${item.id}/leido`, {}, { responseType: 'text' }).subscribe({ error: () => undefined });
-    this.leerHilo(item.id, true);
+    this.visto(item);
+    if (item.vivo) this.leerHilo(item.id, true);
+  }
+
+  alternarMenu(id: string, event: Event): void {
+    event.stopPropagation();
+    this.menuCabeza = false;
+    this.confirmarId = null;
+    this.menuId = this.menuId === id ? null : id;
+  }
+
+  alternarCabeza(event: Event): void {
+    event.stopPropagation();
+    this.menuId = null;
+    this.confirmarId = null;
+    this.menuCabeza = !this.menuCabeza;
+  }
+
+  noLeido(item: ItemChat, event?: Event): void {
+    event?.stopPropagation();
+    if (item.noLeidos > 0) {
+      this.visto(item);
+      this.menuId = null;
+      this.menuCabeza = false;
+      return;
+    }
+    this.vistos.delete(item.id);
+    this.http.post(this.rutaDe(item, 'no-leido'), {}, { responseType: 'text' }).subscribe({
+      next: () => {
+        item.noLeidos = 1;
+        this.menuId = null;
+        this.menuCabeza = false;
+        this.bandeja.ajustar(1);
+        this.bandeja.refrescar();
+        this.cdr.detectChanges();
+      },
+      error: (error: unknown) => this.toast.error(problemText(error)),
+    });
+  }
+
+  archivar(item: ItemChat, event?: Event): void {
+    event?.stopPropagation();
+    const archivado = !item.archivado;
+    this.archivadosLocal.set(item.id, archivado);
+    this.http.post(this.rutaDe(item, 'archivo'), { archivado }, { responseType: 'text' }).subscribe({
+      next: () => {
+        item.archivado = archivado;
+        if (archivado && this.abierto?.id === item.id && this.filtro !== 'archivados') {
+          this.abierto = null;
+          this.hilo = null;
+        }
+        this.menuId = null;
+        this.menuCabeza = false;
+        this.toast.success(archivado ? 'Conversación archivada.' : 'Conversación de vuelta en la bandeja.');
+        this.bandeja.refrescar();
+        this.cdr.detectChanges();
+      },
+      error: (error: unknown) => {
+        this.archivadosLocal.delete(item.id);
+        this.toast.error(problemText(error));
+      },
+    });
   }
 
   volver(): void {
@@ -217,14 +321,30 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  borrar(): void {
-    if (!this.abierto?.vivo) return;
-    this.http.delete(`${environment.apiUrl}/api/v1/chats/${this.abierto.id}`, { responseType: 'text' }).subscribe({
+  borrar(item: ItemChat, event?: Event): void {
+    event?.stopPropagation();
+    if (this.confirmarId !== item.id) {
+      this.confirmarId = item.id;
+      return;
+    }
+    const url = item.vivo
+      ? `${environment.apiUrl}/api/v1/chats/${item.id}`
+      : `${environment.apiUrl}/api/v1/mensajes-web/${item.id}`;
+    this.http.delete(url, { responseType: 'text' }).subscribe({
       next: () => {
-        this.abierto = null;
-        this.hilo = null;
+        if (this.abierto?.id === item.id) {
+          this.abierto = null;
+          this.hilo = null;
+        }
+        this.items = this.items.filter((actual) => actual.id !== item.id);
+        this.vistos.delete(item.id);
+        this.archivadosLocal.delete(item.id);
+        this.menuId = null;
+        this.menuCabeza = false;
+        this.confirmarId = null;
         this.toast.success('Conversación eliminada.');
-        this.cargar(false);
+        this.bandeja.refrescar();
+        this.cdr.detectChanges();
       },
       error: (error: unknown) => this.toast.error(problemText(error)),
     });
@@ -301,6 +421,20 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  etiquetaTipo(tipo?: string): string {
+    if (tipo === 'RECLAMO') return 'Reclamo';
+    if (tipo === 'QUEJA') return 'Queja';
+    if (tipo === 'CONSULTA') return 'Consulta';
+    if (tipo === 'COMPRA') return 'Compra por WhatsApp';
+    return tipo || 'Consulta';
+  }
+
+  nota(chat: ItemChat): string {
+    if (chat.tipoMensaje === 'COMPRA') return 'Llegó como compra por WhatsApp. Arriba está el pedido para poder llamarle o escribirle.';
+    if (chat.tipoMensaje === 'RECLAMO' || chat.tipoMensaje === 'QUEJA') return 'Llegó por el libro de reclamaciones. Los datos de arriba son los que dejó para que puedan llamarle o escribirle.';
+    return 'Llegó como consulta. Los datos de arriba son los que dejó para que puedan llamarle o escribirle.';
+  }
+
   inicial(nombre: string): string {
     return (nombre.trim().charAt(0) || 'C').toUpperCase();
   }
@@ -330,10 +464,11 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
       empresa: chat.empresa,
       preview: chat.clienteEscribiendo ? 'Escribiendo…' : (chat.ultimoTexto || 'Conversación'),
       cuando: chat.ultimoMensajeAt,
-      noLeidos: chat.noLeidos ?? 0,
+      noLeidos: this.lectura(chat.id, chat.noLeidos ?? 0),
       escribiendo: chat.clienteEscribiendo,
       estado: chat.estado || 'ABIERTA',
       clienteId: chat.clienteId,
+      archivado: this.archivo(chat.id, !!chat.archivado),
     }));
     const antiguos: ItemChat[] = formularios.map((mensaje) => ({
       id: mensaje.id,
@@ -342,13 +477,56 @@ export class MensajesWebPageComponent implements OnInit, OnDestroy {
       correo: mensaje.correo,
       telefono: mensaje.telefono,
       empresa: mensaje.empresa,
-      preview: mensaje.asunto || mensaje.mensaje,
+      preview: mensaje.pedido || mensaje.asunto || mensaje.mensaje,
       cuando: mensaje.createdAt,
-      noLeidos: mensaje.estado === 'NUEVO' ? 1 : 0,
+      noLeidos: this.lectura(mensaje.id, mensaje.leido ? 0 : 1),
       escribiendo: false,
       cuerpo: mensaje.mensaje,
+      tipoMensaje: mensaje.tipoMensaje || (mensaje.asunto === 'Compra por WhatsApp' ? 'COMPRA' : mensaje.tipoMensaje),
+      documentoTipo: mensaje.documentoTipo,
+      documentoNumero: mensaje.documentoNumero,
+      direccion: mensaje.direccion,
+      bien: mensaje.bien,
+      monto: mensaje.monto,
+      pedido: mensaje.pedido,
+      archivado: this.archivo(mensaje.id, !!mensaje.archivado),
     }));
     return [...vivos, ...antiguos].sort((a, b) => (b.cuando ?? '').localeCompare(a.cuando ?? ''));
+  }
+
+  private visto(item: ItemChat): void {
+    const antes = item.noLeidos;
+    item.noLeidos = 0;
+    this.vistos.add(item.id);
+    if (antes > 0) this.bandeja.ajustar(-antes);
+    this.cdr.detectChanges();
+    this.http.post(this.rutaDe(item, 'leido'), {}, { responseType: 'text' }).subscribe({
+      next: () => this.bandeja.refrescar(),
+      error: () => {
+        item.noLeidos = antes;
+        this.vistos.delete(item.id);
+        if (antes > 0) this.bandeja.ajustar(antes);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private rutaDe(item: ItemChat, accion: 'leido' | 'no-leido' | 'archivo'): string {
+    const base = item.vivo ? 'chats' : 'mensajes-web';
+    return `${environment.apiUrl}/api/v1/${base}/${item.id}/${accion}`;
+  }
+
+  private lectura(id: string, pendientes: number): number {
+    if (!this.vistos.has(id)) return pendientes;
+    if (pendientes === 0) this.vistos.delete(id);
+    return 0;
+  }
+
+  private archivo(id: string, servidor: boolean): boolean {
+    if (!this.archivadosLocal.has(id)) return servidor;
+    const local = this.archivadosLocal.get(id) === true;
+    if (local === servidor) this.archivadosLocal.delete(id);
+    return local;
   }
 
   private fallo(error: unknown, conAviso: boolean): void {

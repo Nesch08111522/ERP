@@ -24,14 +24,39 @@ public class MensajeWebService {
 
     @Transactional
     public MensajeContactoResponseDTO recibir(ContactoWebRequestDTO request) {
+        String tipo = request.tipo().trim().toUpperCase();
+        boolean libro = "RECLAMO".equals(tipo) || "QUEJA".equals(tipo);
+        if (libro && vacio(request.documentoNumero()) == null) {
+            throw new IllegalArgumentException("Indica el número de documento");
+        }
+        if (libro && vacio(request.direccion()) == null) {
+            throw new IllegalArgumentException("Indica la dirección");
+        }
+        if (libro && vacio(request.bien()) == null) {
+            throw new IllegalArgumentException("Indica el producto o servicio");
+        }
+        String etiqueta = switch (tipo) {
+            case "RECLAMO" -> "Reclamo";
+            case "QUEJA" -> "Queja";
+            default -> "Consulta";
+        };
         MensajeContacto mensaje = MensajeContacto.builder()
                 .nombre(request.nombre().trim())
                 .correo(request.correo().trim().toLowerCase())
-                .telefono(vacio(request.telefono()))
+                .telefono(request.telefono().trim())
                 .empresa(vacio(request.empresa()))
-                .asunto(request.asunto().trim())
+                .asunto(etiqueta)
+                .tipoMensaje(tipo)
+                .documentoTipo(vacio(request.documentoTipo()))
+                .documentoNumero(vacio(request.documentoNumero()))
+                .direccion(vacio(request.direccion()))
+                .bien(vacio(request.bien()))
+                .monto(vacio(request.monto()))
+                .pedido(request.pedido().trim())
                 .mensaje(request.mensaje().trim())
                 .estado(EstadoMensajeWeb.NUEVO)
+                .leido(false)
+                .archivado(false)
                 .build();
         MensajeContacto guardado = repository.save(mensaje);
         notificador.mensaje(guardado);
@@ -51,10 +76,45 @@ public class MensajeWebService {
         return repository.countByEstado(EstadoMensajeWeb.NUEVO);
     }
 
+    @Transactional(readOnly = true)
+    public long sinLeer() {
+        return repository.contarSinLeer();
+    }
+
+    @Transactional
+    public void marcarLeido(UUID id) {
+        MensajeContacto mensaje = exigir(id);
+        mensaje.setLeido(true);
+        repository.save(mensaje);
+        notificador.leerAvisoDe(id);
+    }
+
+    @Transactional
+    public void marcarNoLeido(UUID id) {
+        MensajeContacto mensaje = exigir(id);
+        mensaje.setLeido(false);
+        repository.save(mensaje);
+        notificador.refrescar();
+    }
+
+    @Transactional
+    public void archivar(UUID id, boolean archivado) {
+        MensajeContacto mensaje = exigir(id);
+        mensaje.setArchivado(archivado);
+        repository.save(mensaje);
+        notificador.refrescar();
+    }
+
+    @Transactional
+    public void eliminar(UUID id) {
+        exigir(id);
+        repository.deleteById(id);
+        notificador.retirarAvisoDe(id);
+    }
+
     @Transactional
     public MensajeContactoResponseDTO gestionar(UUID id, GestionarMensajeRequestDTO request) {
-        MensajeContacto mensaje = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
+        MensajeContacto mensaje = exigir(id);
         mensaje.setEstado(EstadoMensajeWeb.GESTIONADO);
         mensaje.setNotaGestion(request == null || request.nota() == null || request.nota().isBlank() ? null : request.nota().trim());
         mensaje.setGestionadoAt(LocalDateTime.now());
@@ -63,8 +123,14 @@ public class MensajeWebService {
 
     private MensajeContactoResponseDTO dto(MensajeContacto mensaje) {
         return new MensajeContactoResponseDTO(mensaje.getId(), mensaje.getNombre(), mensaje.getCorreo(), mensaje.getTelefono(),
-                mensaje.getEmpresa(), mensaje.getAsunto(), mensaje.getMensaje(), mensaje.getEstado(), mensaje.getNotaGestion(),
-                mensaje.getCreatedAt(), mensaje.getGestionadoAt());
+                mensaje.getEmpresa(), mensaje.getAsunto(), mensaje.getTipoMensaje(), mensaje.getDocumentoTipo(),
+                mensaje.getDocumentoNumero(), mensaje.getDireccion(), mensaje.getBien(), mensaje.getMonto(),
+                mensaje.getPedido(), mensaje.getMensaje(), mensaje.getEstado(), mensaje.getNotaGestion(),
+                mensaje.getCreatedAt(), mensaje.getGestionadoAt(), mensaje.getLeido(), mensaje.getArchivado());
+    }
+
+    private MensajeContacto exigir(UUID id) {
+        return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Mensaje no encontrado"));
     }
 
     private static String vacio(String valor) {

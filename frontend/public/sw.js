@@ -5,19 +5,39 @@ self.addEventListener('push', (event) => {
   } catch (error) {
     datos.body = event.data ? event.data.text() : datos.body;
   }
-  event.waitUntil((async () => {
-    await self.registration.showNotification(datos.title, {
-      body: datos.body,
-      data: { url: datos.url },
-      silent: false,
-    });
-    const abiertas = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    abiertas.forEach((ventana) => ventana.postMessage({ tipo: 'sonido-erp' }));
-  })());
+  event.waitUntil(mostrar(datos.title, datos.body, datos.url));
+});
+
+self.addEventListener('message', (event) => {
+  const datos = event.data || {};
+  if (datos.tipo !== 'mostrar') return;
+  event.waitUntil(mostrar(datos.title, datos.body, datos.url));
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const destino = event.notification.data && event.notification.data.url ? event.notification.data.url : '/modules/notificaciones';
-  event.waitUntil(clients.openWindow(destino));
+  const ruta = event.notification.data && event.notification.data.url ? event.notification.data.url : '/modules/notificaciones';
+  const destino = new URL(ruta, self.location.origin).href;
+  event.waitUntil((async () => {
+    const abiertas = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const ventana of abiertas) {
+      await ventana.focus();
+      ventana.postMessage({ tipo: 'abrir', url: ruta });
+      return;
+    }
+    await clients.openWindow(destino);
+  })());
 });
+
+function mostrar(titulo, cuerpo, url) {
+  return self.registration.showNotification(titulo || 'POLICALUM', {
+    body: cuerpo || 'Tienes un aviso nuevo.',
+    tag: 'policalum-erp',
+    renotify: true,
+    icon: '/POLICALUM.png',
+    badge: '/POLICALUM.png',
+    data: { url: url || '/modules/notificaciones' },
+    silent: false,
+    vibrate: [180, 80, 180],
+  });
+}

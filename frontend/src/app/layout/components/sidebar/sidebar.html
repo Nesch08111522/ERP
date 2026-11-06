@@ -27,6 +27,7 @@
           (click)="layout.closeMobile()">
           <app-icon [name]="item.icon"></app-icon>
           <span class="nav-label">{{ item.label }}</span>
+          <span class="nav-aviso" *ngIf="item.id === 'mensajes-web' && bandeja.total() > 0">{{ bandeja.total() > 99 ? '99+' : bandeja.total() }}</span>
         </a>
       </div>
     </section>

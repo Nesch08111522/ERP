@@ -9,16 +9,23 @@ import com.policalum.erp.application.dto.request.HorarioOperativoRequestDTO;
 import com.policalum.erp.application.dto.request.OfertaManualRequestDTO;
 import com.policalum.erp.application.dto.response.AtencionPublicaDTO;
 import com.policalum.erp.application.dto.response.CmsPublicoDTO;
+import com.policalum.erp.application.dto.response.DatoEmpresaSitioDTO;
+import com.policalum.erp.application.dto.response.EmpresaSitioDTO;
 import com.policalum.erp.application.dto.response.MaterialPublicoDTO;
 import com.policalum.erp.application.service.AtencionHorario;
+import com.policalum.erp.application.service.EmpresaSitioVinculo;
 import com.policalum.erp.application.service.PrecioComercial;
 import com.policalum.erp.domain.model.CmsAjuste;
+import com.policalum.erp.domain.model.ConfiguracionEmpresa;
 import com.policalum.erp.domain.model.HorarioOperativo;
 import com.policalum.erp.domain.model.Producto;
+import com.policalum.erp.domain.model.Sede;
 import com.policalum.erp.exception.ResourceNotFoundException;
 import com.policalum.erp.infrastructure.repository.CmsAjusteRepository;
+import com.policalum.erp.infrastructure.repository.ConfiguracionEmpresaRepository;
 import com.policalum.erp.infrastructure.repository.HorarioOperativoRepository;
 import com.policalum.erp.infrastructure.repository.ProductoRepository;
+import com.policalum.erp.infrastructure.repository.SedeRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -53,6 +60,8 @@ public class CmsService {
     private final CmsAjusteRepository ajustes;
     private final HorarioOperativoRepository horarios;
     private final ProductoRepository productos;
+    private final ConfiguracionEmpresaRepository empresas;
+    private final SedeRepository sedes;
     private final CmsPublicador publicador;
     private final ObjectMapper json = new ObjectMapper();
 
@@ -90,6 +99,7 @@ public class CmsService {
                 throw new IllegalStateException("No se pudieron guardar los materiales");
             }
         }
+        guardarIdentidad(fila, request);
         ajustes.save(fila);
         publicador.publicar("ajustes");
         return publico();
@@ -182,6 +192,18 @@ public class CmsService {
     @Transactional(readOnly = true)
     public CmsPublicoDTO actual() {
         return leer();
+    }
+
+    @Transactional(readOnly = true)
+    public EmpresaSitioDTO empresaSitio() {
+        DatoEmpresaSitioDTO global = datoGlobal();
+        CmsAjuste ajuste = ajustes.findById(CmsAjuste.ID).orElse(null);
+        boolean propio = ajuste != null && Boolean.TRUE.equals(ajuste.getIdentidadPropia());
+        DatoEmpresaSitioDTO sitio = propio ? datoSitio(ajuste) : datoVisible(global);
+        DatoEmpresaSitioDTO origen = propio ? datoOrigen(ajuste) : global;
+        return new EmpresaSitioDTO(propio, sitio, global, propio
+                ? EmpresaSitioVinculo.propuestas(origen, global, sitio)
+                : List.of());
     }
 
     private CmsPublicoDTO leer() {
@@ -328,6 +350,101 @@ public class CmsService {
         String texto = valor.trim();
         if (texto.isEmpty()) return null;
         return texto.length() <= maximo ? texto : texto.substring(0, maximo);
+    }
+
+    private void guardarIdentidad(CmsAjuste fila, CmsAjusteRequestDTO request) {
+        DatoEmpresaSitioDTO global = datoGlobal();
+        DatoEmpresaSitioDTO sitio = new DatoEmpresaSitioDTO(
+                limpio(request.nombreComercial(), 150),
+                limpio(request.razonSocial(), 200),
+                limpio(request.ruc(), 11),
+                limpio(request.telefono(), 20),
+                limpio(request.email(), 150),
+                limpio(request.direccionFiscal(), 300),
+                limpio(request.ubigeo(), 6));
+        boolean ya = Boolean.TRUE.equals(fila.getIdentidadPropia());
+        boolean vacio = sitio.nombreComercial() == null && sitio.razonSocial() == null && sitio.ruc() == null
+                && sitio.telefono() == null && sitio.email() == null && sitio.direccionFiscal() == null && sitio.ubigeo() == null;
+        if (!ya && vacio) return;
+        Set<String> descartados = request.descartados() == null ? Set.of() : new LinkedHashSet<>(request.descartados());
+        DatoEmpresaSitioDTO origen = EmpresaSitioVinculo.origenAlGuardar(datoOrigen(fila), global, sitio, descartados, ya);
+        fila.setWebNombre(sitio.nombreComercial());
+        fila.setWebRazonSocial(sitio.razonSocial());
+        fila.setWebRuc(sitio.ruc());
+        fila.setWebTelefono(sitio.telefono());
+        fila.setWebEmail(sitio.email());
+        fila.setWebDireccion(sitio.direccionFiscal());
+        fila.setWebUbigeo(sitio.ubigeo());
+        fila.setIdentidadPropia(true);
+        try {
+            fila.setOrigenEmpresa(json.writeValueAsString(origen));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("No se pudo recordar el vínculo con la configuración global");
+        }
+    }
+
+    private DatoEmpresaSitioDTO datoGlobal() {
+        ConfiguracionEmpresa empresa = empresas.findById(ConfiguracionEmpresa.ID_UNICO).orElse(null);
+        if (empresa == null) {
+            return new DatoEmpresaSitioDTO("POLICALUM", null, null, null, null, null, null);
+        }
+        String nombre = limpio(empresa.getNombreComercial(), 150);
+        return new DatoEmpresaSitioDTO(
+                nombre == null ? "POLICALUM" : nombre,
+                limpio(empresa.getRazonSocial(), 200),
+                limpio(empresa.getRuc(), 11),
+                limpio(empresa.getTelefono(), 20),
+                limpio(empresa.getEmail(), 150),
+                limpio(empresa.getDireccionFiscal(), 300),
+                limpio(empresa.getUbigeo(), 6));
+    }
+
+    private DatoEmpresaSitioDTO datoVisible(DatoEmpresaSitioDTO global) {
+        String telefono = global.telefono();
+        String direccion = global.direccionFiscal();
+        if ((telefono == null || telefono.isBlank()) || (direccion == null || direccion.isBlank())) {
+            Sede sede = sedes.findByActivaTrueOrderByNombreAsc().stream().findFirst().orElse(null);
+            if (sede != null) {
+                if (telefono == null || telefono.isBlank()) telefono = limpio(sede.getCelularSede(), 20);
+                if (direccion == null || direccion.isBlank()) direccion = limpio(unir(sede.getDireccion(), sede.getCiudad()), 300);
+            }
+        }
+        return new DatoEmpresaSitioDTO(
+                global.nombreComercial(),
+                global.razonSocial(),
+                global.ruc(),
+                telefono,
+                global.email(),
+                direccion,
+                global.ubigeo());
+    }
+
+    private static String unir(String direccion, String ciudad) {
+        if (direccion == null || direccion.isBlank()) return ciudad;
+        if (ciudad == null || ciudad.isBlank()) return direccion;
+        return direccion.trim() + ", " + ciudad.trim();
+    }
+
+    private DatoEmpresaSitioDTO datoSitio(CmsAjuste ajuste) {
+        return new DatoEmpresaSitioDTO(
+                ajuste.getWebNombre(),
+                ajuste.getWebRazonSocial(),
+                ajuste.getWebRuc(),
+                ajuste.getWebTelefono(),
+                ajuste.getWebEmail(),
+                ajuste.getWebDireccion(),
+                ajuste.getWebUbigeo());
+    }
+
+    private DatoEmpresaSitioDTO datoOrigen(CmsAjuste ajuste) {
+        if (ajuste == null || ajuste.getOrigenEmpresa() == null || ajuste.getOrigenEmpresa().isBlank()) {
+            return new DatoEmpresaSitioDTO(null, null, null, null, null, null, null);
+        }
+        try {
+            return json.readValue(ajuste.getOrigenEmpresa(), DatoEmpresaSitioDTO.class);
+        } catch (JsonProcessingException e) {
+            return new DatoEmpresaSitioDTO(null, null, null, null, null, null, null);
+        }
     }
 
     private CmsAjuste asegurarAjuste() {

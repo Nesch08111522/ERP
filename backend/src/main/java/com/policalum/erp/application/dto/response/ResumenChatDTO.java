@@ -14,5 +14,6 @@ public record ResumenChatDTO(
         int noLeidos,
         boolean clienteEscribiendo,
         String estado,
-        UUID clienteId
+        UUID clienteId,
+        boolean archivado
 ) {}

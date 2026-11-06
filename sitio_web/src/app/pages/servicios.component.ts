@@ -13,7 +13,7 @@ import { PortalApi, pen } from '../core/portal.api';
       <p class="lead">Cada ficha sale de la tabla de servicios. El precio es el publicado; la cotización formal la confirma ventas.</p>
     </section>
     @if (!servicios().length) {
-      <p class="muted">No hay servicios activos. Cuando los registres en el ERP, aparecen aquí. <a routerLink="/contacto">Escríbenos</a> si necesitas uno a medida.</p>
+      <p class="muted">No hay servicios activos. Cuando los registres en el ERP, aparecen aquí. <a routerLink="/reclamaciones">Escríbenos</a> si necesitas uno a medida.</p>
     } @else {
       <div class="service-list">
         @for (servicio of servicios(); track servicio.id) {

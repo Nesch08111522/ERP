@@ -1,8 +1,8 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CarritoService, enlaceWhatsapp } from '../core/carrito.service';
-import { EmpresaStore } from '../core/empresa.store';
+import { AvisoCompraService } from '../core/aviso-compra.service';
+import { CarritoService } from '../core/carrito.service';
 import { media, pen } from '../core/portal.api';
 
 @Component({
@@ -12,13 +12,7 @@ import { media, pen } from '../core/portal.api';
 })
 export class CarritoComponent {
   readonly carrito = inject(CarritoService);
-  readonly marca = inject(EmpresaStore);
+  readonly compra = inject(AvisoCompraService);
   readonly pen = pen;
   readonly media = media;
-
-  whatsapp(total: number): string | null {
-    const numero = this.marca.empresa().whatsapp;
-    if (!numero) return null;
-    return enlaceWhatsapp(numero, this.carrito.snapshot(), total, pen);
-  }
 }
