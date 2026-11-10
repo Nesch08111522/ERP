@@ -46,6 +46,7 @@ import { PenPipe } from '../../../shared/pipes/format.pipes';
 
 import { AlmacenService } from '../../../shared/services/almacen.service';
 import { InventarioSyncService } from '../../../shared/services/inventario-sync.service';
+import { PredictiveBufferService } from '../../../shared/services/predictive-buffer.service';
 import { LookupService } from '../../../shared/services/lookup.service';
 import { SedeFiltroService } from '../../../shared/services/sede-filtro.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -129,7 +130,7 @@ interface CargaCatalogo {
     PenPipe,
   ],
   templateUrl: './productos-page.component.html',
-  styleUrls: ['./productos-page.component.css'],
+  styleUrls: ['./productos-page.component.css', './productos-page.component.part2.css', './productos-page.component.part3.css'],
 })
 export class ProductosPageComponent implements OnInit, OnDestroy {
 
@@ -143,6 +144,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   private readonly inventario = inject(InventarioSyncService);
   private readonly sedeFiltro = inject(SedeFiltroService);
   private readonly almacenService = inject(AlmacenService);
+  private readonly buffer = inject(PredictiveBufferService);
 
   readonly state = new PageState<Api.ProductoResponseDTO>();
 
@@ -330,7 +332,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     this.buscar$
       .pipe(
         map((valor) => valor.trim()),
-        debounceTime(350),
+        debounceTime(300),
         distinctUntilChanged(),
         takeUntil(this.destroy$),
       )
@@ -628,7 +630,9 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
           })),
         )
       : forkJoin({
-          pagina: this.api.GetApiV1Productos(query),
+          pagina: this.buffer.obtener(this.claveCatalogo(query), () =>
+            this.api.GetApiV1Productos(query),
+          ),
           saldos: this.saldosCompletos(extra.sedeId),
         }).pipe(
           map(({ pagina, saldos }) => ({
@@ -676,6 +680,7 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
         }
 
         this.prepararVistas();
+        if (pagina) this.precargarSiguiente(query, pagina);
       },
       error: (error: unknown) => {
         if (token !== this.carga) return;
@@ -686,6 +691,25 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
     });
 
     this.cargarPanel(extra.sedeId);
+  }
+
+  /** Clave estable de caché para una consulta de catálogo (ordena las llaves). */
+  private claveCatalogo(query: QueryMap): string {
+    const pares = Object.keys(query)
+      .sort()
+      .map((k) => [k, query[k]]);
+    return 'productos:' + JSON.stringify(pares);
+  }
+
+  /** Buffer predictivo: precalienta la página siguiente mientras se ve la actual. */
+  private precargarSiguiente(query: QueryMap, pagina: Api.PageProductoResponseDTO): void {
+    const total = pagina.totalPages ?? 0;
+    const actual = pagina.number ?? Number(query['page']) ?? 0;
+    if (total <= actual + 1) return;
+    const siguiente: QueryMap = { ...query, page: actual + 1 };
+    this.buffer.precalentar(this.claveCatalogo(siguiente), () =>
+      this.api.GetApiV1Productos(siguiente),
+    );
   }
 
   /* =========================================================
@@ -1279,6 +1303,8 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
         tipo: extra.tipo,
         activo: extra.activo,
         esFraccionable: extra.esFraccionable,
+        sedeId: extra.sedeId,
+        almacenId: extra.almacenId,
       })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -1734,6 +1760,8 @@ export class ProductosPageComponent implements OnInit, OnDestroy {
   private avisarInventario(): void {
     this.omitirRevision = this.inventario.revision() + 1;
     this.inventario.marcarCambio();
+    // Mutación del catálogo: descartar el buffer predictivo para no servir páginas viejas.
+    this.buffer.invalidarPrefijo('productos:');
   }
 
   private esProducto(valor: unknown): valor is Api.ProductoResponseDTO {

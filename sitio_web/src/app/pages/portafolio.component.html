@@ -30,6 +30,7 @@
           </span>
         }
         @if (galeria(obra).length > 1) { <span class="obra-fotos">{{ galeria(obra).length }} fotos</span> }
+        @if (tieneVideo(obra)) { <span class="obra-fotos">Video adaptativo</span> }
       </span>
     </button>
   }
@@ -53,6 +54,17 @@
         }
       </div>
       <div class="ficha-obra">
+        @if (fuentesVideo(obra).length) {
+          <div class="video-adaptativo">
+            <video controls playsinline preload="metadata" [poster]="portada(obra) ?? undefined">
+              @for (video of fuentesVideo(obra); track video.url) {
+                <source [src]="video.url" [type]="video.tipo" />
+              }
+              Tu navegador no admite reproducción de video adaptativo.
+            </video>
+            <small>La calidad se adapta a tu conexión cuando el servidor entrega HLS o DASH.</small>
+          </div>
+        }
         @if (obra.servicio) { <p class="kicker">{{ obra.servicio }}</p> }
         <h2>{{ obra.titulo }}</h2>
         @if (meta(obra)) { <p class="obra-meta">{{ meta(obra) }}</p> }

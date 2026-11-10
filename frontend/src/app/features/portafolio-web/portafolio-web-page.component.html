@@ -185,6 +185,17 @@
       Hasta 6 etiquetas, separadas por coma. Cada una admite 24 caracteres.
     </p>
 
+    <!-- VIDEO ADAPTATIVO -->
+    <app-form-field label="Video MP4 (fallback)" inputId="pf-video" class="span-2">
+      <input id="pf-video" class="input" type="url" maxlength="500" formControlName="videoUrl" placeholder="https://cdn.example.com/reel.mp4" />
+    </app-form-field>
+    <app-form-field label="Manifiesto HLS (.m3u8)" inputId="pf-hls" class="span-2">
+      <input id="pf-hls" class="input" type="url" maxlength="500" formControlName="hlsUrl" placeholder="https://cdn.example.com/reel/master.m3u8" />
+    </app-form-field>
+    <app-form-field label="Manifiesto DASH (.mpd)" inputId="pf-dash" class="span-2">
+      <input id="pf-dash" class="input" type="url" maxlength="500" formControlName="dashUrl" placeholder="https://cdn.example.com/reel/manifest.mpd" />
+    </app-form-field>
+    <p class="ayuda span-2">HLS/DASH se priorizan según soporte del navegador; MP4 funciona como respaldo.</p>
 
     <!-- IMÁGENES -->
     <div class="span-2 galeria-admin" formArrayName="imagenes">

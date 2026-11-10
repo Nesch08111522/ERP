@@ -36,6 +36,15 @@ public class ProyectoPortafolio {
     @Column(length = 500)
     private String imagenUrl;
 
+    @Column(length = 500)
+    private String videoUrl;
+
+    @Column(length = 500)
+    private String hlsUrl;
+
+    @Column(length = 500)
+    private String dashUrl;
+
     @Column(nullable = false)
     private Integer orden = 0;
 

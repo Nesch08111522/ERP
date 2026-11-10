@@ -34,7 +34,7 @@ import { VentasApiService } from '../data-access/ventas.api';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, PageHeaderComponent, ExportButtonsComponent, FilterBarComponent, DataTableComponent, ModalComponent, FormFieldComponent, SelectComponent, PenPipe, VentaTicketComponent],
   templateUrl: './ventas-page.component.html',
-  styleUrls: ['./ventas-page.component.css'],
+  styleUrls: ['./ventas-page.component.css', './ventas-page.component.part2.css'],
 })
 export class VentasPageComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);

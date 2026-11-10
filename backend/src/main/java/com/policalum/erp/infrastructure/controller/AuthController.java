@@ -9,10 +9,13 @@ import com.policalum.erp.application.dto.request.LogoutRequestDTO;
 import com.policalum.erp.application.dto.request.RefreshRequestDTO;
 import com.policalum.erp.application.dto.response.LoginResponseDTO;
 import com.policalum.erp.application.service.AuthService;
+import com.policalum.erp.infrastructure.security.RateLimitService;
+import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,9 +28,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RateLimitService rateLimitService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request, HttpServletRequest http) {
+        ConsumptionProbe probe = rateLimitService.consumirLoginUsuario(request.email());
+        if (!probe.isConsumed()) {
+            long retryAfter = Math.max(1, probe.getNanosToWaitForRefill() / 1_000_000_000L);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", String.valueOf(retryAfter))
+                    .build();
+        }
         LoginResponseDTO response = authService.login(request, ipDe(http));
         return ResponseEntity.ok(response);
     }

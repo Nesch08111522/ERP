@@ -98,7 +98,7 @@ interface ItemChat {
   standalone: true,
   imports: [CommonModule, DatePipe, FormsModule],
   templateUrl: './mensajes-web-page.component.html',
-  styleUrls: ['./mensajes-web-page.component.css'],
+  styleUrls: ['./mensajes-web-page.component.css', './mensajes-web-page.component.part2.css'],
 })
 export class MensajesWebPageComponent implements OnInit, OnDestroy {
   items: ItemChat[] = [];

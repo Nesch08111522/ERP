@@ -20,7 +20,7 @@ export class EmpresaStore {
 
   private pintarMarca(): void {
     const nombre = this.empresa().nombreComercial?.trim() || 'POLICALUM';
-    document.title = `${nombre} | Policarbonatos y cubiertas`;
+    // Route titles are managed by Angular and SeoService, not asynchronous branding.
     const icono = this.logo() || 'favicon.svg';
     document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]').forEach((nodo) => nodo.remove());
     for (const rel of ['icon', 'apple-touch-icon']) {

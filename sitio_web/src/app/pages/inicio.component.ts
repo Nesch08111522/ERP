@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { HeroCinematicComponent } from '../components/hero-cinematic.component';
 import { FichaProductoComponent } from '../components/ficha-producto.component';
 import { GaleriaMaterialesComponent } from '../components/galeria-materiales.component';
 import { MapaLocalComponent } from '../components/mapa-local.component';
@@ -10,7 +11,7 @@ import { CategoriaPublica, ProductoPublico, ProyectoPublico, ServicioPublico } f
 
 @Component({
   selector: 'app-inicio',
-  imports: [RouterLink, FichaProductoComponent, GaleriaMaterialesComponent, MapaLocalComponent],
+  imports: [RouterLink, HeroCinematicComponent, FichaProductoComponent, GaleriaMaterialesComponent, MapaLocalComponent],
   templateUrl: './inicio.component.html',
 })
 export class InicioComponent implements OnInit, OnDestroy {
@@ -53,7 +54,6 @@ export class InicioComponent implements OnInit, OnDestroy {
     });
     this.api.servicios().subscribe({ next: (lista) => this.servicios.set(lista), error: () => undefined });
     this.cargarObras();
-    this.reanudarBanner();
   }
 
   ngOnDestroy(): void {

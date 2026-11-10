@@ -1,6 +1,6 @@
-
+﻿
 /* =========================================================
-   POLICALUM ERP — PORTAFOLIO WEB
+   POLICALUM ERP â€” PORTAFOLIO WEB
    Responsive: XXS / XS / S / M / L / XL / XXL
    Compatible con modo oscuro y modo claro
    Basado en el Design System global
@@ -365,7 +365,7 @@
   -webkit-line-clamp: 2;
 }
 
-/* Imágenes */
+/* ImÃ¡genes */
 
 .portfolio-thumbnail-wrapper {
   display: flex;
@@ -413,7 +413,7 @@
 
 
 /* =========================================================
-   06. ESTADOS DE PUBLICACIÓN
+   06. ESTADOS DE PUBLICACIÃ“N
    ========================================================= */
 
 .module-page .badge-success {
@@ -430,7 +430,7 @@
 
 
 /* =========================================================
-   07. TARJETAS MÓVILES
+   07. TARJETAS MÃ“VILES
    ========================================================= */
 
 .portfolio-mobile-list {
@@ -532,7 +532,7 @@
   overflow-wrap: anywhere;
 }
 
-/* Información */
+/* InformaciÃ³n */
 
 .portfolio-card-main {
   flex: 1;
@@ -578,7 +578,7 @@
   overflow-wrap: anywhere;
 }
 
-/* Indicador acordeón */
+/* Indicador acordeÃ³n */
 
 .portfolio-chevron {
   display: flex;
@@ -614,7 +614,7 @@
 
 
 /* =========================================================
-   08. DETALLES DEL ACORDEÓN
+   08. DETALLES DEL ACORDEÃ“N
    ========================================================= */
 
 .portfolio-card-details {
@@ -683,7 +683,7 @@
   border-top: 1px solid var(--pf-border);
 }
 
-/* Botones móviles */
+/* Botones mÃ³viles */
 
 .portfolio-card-actions {
   display: grid;
@@ -709,369 +709,4 @@
   font-size: var(--text-sm);
   white-space: normal;
   text-align: center;
-}
-
-
-/* =========================================================
-   09. BOTONES Y ESTADOS
-   Se conservan las clases globales del ERP.
-   ========================================================= */
-
-.module-page .btn {
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-.module-page .btn:focus-visible {
-  outline: 2px solid var(--pf-primary);
-  outline-offset: 3px;
-}
-
-.module-page .btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* Botón secundario */
-
-.module-page .btn-ghost {
-  color: var(--pf-text);
-  background: var(--pf-surface-raised);
-  border: 1px solid var(--pf-border-strong);
-}
-
-.module-page .btn-ghost:hover:not(:disabled) {
-  color: var(--pf-primary);
-  background: var(--pf-primary-soft);
-  border-color: var(--pf-primary);
-}
-
-/* Botón peligro */
-
-.module-page .btn-danger {
-  color: #ffffff;
-  background: var(--pf-danger);
-  border: 1px solid var(--pf-danger);
-}
-
-.module-page .btn-danger:hover:not(:disabled) {
-  filter: brightness(0.92);
-}
-
-/* Botón principal: conserva el diseño global */
-
-.module-page .btn-primary {
-  color: var(--color-primary-contrast);
-  background: var(--pf-primary);
-  border: 1px solid var(--pf-primary);
-}
-
-.module-page .btn-primary:hover:not(:disabled) {
-  background: var(--pf-primary-hover);
-  border-color: var(--pf-primary-hover);
-}
-
-
-/* =========================================================
-   10. TABLETS
-   ========================================================= */
-
-@media (min-width: 768px) {
-
-  .portfolio-mobile {
-    display: none !important;
-  }
-
-  .portfolio-desktop {
-    display: block;
-  }
-
-  .form-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding: 1.4rem;
-  }
-
-  .portfolio-table {
-    min-width: 850px;
-  }
-}
-
-
-/* =========================================================
-   11. PANTALLAS MEDIANAS
-   ========================================================= */
-
-@media (min-width: 768px) and (max-width: 1099px) {
-
-  .form-grid {
-    gap: 0.9rem;
-    padding: 1rem;
-  }
-
-  .portfolio-table th,
-  .portfolio-table td {
-    padding: 0.75rem;
-  }
-
-  .portfolio-table {
-    min-width: 820px;
-  }
-
-  .portfolio-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .portfolio-actions .btn {
-    width: 100%;
-  }
-}
-
-
-/* =========================================================
-   12. LAPTOPS Y MONITORES
-   ========================================================= */
-
-@media (min-width: 1100px) {
-
-  .form-grid {
-    gap: 1.2rem 1.4rem;
-    padding: 1.5rem;
-  }
-
-  .portfolio-table {
-    min-width: 900px;
-  }
-
-  .portfolio-table th,
-  .portfolio-table td {
-    padding: 1rem;
-  }
-
-  .portfolio-actions {
-    flex-direction: row;
-  }
-}
-
-
-/* =========================================================
-   13. PANTALLAS GRANDES Y ULTRA WIDE
-   ========================================================= */
-
-@media (min-width: 1600px) {
-
-  .module-page {
-    max-width: 100%;
-  }
-
-  .form-grid {
-    gap: 1.4rem 1.8rem;
-    padding: 1.75rem;
-  }
-
-  .portfolio-table {
-    min-width: 100%;
-  }
-
-  .portfolio-table th,
-  .portfolio-table td {
-    padding: 1.15rem;
-    font-size: var(--text-md);
-  }
-
-  .portfolio-thumbnail-wrapper {
-    width: 5rem;
-    height: 3.8rem;
-  }
-}
-
-
-/* =========================================================
-   14. MÓVILES — XS Y S
-   ========================================================= */
-
-@media (max-width: 767px) {
-
-  .portfolio-desktop {
-    display: none !important;
-  }
-
-  .portfolio-mobile {
-    display: block;
-  }
-
-  .form-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.9rem;
-
-    padding: 1rem;
-    margin-bottom: 1rem;
-
-    border-radius: var(--radius-md);
-  }
-
-  .form-grid .span-2 {
-    grid-column: 1;
-  }
-
-  .filter-actions {
-    grid-column: 1;
-
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.65rem;
-
-    padding-top: 0.35rem;
-  }
-
-  .filter-actions .btn {
-    width: 100%;
-    min-height: 2.8rem;
-  }
-
-  .portfolio-error {
-    align-items: stretch;
-    flex-direction: column;
-    padding: 0.9rem;
-  }
-
-  .portfolio-error .btn {
-    width: 100%;
-  }
-
-  .portfolio-state {
-    min-height: 90px;
-    padding: 1rem;
-    font-size: var(--text-sm);
-  }
-}
-
-
-/* =========================================================
-   15. MÓVILES PEQUEÑOS — XXS
-   ========================================================= */
-
-@media (max-width: 380px) {
-
-  .form-grid {
-    gap: 0.75rem;
-    padding: 0.75rem;
-  }
-
-  .portfolio-mobile-list {
-    gap: 0.65rem;
-  }
-
-  .portfolio-card {
-    border-radius: var(--radius-md);
-  }
-
-  .portfolio-card-header {
-    gap: 0.55rem;
-    padding: 0.7rem;
-  }
-
-  .portfolio-card-image {
-    flex-basis: 3.5rem;
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-
-  .portfolio-card-main h3 {
-    font-size: var(--text-sm);
-  }
-
-  .portfolio-card-client {
-    font-size: var(--text-xs);
-  }
-
-  .portfolio-chevron {
-    flex-basis: 1.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-
-  .portfolio-card-details {
-    padding: 0.75rem;
-  }
-
-  .portfolio-detail-grid {
-    gap: 0.75rem;
-  }
-
-  .portfolio-card-actions {
-    gap: 0.45rem;
-  }
-
-  .portfolio-card-actions .btn {
-    padding: 0.5rem 0.3rem;
-    font-size: var(--text-xs);
-  }
-}
-
-
-/* =========================================================
-   16. ACCESIBILIDAD
-   ========================================================= */
-
-.ayuda {
-  margin: -0.35rem 0 0;
-  color: var(--text-muted, #8b97a8);
-  font-size: var(--text-sm, 0.85rem);
-}
-
-.galeria-admin {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.galeria-admin-head,
-.galeria-admin-actions,
-.galeria-fila {
-  display: flex;
-  gap: 0.6rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.galeria-admin-head {
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.galeria-fila .input {
-  flex: 1 1 16rem;
-}
-
-.galeria-orden {
-  min-width: 4.5rem;
-  font-size: var(--text-xs, 0.75rem);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.galeria-admin-actions input[type="file"] {
-  display: none;
-}
-
-.galeria-admin-actions label.is-disabled {
-  pointer-events: none;
-  opacity: 0.55;
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  .module-page *,
-  .portfolio-card,
-  .portfolio-chevron,
-  .portfolio-card-details {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
 }

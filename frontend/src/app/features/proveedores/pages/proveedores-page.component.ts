@@ -64,7 +64,7 @@ export class ProveedoresPageComponent implements OnInit, OnDestroy {
   constructor(private readonly api: ProveedoresApiService, private readonly lookup: LookupService, private readonly toast: ToastService) { this.state.sort = 'nombreRazon,asc'; }
   ngOnInit(): void {
     this.cargar();
-    this.buscar$.pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => { this.filtros.controls.searchTerm.setValue(valor); this.filtrar(); });
+    this.buscar$.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => { this.filtros.controls.searchTerm.setValue(valor); this.filtrar(); });
   }
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
   cargar(): void {

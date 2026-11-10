@@ -1,0 +1,516 @@
+﻿
+
+.resumen-pagos,
+.resumen-totales {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--venta-border);
+  border-radius: var(--venta-radius);
+  background: var(--venta-surface);
+}
+
+.resumen-pagos h4 {
+  margin: 0 0 0.7rem;
+  color: var(--venta-text);
+  font-size: 0.95rem;
+  font-weight: 750;
+}
+
+.resumen-pagos p,
+.resumen-totales div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.resumen-pagos p {
+  border-bottom: 1px solid var(--venta-border);
+  font-size: 0.85rem;
+}
+
+.resumen-pagos p:last-child {
+  border-bottom: 0;
+}
+
+.resumen-pagos p span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.resumen-pagos p strong {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.resumen-pagos small {
+  color: var(--venta-muted);
+  overflow-wrap: anywhere;
+}
+
+.resumen-totales {
+  margin: 0;
+}
+
+.resumen-totales dt {
+  color: var(--venta-muted);
+  font-size: 0.85rem;
+}
+
+.resumen-totales dd {
+  margin: 0;
+  color: var(--venta-text);
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.resumen-totales .total {
+  margin-top: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--venta-border);
+}
+
+.resumen-totales .total dt,
+.resumen-totales .total dd {
+  color: var(--venta-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+/* =========================================================
+   11. MODALES, FOOTERS Y ALERTAS
+   ========================================================= */
+
+.ventas-modal-footer,
+[modalFooter] {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  width: 100%;
+  min-width: 0;
+}
+
+[modalFooter] .btn {
+  flex-shrink: 0;
+}
+
+.ventas-anulacion {
+  width: 100%;
+  min-width: 0;
+}
+
+.alert {
+  min-width: 0;
+  border-radius: var(--venta-radius-sm);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.alert a {
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   12. TABLETS â€” 769 A 1024 PX
+   ========================================================= */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .module-page {
+    gap: 0.9rem;
+  }
+
+  .resumen-pie {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+
+  .venta-acciones {
+    justify-content: flex-start;
+  }
+
+  .venta-acciones .btn {
+    font-size: 0.8rem;
+  }
+
+  .form-grid {
+    gap: 0.85rem;
+  }
+}
+
+/* =========================================================
+   13. CELULARES Y TABLETS PEQUEÃ‘AS â€” HASTA 768 PX
+========================================================= */
+
+@media (max-width: 768px) {
+
+  /* Cambia la tabla por acordeones */
+
+  :host ::ng-deep app-data-table .desktop-table-view {
+    display: none !important;
+  }
+
+  :host ::ng-deep app-data-table .mobile-accordion-view {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  :host ::ng-deep app-data-table .table-wrap,
+  :host ::ng-deep app-data-table .table-scroll {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible !important;
+  }
+
+  :host ::ng-deep app-data-table {
+    overflow: visible !important;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  .ventas-array-item {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.85rem;
+  }
+
+  .resumen-pie {
+    grid-template-columns: 1fr;
+  }
+
+  .resumen-cabecera {
+    padding: 0.9rem;
+  }
+
+  .resumen-datos {
+    gap: 0.6rem;
+  }
+
+  .filter-actions {
+    justify-content: flex-start;
+  }
+}
+
+/* =========================================================
+   14. CELULARES â€” HASTA 640 PX
+========================================================= */
+
+@media (max-width: 640px) {
+  .module-page {
+    gap: 0.8rem;
+  }
+
+  .ventas-toolbar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+  }
+
+  .form-grid .span-2 {
+    grid-column: 1;
+  }
+
+  .ventas-array-section {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .ventas-array-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.8rem;
+  }
+
+  .ventas-array-item-actions {
+    justify-content: flex-end;
+  }
+
+  .resumen-cabecera {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
+  .resumen-datos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resumen-pie {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .resumen-pagos,
+  .resumen-totales {
+    padding: 0.85rem;
+  }
+
+  .filter-actions {
+    justify-content: stretch;
+  }
+
+  .filter-actions .btn {
+    flex: 1 1 120px;
+  }
+
+  .ventas-total-estimado {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ventas-total-estimado .btn {
+    width: 100%;
+  }
+
+  .resumen-tabla .table {
+    min-width: 560px;
+  }
+
+  [modalFooter] {
+    justify-content: stretch;
+  }
+
+  [modalFooter] .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* =========================================================
+   15. CELULARES PEQUEÃ‘OS â€” HASTA 480 PX
+========================================================= */
+
+@media (max-width: 480px) {
+  .module-page {
+    gap: 0.7rem;
+  }
+
+  .mobile-sale-summary {
+    padding: 0.85rem;
+    gap: 0.55rem;
+  }
+
+  .mobile-sale-title {
+    font-size: 0.87rem;
+  }
+
+  .mobile-sale-subtitle {
+    font-size: 0.76rem;
+  }
+
+  .mobile-sale-total {
+    font-size: 0.85rem;
+  }
+
+  .mobile-sale-side {
+    gap: 0.55rem;
+  }
+
+  .mobile-sale-content {
+    padding: 0 0.85rem 0.85rem;
+  }
+
+  .mobile-sale-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mobile-sale-field {
+    padding: 0.65rem 0.25rem;
+  }
+
+  .mobile-sale-value {
+    font-size: 0.82rem;
+  }
+
+  .mobile-sale-actions .venta-acciones .btn {
+    min-height: 42px;
+    font-size: 0.8rem;
+  }
+
+  .ventas-array-section {
+    padding: 0.65rem;
+  }
+
+  .ventas-array-heading h3 {
+    font-size: 0.93rem;
+  }
+
+  .ventas-array-item {
+    padding: 0.7rem;
+  }
+
+  .resumen-cabecera {
+    padding: 0.8rem;
+  }
+
+  .resumen-cabecera h3 {
+    font-size: 1.1rem;
+  }
+
+  .resumen-datos > div {
+    padding: 0.75rem;
+  }
+
+  .resumen-tabla .table {
+    min-width: 520px;
+  }
+
+  .resumen-tabla .table th,
+  .resumen-tabla .table td {
+    padding: 0.65rem 0.7rem;
+    font-size: 0.78rem;
+  }
+
+  .resumen-pagos p,
+  .resumen-totales div {
+    gap: 0.6rem;
+  }
+
+  [modalFooter] {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  [modalFooter] .btn {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   16. DISPOSITIVOS MUY PEQUEÃ‘OS â€” HASTA 360 PX
+========================================================= */
+
+@media (max-width: 360px) {
+  .mobile-sale-summary {
+    padding: 0.75rem;
+  }
+
+  .mobile-sale-title {
+    font-size: 0.82rem;
+  }
+
+  .mobile-sale-subtitle {
+    font-size: 0.72rem;
+  }
+
+  .mobile-sale-total {
+    font-size: 0.8rem;
+  }
+
+  .mobile-sale-content {
+    padding-inline: 0.75rem;
+  }
+
+  .mobile-sale-value {
+    font-size: 0.78rem;
+  }
+
+  .resumen-cabecera h3 {
+    font-size: 1rem;
+  }
+
+  .resumen-datos strong {
+    font-size: 0.82rem;
+  }
+
+  .resumen-totales .total dt,
+  .resumen-totales .total dd {
+    font-size: 0.95rem;
+  }
+
+  .resumen-tabla .table {
+    min-width: 500px;
+  }
+}
+
+/* =========================================================
+   17. MONITORES GRANDES â€” 1440 PX EN ADELANTE
+========================================================= */
+
+@media (min-width: 1440px) {
+  .module-page {
+    gap: 1.25rem;
+  }
+
+  :host ::ng-deep app-data-table th,
+  :host ::ng-deep app-data-table td {
+    padding: 0.95rem 1.1rem;
+    font-size: 0.92rem;
+  }
+
+  .venta-acciones {
+    flex-wrap: nowrap;
+    gap: 0.55rem;
+  }
+
+  .venta-acciones .btn {
+    min-height: 40px;
+  }
+
+  .form-grid {
+    gap: 1.15rem;
+  }
+
+  .resumen-venta {
+    gap: 1.3rem;
+  }
+}
+
+/* =========================================================
+   18. 4K Y PANTALLAS DE GRAN FORMATO
+========================================================= */
+
+@media (min-width: 2560px) {
+  .module-page {
+    gap: 1.6rem;
+  }
+
+  :host ::ng-deep app-data-table th,
+  :host ::ng-deep app-data-table td {
+    padding: 1.2rem 1.5rem;
+    font-size: 1.05rem;
+  }
+
+  .venta-acciones .btn {
+    min-height: 46px;
+    font-size: 0.95rem;
+  }
+
+  .form-grid {
+    gap: 1.4rem;
+  }
+
+  .resumen-venta {
+    gap: 1.5rem;
+  }
+}
+
+/* =========================================================
+   19. ACCESIBILIDAD
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  :host *,
+  :host *::before,
+  :host *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

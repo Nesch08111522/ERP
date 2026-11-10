@@ -27,13 +27,13 @@
 }
 [data-tema="noche"] {
   color-scheme: dark;
-  --bg: #070d14;
-  --paper: #101820;
+  --bg: #0b071b;
+  --paper: #171229;
   --ink: #f3f7fb;
   --muted: #b7c6d3;
   --line: #243444;
-  --accent: #90caf9;
-  --accent-ink: #04141c;
+  --accent: #bba5ff;
+  --accent-ink: #140d2d;
   --promo: #ff8a80;
   --promo-ink: #3b0a0a;
   --soft: #162433;
@@ -656,6 +656,58 @@ dialog.visor-reel::backdrop { background: transparent; }
     animation: none !important;
     transition: none !important;
   }
+}
+/* Cinematic public storefront; ERP styles are intentionally untouched. */
+.shell { background: radial-gradient(ellipse at 75% 12%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 48%), var(--bg); }
+.mast { margin: 10px 16px; top: 10px; border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent); border-radius: 22px; background: color-mix(in srgb, var(--paper) 72%, transparent); backdrop-filter: blur(20px); }
+app-hero-cinematic { display: block; }
+.cinema { position: relative; min-height: 155svh; margin-bottom: 64px; }
+.cinema-sticky { position: sticky; top: 94px; min-height: 660px; height: calc(100svh - 110px); isolation: isolate; }
+.cinema-surface, .cinema-fallback { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.cinema-surface canvas { display: block; width: 100%; height: 100%; }
+.cinema-copy { padding-top: clamp(48px, 9vh, 100px); max-width: 640px; }
+.cinema h1 { font-size: clamp(3.8rem, 7.2vw, 7rem); font-weight: 800; line-height: .96; letter-spacing: -.065em; }
+.cinema h1 em { font-style: normal; color: var(--accent); }
+.cinema .lead { max-width: 370px; margin-top: 24px; }
+.cinema-note, .cinema-scroll { position: absolute; bottom: 22px; margin: 0; color: var(--muted); font-size: 11px; letter-spacing: .06em; }
+.cinema-note { right: 0; max-width: 260px; text-align: right; }
+.cinema-scroll { left: 0; }
+.profile-h { position: absolute; left: 64%; top: 15%; font-size: clamp(180px, 24vw, 330px); font-weight: 900; color: var(--muted); transform: perspective(700px) rotateY(-30deg) rotateZ(-16deg); text-shadow: 8px 8px 0 var(--line); }
+.clear-sheet { position: absolute; left: 70%; top: 28%; width: 22%; height: 38%; background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); transform: skewY(-12deg); }
+.sedes-cinema { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; margin: 32px 0 60px; }
+.sedes-cinema article, .sheet, .map-card, .panel, .filtros, .browse, .cta-comercial { background: color-mix(in srgb, var(--paper) 70%, transparent); backdrop-filter: blur(18px); border-color: color-mix(in srgb, var(--accent) 18%, transparent); }
+.sedes-cinema article { padding: clamp(22px, 4vw, 44px); border: 1px solid var(--line); border-radius: 28px; }
+.sedes-cinema p { color: var(--muted); line-height: 1.6; }
+.section { padding-block: 32px; }
+.section h2, .shop-head h1 { font-size: clamp(2rem, 4vw, 3.7rem); }
+.tile { border: 0; background: transparent; box-shadow: none; padding: 10px; }
+.tile-photo { background: color-mix(in srgb, var(--photo) 45%, transparent); border-radius: 24px; }
+.product-grid { gap: 24px; }
+.fraccion-picker { display: grid; gap: 6px; margin-block: 8px; font-size: 12px; color: var(--muted); }
+.fraccion-picker select { max-width: 100%; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+.flotante.wa { background: var(--accent); color: var(--accent-ink); animation: purple-pulse 2.6s ease-out infinite; }
+@keyframes purple-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 35%, transparent); } 65% { box-shadow: 0 0 0 14px transparent; } }
+@media (max-width: 700px) {
+  .mast { margin-inline: 8px; padding: 10px; gap: 6px; }
+  .mast .brand { font-size: .8rem; }
+  .mast .search input { font-size: 12px; }
+  .cinema { min-height: 135svh; margin-bottom: 28px; }
+  .cinema-sticky { height: calc(100svh - 100px); min-height: 720px; }
+  .cinema-copy { padding-top: 26px; }
+  .cinema h1 { font-size: clamp(3rem, 13vw, 4.8rem); }
+  .cinema-surface { top: 320px; bottom: 60px; }
+  .cinema-fallback { top: 330px; }
+  .profile-h { left: 25%; top: 0; }
+  .clear-sheet { left: 55%; top: 5%; height: 220px; }
+  .cinema-note { max-width: 170px; }
+  .cinema .hero-actions .btn { width: auto; }
+  .sedes-cinema { grid-template-columns: 1fr; gap: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .cinema { min-height: 0; }
+  .cinema-sticky { position: relative; top: 0; }
 }
 @media print {
   .mast, .trust, .dock, .flotantes, .browse, .no-print, .visor-reel, .visor-obra { display: none !important; }

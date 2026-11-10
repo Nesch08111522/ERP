@@ -71,7 +71,7 @@ export class ServiciosPageComponent implements OnInit, OnDestroy {
     this.cargar();
     this.cargarAsistencia();
     this.lookup.loadUsuarios().pipe(takeUntil(this.destroy$)).subscribe((rows) => { this.usuarios = rows; });
-    this.buscar$.pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => {
+    this.buscar$.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => {
       this.filtros.controls.searchTerm.setValue(valor);
       this.filtrar();
     });

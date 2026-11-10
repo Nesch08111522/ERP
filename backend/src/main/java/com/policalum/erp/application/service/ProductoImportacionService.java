@@ -17,4 +17,8 @@ public interface ProductoImportacionService {
 
     List<ProductoImportacionFilaDTO> exportar(String searchTerm, UUID categoriaId, TipoProducto tipo,
                                               Boolean activo, Boolean esFraccionable);
+
+    /** Exportación con filtro por sede/almacén (mismos filtros que el listado). */
+    List<ProductoImportacionFilaDTO> exportar(String searchTerm, UUID categoriaId, TipoProducto tipo,
+                                              Boolean activo, Boolean esFraccionable, UUID sedeId, UUID almacenId);
 }

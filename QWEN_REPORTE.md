@@ -209,7 +209,11 @@ Nada de esto toca datos de la base ni desactiva seguridad/validaciones.
    el build y los tests pasan, pero no se auditó cada breakpoint clic a clic.
 6. [ ] **CSV de productos por sede**: `/productos/exportacion` aún no filtra por
    sede/almacén (conveniencia de export, no filtro de vista roto).
-7. [ ] **Kiosco QR público** (`/asistencias/qr-publico` permitAll): decidir si se endurece.
+7. [x] ~~Kiosco QR público (`/asistencias/qr-publico` permitAll)~~ — **cerrado**:
+   rate-limit por IP con Bucket4j (`app.rate-limit.qr-publico.*`, 30 req/60 s
+   configurable por entorno), TOTP con expiración por ventana (60 s), un solo uso
+   por ventana/empleado y tolerancia de una ventana atrás. Verificado:
+   `RateLimitFilterTest` 3/3 y `RrhhAsistenciaImplTest` 41/41.
 8. [ ] **Deuda de CSS**: 5 archivos siguen grandes (ahora *warning*); refactor opcional.
 9. [ ] **Regenerar `openapi.json`/tipos** desde el backend actual (los de servicios se
    corrigieron a mano).
@@ -226,3 +230,24 @@ Nada de esto toca datos de la base ni desactiva seguridad/validaciones.
   vivo; stock exacto queda a tu criterio en §5.4).
 - [~] Frontend adaptable a móvil (build OK; auditoría de breakpoints pendiente).
 - [ ] Frontend adaptable a móvil (no re-verificado).
+
+---
+
+## 6. Estándar maestro de ingeniería adoptado (2026-11-10)
+
+El prompt maestro de calidad quedó guardado como **`ENGINEERING_STANDARDS.md`**
+en la raíz del repo y rige como política permanente para todo cambio futuro
+(backend, frontend, sitio web). Puntos ya aplicados en este proyecto:
+
+- §5 sin hardcoding: límites de rate-limit, TOTP y secrets vía
+  `application.properties` con variables de entorno.
+- §6 OWASP: rate limiting en login y QR público, `@PreAuthorize` por rol +
+  `rolePermissionGuard`, validación de QR solo en backend.
+- §9 pruebas reales: 955 tests backend, 15 frontend, 6 sitio web, sin tests
+  desactivados para "hacer pasar" nada.
+- §19 formato de entrega A-F (diagnóstico → solución → calidad → validaciones
+  → pendientes → resultado) usado en las secciones 1-5 de este reporte.
+
+Resultado según criterios §18: **APROBADO CON OBSERVACIONES** — todo lo
+implementado está verificado; las observaciones son los ítems abiertos del
+checklist §5 (decisiones de negocio H2 y auditorías de breakpoints/CSV/openapi).

@@ -164,3 +164,4 @@ public interface KardexRepository extends JpaRepository<KardexMovimiento, UUID> 
                                                          @Param("desde") LocalDateTime desde,
                                                          @Param("hasta") LocalDateTime hasta);
 }
+

@@ -34,9 +34,18 @@ import { VisorProductoComponent } from './visor-producto.component';
           <span [class.on]="producto.disponible" [class.off]="!producto.disponible">{{ existencia }}</span>
           @if (producto.codigoSku) { <span>{{ producto.codigoSku }}</span> }
         </p>
+        @if (producto.esFraccionable) {
+          <label class="fraccion-picker">Corte publicado
+            <select [value]="fraccionElegida?.id || ''" (change)="fraccionId.set($any($event.target).value)">
+              @for (fraccion of producto.fracciones; track fraccion.id) {
+                <option [value]="fraccion.id">{{ etiquetaFraccion(fraccion.factor, fraccion.nombre) }} · {{ pen(fraccion.precio) }}</option>
+              }
+            </select>
+          </label>
+        }
         <div class="tile-row">
           <p class="tile-price">@if (antes) { <span class="precio-antes">{{ antes }}</span> }{{ precio }}</p>
-          <button type="button" class="btn btn-sm" [class.btn-primary]="!enCarrito" [class.btn-ok]="enCarrito" [disabled]="!producto.disponible" (click)="sumar()">
+          <button type="button" class="btn btn-sm" [class.btn-primary]="!enCarrito" [class.btn-ok]="enCarrito" [disabled]="!producto.disponible || (producto.esFraccionable && !fraccionElegida)" (click)="sumar()">
             {{ enCarrito ? 'En el carrito' : 'Agregar' }}
           </button>
         </div>
@@ -48,6 +57,16 @@ export class FichaProductoComponent {
   private readonly carrito = inject(CarritoService);
   readonly girando = signal(false);
   readonly abierta = signal(false);
+  readonly fraccionId = signal('');
+  readonly pen = pen;
+
+  get fraccionElegida() {
+    return this.producto.esFraccionable ? this.producto.fracciones.find((item) => item.id === this.fraccionId()) ?? this.producto.fracciones[0] : undefined;
+  }
+
+  etiquetaFraccion(factor: number, nombre: string): string {
+    return ({ 0.25: '1/4', 0.5: '1/2', 0.75: '3/4', 1: '1' } as Record<number, string>)[factor] || nombre;
+  }
   @Input({ required: true }) producto!: ProductoPublico;
   @Input({ transform: booleanAttribute }) lista = false;
 
@@ -67,7 +86,8 @@ export class FichaProductoComponent {
 
   sumar(): void {
     if (!this.producto.disponible) return;
-    const fraccion = this.producto.esFraccionable ? this.producto.fracciones?.[0] : undefined;
+    const fraccion = this.fraccionElegida;
+    if (this.producto.esFraccionable && !fraccion) return;
     this.carrito.agregar({
       productoId: this.producto.id,
       nombre: this.producto.nombre,
@@ -89,12 +109,12 @@ export class FichaProductoComponent {
   }
 
   get precio(): string {
-    return pen(this.producto.precioPublico);
+    return pen(this.fraccionElegida?.precio ?? this.producto.precioPublico);
   }
 
   get antes(): string {
-    const lista = Number(this.producto.precioLista ?? 0);
-    if (!this.producto.oferta || !(lista > Number(this.producto.precioPublico))) return '';
+    const lista = Number(this.fraccionElegida ? this.fraccionElegida.precioLista : this.producto.precioLista);
+    if (!this.producto.oferta || !(lista > Number(this.fraccionElegida?.precio ?? this.producto.precioPublico))) return '';
     return pen(lista);
   }
 

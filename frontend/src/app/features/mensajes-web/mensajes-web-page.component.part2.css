@@ -1,0 +1,788 @@
+﻿
+
+/* =========================================================
+   15. LAPTOPS COMPACTAS
+   861px - 1199px
+========================================================= */
+
+@media (min-width: 861px) and (max-width: 1199px) {
+
+  .wa {
+    grid-template-columns: minmax(245px, 290px) minmax(0, 1fr);
+  }
+
+  .wa-herramientas {
+    padding: 12px;
+  }
+
+  .wa-filtros {
+    gap: 5px;
+  }
+
+  .wa-filtros .btn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .wa-hilo-cabeza {
+    flex-wrap: wrap;
+    gap: 9px;
+    padding: 11px;
+  }
+
+  .wa-hilo-cabeza .wa-acciones {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .wa-acciones .btn {
+    font-size: 10px;
+  }
+
+  .wa-ficha {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wa-burbuja {
+    max-width: 82%;
+  }
+}
+
+/* =========================================================
+   16. DESKTOP Y MONITORES GRANDES
+========================================================= */
+
+@media (min-width: 1200px) {
+
+  .wa {
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  }
+
+  .wa-cuerpo {
+    padding: 26px clamp(24px, 4vw, 65px);
+  }
+
+  .wa-burbuja {
+    max-width: min(68%, 620px);
+    padding: 11px 15px;
+  }
+
+  .wa-burbuja p {
+    font-size: 14px;
+  }
+}
+
+/* =========================================================
+   17. FULL HD Y PANTALLAS GRANDES
+========================================================= */
+
+@media (min-width: 1920px) {
+
+  .wa {
+    grid-template-columns: 390px minmax(0, 1fr);
+    min-height: 680px;
+  }
+
+  .wa-item {
+    min-height: 84px;
+    padding: 15px 18px;
+  }
+
+  .wa-avatar {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    font-size: 17px;
+  }
+
+  .wa-item-cabeza strong {
+    font-size: 15px;
+  }
+
+  .wa-preview {
+    font-size: 13px;
+  }
+
+  .wa-hilo-cabeza {
+    min-height: 84px;
+    padding: 16px 24px;
+  }
+
+  .wa-hilo-cabeza strong {
+    font-size: 16px;
+  }
+
+  .wa-hilo-cabeza p {
+    font-size: 12px;
+  }
+
+  .wa-cuerpo {
+    padding: 32px 6%;
+    gap: 15px;
+  }
+
+  .wa-burbuja {
+    max-width: min(65%, 720px);
+    padding: 13px 17px;
+  }
+
+  .wa-burbuja p {
+    font-size: 15px;
+  }
+
+  .wa-composer {
+    padding: 18px 24px;
+  }
+
+  .wa-composer .textarea {
+    min-height: 50px;
+    font-size: 14px;
+  }
+
+  .wa-composer > button {
+    min-height: 50px;
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   18. TV Y PROYECTORES 4K
+========================================================= */
+
+@media (min-width: 2560px) {
+
+  .wa {
+    grid-template-columns: 460px minmax(0, 1fr);
+    min-height: 800px;
+    border-radius: 20px;
+  }
+
+  .wa-herramientas {
+    padding: 22px;
+    gap: 16px;
+  }
+
+  .wa-herramientas .input {
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .wa-filtros .btn {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .wa-item {
+    min-height: 100px;
+    padding: 18px 22px;
+    gap: 16px;
+  }
+
+  .wa-avatar {
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
+    font-size: 20px;
+  }
+
+  .wa-item-cabeza strong {
+    font-size: 18px;
+  }
+
+  .wa-item-cabeza time {
+    font-size: 12px;
+  }
+
+  .wa-preview {
+    font-size: 15px;
+  }
+
+  .wa-hilo-cabeza {
+    min-height: 100px;
+    padding: 20px 30px;
+  }
+
+  .wa-hilo-cabeza strong {
+    font-size: 19px;
+  }
+
+  .wa-hilo-cabeza p {
+    font-size: 14px;
+  }
+
+  .wa-acciones .btn {
+    min-height: 40px;
+    padding: 9px 13px;
+    font-size: 12px;
+  }
+
+  .wa-cuerpo {
+    padding: 40px 8%;
+    gap: 18px;
+  }
+
+  .wa-burbuja {
+    max-width: min(60%, 900px);
+    padding: 16px 20px;
+    border-radius: 16px;
+  }
+
+  .wa-burbuja p {
+    font-size: 17px;
+  }
+
+  .wa-burbuja small,
+  .wa-burbuja time {
+    font-size: 12px;
+  }
+
+  .wa-composer {
+    padding: 24px 30px;
+    gap: 15px;
+  }
+
+  .wa-composer .textarea {
+    min-height: 60px;
+    font-size: 16px;
+  }
+
+  .wa-composer > button {
+    min-width: 130px;
+    min-height: 60px;
+    font-size: 15px;
+  }
+}
+
+/* =========================================================
+   19. TABLETS
+   601px - 860px
+========================================================= */
+
+@media (min-width: 601px) and (max-width: 860px) {
+
+  .wa-pagina {
+    min-height: calc(100dvh - 7rem);
+    gap: 12px;
+  }
+
+  .wa {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 560px;
+    border-radius: 14px;
+  }
+
+  .wa.viendo .wa-lista,
+  .wa:not(.viendo) .wa-hilo {
+    display: none;
+  }
+
+  .wa-volver {
+    display: inline-flex;
+    flex: none;
+    min-height: 36px;
+    padding: 7px 10px;
+  }
+
+  .wa-lista,
+  .wa-hilo {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+  }
+
+  .wa-item {
+    min-height: 78px;
+    padding: 13px 16px;
+  }
+
+  .wa-hilo-cabeza {
+    flex-wrap: wrap;
+  }
+
+  .wa-hilo-cabeza .wa-acciones {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .wa-ficha {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wa-burbuja {
+    max-width: 85%;
+  }
+}
+
+/* =========================================================
+   20. MÃ“VILES
+   381px - 600px
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .wa-pagina {
+    min-height: calc(100dvh - 6.5rem);
+    gap: 10px;
+  }
+
+  .wa-titulo {
+    padding: 0 2px;
+  }
+
+  .wa-titulo h1 {
+    font-size: 21px;
+  }
+
+  .wa-titulo p {
+    max-width: 100%;
+    font-size: 11px;
+  }
+
+  .wa {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+
+    width: 100%;
+    min-height: 0;
+    height: calc(100dvh - 11rem);
+
+    border-radius: 12px;
+  }
+
+  /* NavegaciÃ³n lista/chat */
+
+  .wa.viendo .wa-lista,
+  .wa:not(.viendo) .wa-hilo {
+    display: none;
+  }
+
+  .wa-lista,
+  .wa-hilo {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 0;
+  }
+
+  /* Buscador */
+
+  .wa-herramientas {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .wa-herramientas .input {
+    height: 43px;
+    font-size: 13px;
+  }
+
+  .wa-filtros {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 3px;
+    scrollbar-width: none;
+  }
+
+  .wa-filtros::-webkit-scrollbar {
+    display: none;
+  }
+
+  .wa-filtros .btn {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 7px 12px;
+    font-size: 11px;
+  }
+
+  /* Conversaciones */
+
+  .wa-item {
+    min-height: 76px;
+    padding: 12px;
+    gap: 11px;
+  }
+
+  .wa-avatar {
+    width: 43px;
+    height: 43px;
+    flex-basis: 43px;
+  }
+
+  .wa-item-cabeza strong {
+    font-size: 13px;
+  }
+
+  .wa-item-cabeza time {
+    font-size: 9px;
+  }
+
+  .wa-preview {
+    font-size: 11px;
+  }
+
+  /* Encabezado del chat */
+
+  .wa-hilo-cabeza {
+    position: relative;
+    flex-wrap: wrap;
+    min-height: 68px;
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .wa-volver {
+    display: inline-flex;
+    min-height: 35px;
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+
+  .wa-hilo-cabeza .wa-avatar {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    font-size: 13px;
+  }
+
+  .wa-hilo-cabeza > div.min-w-0 {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .wa-hilo-cabeza strong {
+    font-size: 13px;
+  }
+
+  .wa-hilo-cabeza p {
+    font-size: 10px;
+  }
+
+  /* Acciones */
+
+  .wa-hilo-cabeza .wa-acciones {
+    display: flex;
+    width: 100%;
+    margin: 0;
+    padding-top: 8px;
+    gap: 6px;
+
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .wa-hilo-cabeza .wa-acciones::-webkit-scrollbar {
+    display: none;
+  }
+
+  .wa-acciones .btn {
+    flex: 0 0 auto;
+    min-height: 33px;
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+
+  /* Ficha */
+
+  .wa-ficha {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px;
+    max-height: 45%;
+    overflow-y: auto;
+  }
+
+  .wa-ficha label {
+    font-size: 10px;
+  }
+
+  .wa-ficha .input,
+  .wa-ficha .select {
+    height: 37px;
+    font-size: 11px;
+  }
+
+  .wa-ficha .wa-acciones {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  /* Mensajes */
+
+  .wa-cuerpo {
+    gap: 9px;
+    padding: 15px 11px;
+  }
+
+  .wa-burbuja {
+    max-width: 88%;
+    min-width: 65px;
+    padding: 9px 11px;
+    border-radius: 12px;
+  }
+
+  .wa-burbuja p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .wa-burbuja small {
+    font-size: 9px;
+  }
+
+  .wa-burbuja time {
+    font-size: 9px;
+  }
+
+  .wa-nota {
+    font-size: 10px;
+    padding: 10px;
+  }
+
+  /* Compositor */
+
+  .wa-composer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+    padding: 10px;
+  }
+
+  .wa-composer .textarea {
+    min-height: 42px;
+    max-height: 110px;
+    padding: 10px 11px;
+    font-size: 12px;
+  }
+
+  .wa-composer > button {
+    min-width: 72px;
+    min-height: 42px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+
+/* =========================================================
+   21. MÃ“VILES PEQUEÃ‘OS
+   Hasta 380px
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .wa-pagina {
+    min-height: calc(100dvh - 6rem);
+  }
+
+  .wa {
+    height: calc(100dvh - 10rem);
+    border-radius: 10px;
+  }
+
+  .wa-titulo h1 {
+    font-size: 19px;
+  }
+
+  .wa-titulo p {
+    font-size: 10px;
+  }
+
+  .wa-herramientas {
+    padding: 9px;
+  }
+
+  .wa-filtros .btn {
+    padding: 6px 9px;
+    font-size: 10px;
+  }
+
+  .wa-item {
+    min-height: 70px;
+    padding: 10px;
+    gap: 9px;
+  }
+
+  .wa-avatar {
+    width: 39px;
+    height: 39px;
+    flex-basis: 39px;
+    font-size: 13px;
+  }
+
+  .wa-item-cabeza strong {
+    font-size: 12px;
+  }
+
+  .wa-item-cabeza time {
+    font-size: 8px;
+  }
+
+  .wa-preview {
+    font-size: 10px;
+  }
+
+  .wa-hilo-cabeza {
+    gap: 7px;
+    padding: 8px;
+  }
+
+  .wa-volver {
+    min-height: 32px;
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+
+  .wa-hilo-cabeza .wa-avatar {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .wa-hilo-cabeza strong {
+    font-size: 12px;
+  }
+
+  .wa-ficha {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wa-ficha .wa-acciones {
+    grid-column: 1;
+  }
+
+  .wa-cuerpo {
+    padding: 12px 8px;
+  }
+
+  .wa-burbuja {
+    max-width: 92%;
+    padding: 8px 10px;
+  }
+
+  .wa-burbuja p {
+    font-size: 11px;
+  }
+
+  .wa-composer {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .wa-composer > button {
+    min-width: 65px;
+    padding: 7px;
+    font-size: 10px;
+  }
+}
+
+/* =========================================================
+   22. MODO DÃA / NOCHE Y TRANSICIONES
+   Se respetan las variables del tema del ERP
+========================================================= */
+
+.wa,
+.wa-lista,
+.wa-hilo,
+.wa-herramientas,
+.wa-item,
+.wa-hilo-cabeza,
+.wa-cuerpo,
+.wa-composer,
+.wa-burbuja,
+.wa-ficha {
+  transition:
+    background-color .2s ease,
+    border-color .2s ease,
+    color .2s ease;
+}
+
+/* Accesibilidad */
+
+.wa button:focus-visible,
+.wa input:focus-visible,
+.wa textarea:focus-visible,
+.wa select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.wa-datos {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+.wa-datos div { display: grid; gap: 2px; }
+.wa-datos dt { margin: 0; color: var(--color-text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.wa-datos dd { margin: 0; color: var(--color-text); white-space: pre-wrap; }
+
+.wa-fila { position: relative; }
+.wa-fila .wa-item { padding-right: 46px; }
+.wa-fila .wa-item.nuevo strong { font-weight: 800; }
+.wa-fila .wa-item.nuevo .wa-preview { color: var(--color-text); font-weight: 650; }
+.wa-lado {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.wa-kebab {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+.wa-kebab:hover { background: var(--color-surface); color: var(--color-text); }
+.wa-mas { position: relative; }
+.wa-menu {
+  position: absolute;
+  top: 36px;
+  right: 8px;
+  z-index: 6;
+  display: grid;
+  min-width: 196px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+.wa-mas .wa-menu { top: calc(100% + 6px); right: 0; }
+.wa-menu button {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.wa-menu button:hover { background: var(--color-surface-raised); }
+.wa-menu button.peligro { color: var(--color-danger, #d64545); }
+
+@media (prefers-reduced-motion: reduce) {
+  .wa *,
+  .wa *::before,
+  .wa *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

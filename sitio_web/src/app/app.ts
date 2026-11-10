@@ -10,6 +10,7 @@ import { CategoriaPublica, ProductoPublico, SedePublica } from './core/models';
 import { PortalApi, media, pen } from './core/portal.api';
 import { TemaService } from './core/tema.service';
 import { AsistenteComponent } from './components/asistente.component';
+import { SeoService } from './core/seo.service';
 
 interface FraseVoz { transcript: string; }
 interface ResultadoVoz extends ArrayLike<FraseVoz> { isFinal: boolean; }
@@ -38,6 +39,7 @@ export class App implements OnDestroy {
   readonly tema = inject(TemaService);
   private readonly api = inject(PortalApi);
   private readonly router = inject(Router);
+  private readonly seo = inject(SeoService);
   private readonly navegacion: Subscription;
 
   readonly media = media;
@@ -66,6 +68,9 @@ export class App implements OnDestroy {
       filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
     ).subscribe((evento) => {
       this.ruta.set(evento.urlAfterRedirects);
+      let snapshot = this.router.routerState.snapshot.root;
+      while (snapshot.firstChild) snapshot = snapshot.firstChild;
+      this.seo.route(evento.urlAfterRedirects, String(snapshot.title || 'POLICALUM'));
       if (this.angosto()) {
         this.menu.set(false);
         this.bloquearFondo();

@@ -1,0 +1,525 @@
+﻿
+
+
+/* =========================================================
+   27. MODAL DE VENTA REGISTRADA
+   ========================================================= */
+
+.venta-exito {
+  display: flex;
+  min-width: 0;
+  margin-bottom: 16px;
+  padding: 15px;
+  align-items: center;
+  gap: 13px;
+  color: #8ce0b7;
+  background: rgba(67, 181, 129, 0.10);
+  border: 1px solid rgba(67, 181, 129, 0.23);
+  border-radius: 12px;
+}
+
+.venta-exito > span {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  flex: 0 0 39px;
+  place-items: center;
+  color: #fff;
+  background: var(--pos-success);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.venta-exito > div {
+  min-width: 0;
+}
+
+.venta-exito strong {
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.venta-exito p {
+  margin: 5px 0 0;
+  color: var(--pos-muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   28. BOTONES GENERALES DEL POS
+   ========================================================= */
+
+.pos .btn {
+  display: inline-flex;
+  min-height: 39px;
+  padding: 9px 13px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 750;
+  transition: all 0.2s ease;
+}
+
+.pos .btn-ghost {
+  color: var(--pos-primary);
+  background: var(--pos-primary-soft);
+  border: 1px solid rgba(85, 168, 213, 0.22);
+}
+
+.pos .btn-ghost:hover {
+  background: rgba(85, 168, 213, 0.20);
+}
+
+.pos .btn-sm {
+  min-height: 34px;
+  padding: 7px 11px;
+}
+
+
+/* =========================================================
+   29. PANTALLAS XL â€” 1600 PX EN ADELANTE
+   ========================================================= */
+
+@media (min-width: 1600px) {
+  .pos {
+    gap: 25px;
+    padding: 30px 36px;
+  }
+
+  .pos-head {
+    gap: 23px;
+  }
+
+  .contexto,
+  .catalogo,
+  .ticket-bloque {
+    padding: 23px;
+  }
+
+  .cuerpo {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
+    gap: 24px;
+  }
+
+  .fichas {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* =========================================================
+   30. LAPTOP â€” HASTA 1200 PX
+   ========================================================= */
+
+@media (max-width: 1200px) {
+  .cuerpo {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+    gap: 15px;
+  }
+
+  .contexto {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fichas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalogo {
+    padding: 16px;
+  }
+
+  .ticket-bloque {
+    padding: 15px;
+  }
+}
+
+
+/* =========================================================
+   31. TABLET HORIZONTAL â€” HASTA 1000 PX
+   ========================================================= */
+
+@media (max-width: 1000px) {
+  .cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ticket {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .ticket-bloque {
+    min-width: 0;
+  }
+
+  .ticket-mini {
+    display: none;
+  }
+}
+
+
+/* =========================================================
+   32. TABLET VERTICAL â€” HASTA 768 PX
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .pos {
+    gap: 16px;
+    padding: 15px;
+  }
+
+  .pos-head {
+    gap: 16px;
+  }
+
+  .pos-intro h1 {
+    font-size: 1.75rem;
+  }
+
+  .pos-intro > p:last-child {
+    margin-top: 8px;
+  }
+
+  .pasos li button {
+    min-height: 78px;
+    padding: 9px 5px;
+    gap: 6px;
+  }
+
+  .pasos .paso-texto {
+    font-size: 0.74rem;
+  }
+
+  .contexto {
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .ticket {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ticket-mini {
+    display: flex;
+  }
+
+  .pos {
+    padding-bottom: 92px;
+  }
+
+  .cuerpo {
+    gap: 14px;
+  }
+
+  .catalogo {
+    padding: 15px;
+  }
+}
+
+
+/* =========================================================
+   33. MÃ“VIL â€” HASTA 600 PX
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .pos {
+    gap: 14px;
+    padding: 13px;
+    padding-bottom: 94px;
+  }
+
+  .pos-head {
+    gap: 14px;
+  }
+
+  .pos-intro .kicker {
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+  }
+
+  .pos-intro h1 {
+    font-size: 1.55rem;
+  }
+
+  .pos-intro > p:last-child {
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+
+  .pasos {
+    gap: 4px;
+    padding: 5px;
+    border-radius: 14px;
+  }
+
+  .pasos li button {
+    min-height: 74px;
+    padding: 7px 3px;
+    border-radius: 10px;
+  }
+
+  .pasos li button > span:first-child {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    font-size: 0.83rem;
+  }
+
+  .pasos .paso-texto {
+    font-size: 0.66rem;
+    line-height: 1.25;
+  }
+
+  .contexto {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .contexto select {
+    height: 46px;
+  }
+
+  .caja {
+    min-height: 44px;
+  }
+
+  .catalogo {
+    padding: 13px;
+    gap: 13px;
+    border-radius: 14px;
+  }
+
+  .tabs button {
+    min-height: 39px;
+    padding: 8px 10px;
+    font-size: 0.76rem;
+  }
+
+  .fichas {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .ficha {
+    padding: 13px;
+    gap: 12px;
+  }
+
+  .ficha-top {
+    gap: 10px;
+  }
+
+  .media {
+    width: 49px;
+    height: 49px;
+    flex-basis: 49px;
+  }
+
+  .ficha-copy h2 {
+    font-size: 0.9rem;
+  }
+
+  .pin {
+    width: 33px;
+    height: 33px;
+    flex-basis: 33px;
+  }
+
+  .cortes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .corte {
+    min-height: 86px;
+    padding: 10px;
+  }
+
+  .simple {
+    align-items: stretch;
+  }
+
+  .simple > strong {
+    align-self: center;
+  }
+
+  .agregar {
+    flex: 1 1 100%;
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .ticket-bloque {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .ticket-head h2 {
+    font-size: 1.05rem;
+  }
+
+  .ticket-mini {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    min-height: 52px;
+    padding: 11px 13px;
+    border-radius: 13px;
+    font-size: 0.79rem;
+  }
+
+  .guardar button {
+    font-size: 0.69rem;
+  }
+}
+
+
+/* =========================================================
+   34. MÃ“VILES PEQUEÃ‘OS â€” HASTA 420 PX
+   ========================================================= */
+
+@media (max-width: 420px) {
+  .pos {
+    padding: 11px;
+    padding-bottom: 88px;
+    gap: 12px;
+  }
+
+  .pos-intro h1 {
+    font-size: 1.42rem;
+  }
+
+  .pos-intro > p:last-child {
+    font-size: 0.8rem;
+  }
+
+  .pasos {
+    padding: 4px;
+    gap: 3px;
+  }
+
+  .pasos li button {
+    min-height: 68px;
+    padding: 6px 2px;
+  }
+
+  .pasos li button > span:first-child {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+    font-size: 0.78rem;
+  }
+
+  .pasos .paso-texto {
+    font-size: 0.61rem;
+  }
+
+  .contexto,
+  .catalogo,
+  .ticket-bloque {
+    padding: 12px;
+  }
+
+  .corte {
+    min-height: 80px;
+    padding: 9px;
+  }
+
+  .corte strong {
+    font-size: 0.91rem;
+  }
+
+  .linea-acciones {
+    gap: 7px;
+  }
+
+  .stepper input {
+    width: 34px;
+  }
+
+  .pagos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* =========================================================
+   35. MÃ“VILES MUY PEQUEÃ‘OS â€” HASTA 360 PX
+   ========================================================= */
+
+@media (max-width: 360px) {
+  .pos {
+    padding-inline: 9px;
+  }
+
+  .pos-intro h1 {
+    font-size: 1.3rem;
+  }
+
+  .pasos .paso-texto {
+    font-size: 0.56rem;
+  }
+
+  .pasos li button {
+    min-height: 64px;
+  }
+
+  .ficha-top {
+    gap: 8px;
+  }
+
+  .media {
+    width: 43px;
+    height: 43px;
+    flex-basis: 43px;
+  }
+
+  .ficha-copy h2 {
+    font-size: 0.84rem;
+  }
+
+  .cortes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .guardar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .linea-acciones > strong {
+    font-size: 0.8rem;
+  }
+}
+
+
+/* =========================================================
+   36. PANTALLAS BAJAS Y REDUCCIÃ“N DE MOVIMIENTO
+   ========================================================= */
+
+@media (max-height: 650px) and (min-width: 1001px) {
+  .ticket {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos *,
+  .pos *::before,
+  .pos *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

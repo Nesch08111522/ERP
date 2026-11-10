@@ -1,0 +1,23 @@
+(node:49232) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1msrc/app/features/ventas/pos.component.css exceeded maximum budget. Budget 16.00 kB was not met by 6.81 kB with a total of 22.81 kB.[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1msrc/app/features/mensajes-web/mensajes-web-page.component.css exceeded maximum budget. Budget 16.00 kB was not met by 1.03 kB with a total of 17.03 kB.[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1msrc/app/features/productos/pages/productos-page.component.css exceeded maximum budget. Budget 16.00 kB was not met by 6.47 kB with a total of 22.47 kB.[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mModule 'leaflet' used by 'src/app/features/sedes/components/peru-mapa.component.ts' is not ESM[0m
+
+  CommonJS or AMD dependencies can cause optimization bailouts.
+  For more information see: [4mhttps://angular.dev/tools/cli/build#configuring-commonjs-dependencies[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mModule 'qrcode' used by 'src/app/features/ventas/components/venta-ticket.component.ts' is not ESM[0m
+
+  CommonJS or AMD dependencies can cause optimization bailouts.
+  For more information see: [4mhttps://angular.dev/tools/cli/build#configuring-commonjs-dependencies[0m
+
+
