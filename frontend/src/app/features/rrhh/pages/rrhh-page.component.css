@@ -1,1 +1,37 @@
 :host { display: block; min-width: 0; }
+
+/* ── Modal de historial salarial ── */
+.historial-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.historial-monto {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+.sube { color: var(--color-success); font-weight: 600; }
+.baja { color: var(--color-danger); font-weight: 600; }
+
+/* El motivo es texto libre: sin esto la fila crece sin límite (el .table global fuerza nowrap). */
+.col-motivo {
+  white-space: normal !important;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.historial-nota {
+  margin: 12px 0 0;
+  font-size: var(--text-xs, 0.78rem);
+}
+
+/* ── Política de remuneración del legajo (§8.1) ── */
+.lg-dias-titulo { margin: 6px 0 4px; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); }
+.lg-dias { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.lg-dias .lg-dia { display: inline-flex; align-items: center; gap: 5px; font-size: 0.84rem; cursor: pointer; }
+.lg-politica { margin: 4px 0 0; font-size: 0.78rem; }

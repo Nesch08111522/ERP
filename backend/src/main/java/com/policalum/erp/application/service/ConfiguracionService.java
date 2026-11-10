@@ -9,6 +9,7 @@ import com.policalum.erp.application.dto.response.EmpresaResponseDTO;
 import com.policalum.erp.application.dto.response.ParametrosFinanzasDTO;
 import com.policalum.erp.application.dto.response.ParametrosInventarioDTO;
 import com.policalum.erp.application.dto.response.ParametrosReportesDTO;
+import com.policalum.erp.application.dto.response.ParametrosRrhhDTO;
 import com.policalum.erp.application.dto.response.ParametrosResponseDTO;
 import com.policalum.erp.application.dto.response.ParametrosVentasDTO;
 import com.policalum.erp.application.dto.response.SerieComprobanteResponseDTO;
@@ -64,6 +65,9 @@ public interface ConfiguracionService {
 
     /** Snapshot de reportes para otros servicios; si la fila no existe devuelve los valores de fábrica. */
     ParametrosReportesDTO reportes();
+
+    /** Política de remuneración de la empresa. Es el último eslabón de la cadena de herencia (§8.1). */
+    ParametrosRrhhDTO rrhh();
 
     /** Crea con valores de fábrica las filas de configuración que falten. Idempotente; se ejecuta al iniciar. */
     void inicializarSiFalta();

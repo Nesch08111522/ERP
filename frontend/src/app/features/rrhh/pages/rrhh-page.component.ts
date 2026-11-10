@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Routes } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import * as Api from '../../../core/api/openapi.types';
@@ -21,12 +21,17 @@ import { applyServerErrors, fieldError, problemStatus, problemText } from '../..
 import { PageState } from '../../../shared/utils/page-state';
 import { periodoLocal } from '../../../shared/utils/fecha-local';
 import { RrhhApiService } from '../data-access/rrhh.api';
+import { HistorialSalarialApiService, HistorialSalarialResponseDTO } from '../data-access/historial-salarial.api';
+import { ETIQUETA_DIVISION, ETIQUETA_ORIGEN, PoliticaRemuneracionApiService, PoliticaRemuneracionDTO } from '../data-access/politica-remuneracion.api';
+import { AsistenciaAdminComponent } from '../components/asistencia-admin/asistencia-admin.component';
+import { MiRegimenComponent } from '../components/mi-regimen/mi-regimen.component';
+import { PenPipe } from '../../../shared/pipes/format.pipes';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Default,
   selector: 'app-rrhh-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PageHeaderComponent, ExportButtonsComponent, TabsComponent, FilterBarComponent, DataTableComponent, ModalComponent, FormFieldComponent, SelectComponent, StatCardComponent, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, PageHeaderComponent, ExportButtonsComponent, TabsComponent, FilterBarComponent, DataTableComponent, ModalComponent, FormFieldComponent, SelectComponent, ConfirmDialogComponent, AsistenciaAdminComponent, MiRegimenComponent, PenPipe],
   templateUrl: './rrhh-page.component.html',
   styleUrls: ['./rrhh-page.component.css'],
 })
@@ -38,6 +43,7 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
     { id: 'turnos', label: 'Turnos' },
     { id: 'nominas', label: 'Nóminas' },
     { id: 'comisiones', label: 'Comisiones' },
+    { id: 'mi-regimen', label: 'Mi régimen' },
   ];
   tab = 'legajos';
   readonly legajos = new PageState<Api.LegajoListadoDTO>();
@@ -51,6 +57,8 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
     { key: 'sistemaPension', label: 'Pensión' },
     { key: 'fechaIngreso', label: 'Ingreso', kind: 'date' },
     { key: 'sueldoBase', label: 'Sueldo', kind: 'money', align: 'end' },
+    { key: 'diaCobro', label: 'Día de paga', align: 'end' },
+    { key: 'porcentajeComision', label: '% comisión', align: 'end' },
     { key: 'activo', label: 'Activo', kind: 'bool' },
   ];
   readonly colAsistencias: ColumnDef[] = [
@@ -89,16 +97,19 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
     tipoContrato: ['PLANILLA', Validators.required],
     fechaIngreso: ['', Validators.required],
     sueldoBase: [0, [Validators.required, Validators.min(0.01)]],
+    diaCobro: [null as number | null, [Validators.min(1), Validators.max(31)]],
     sistemaPension: ['ONP' as Api.LegajoRequestDTO['sistemaPension'], Validators.required],
     porcentajeComision: [0, [Validators.min(0), Validators.max(100)]],
     tasaPension: [0, [Validators.min(0), Validators.max(100)]],
     activo: [true],
-  });
-  readonly asistenciaForm = this.fb.nonNullable.group({
-    empleadoId: ['', Validators.required],
-    tipoMarcacion: ['ENTRADA' as NonNullable<Api.RrhhAsistenciaRequestDTO['tipoMarcacion']>, Validators.required],
-    fechaHora: [''],
-    dispositivoInfo: ['manual'],
+    // Solo tienen efecto si este guardado mueve sueldo, comisión, día de paga o contrato.
+    // En la creación el backend usa la fecha de ingreso y un motivo fijo, y los ignora.
+    fechaVigenciaCambio: [''],
+    motivoCambio: [''],
+    // Política de remuneración de ESTE empleado (§8.1). Vacío = hereda de su sede o de la empresa.
+    politicaDivision: ['' as '' | Api.LegajoRequestDTO['politicaDivision']],
+    tratamientoAusencias: ['' as '' | Api.LegajoRequestDTO['tratamientoAusencias']],
+    diasLaborables: this.fb.array([false, false, false, false, false, false, false]),
   });
   readonly turnoForm = this.fb.nonNullable.group({
     id: [''],
@@ -116,7 +127,6 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
   readonly comisionForm = this.fb.nonNullable.group({ periodo: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}$/)]], sedeId: [''] });
   usuarios: SelectOption[] = [];
   sedes: SelectOption[] = [];
-  asistenciaDash: Api.DashboardAsistenciaDTO | null = null;
   modal = false;
   pagoAbierto = false;
   confirmar = false;
@@ -124,9 +134,28 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
   guardando = false;
   errorFormulario: string | null = null;
   seleccionadoId = '';
+  // Historial salarial (modal por legajo)
+  historialAbierto = false;
+  historialCargando = false;
+  historialError: string | null = null;
+  historialFilas: HistorialSalarialResponseDTO[] = [];
+  historialEmpleado = '';
+  /** Política en vigor del legajo que se está editando, con su origen. */
+  politicaEfectiva: PoliticaRemuneracionDTO | null = null;
+  readonly diasSemana = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+  readonly etiquetaDia: Record<string, string> = {
+    LUNES: 'Lunes', MARTES: 'Martes', MIERCOLES: 'Miércoles', JUEVES: 'Jueves',
+    VIERNES: 'Viernes', SABADO: 'Sábado', DOMINGO: 'Domingo',
+  };
+  readonly etiquetaDivision = ETIQUETA_DIVISION;
+  readonly etiquetaOrigen = ETIQUETA_ORIGEN;
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly api: RrhhApiService, private readonly lookup: LookupService, private readonly toast: ToastService) {}
+  constructor(private readonly api: RrhhApiService,
+              private readonly historialApi: HistorialSalarialApiService,
+              private readonly politicaApi: PoliticaRemuneracionApiService,
+              private readonly lookup: LookupService,
+              private readonly toast: ToastService) {}
 
   ngOnInit(): void {
     this.lookup.loadUsuarios().pipe(takeUntil(this.destroy$)).subscribe((rows) => (this.usuarios = this.lookup.options(rows, (row) => `${(row as Api.UserResponseDTO).nombre ?? ''} ${(row as Api.UserResponseDTO).apellido ?? ''}`.trim() || 'Usuario')));
@@ -157,7 +186,6 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
 
   cargarAsistencias(): void {
     this.asistencias.loading = true;
-    this.api.GetApiV1RrhhAsistenciasDashboard().pipe(takeUntil(this.destroy$)).subscribe({ next: (data) => (this.asistenciaDash = data), error: () => (this.asistenciaDash = null) });
     this.api.GetApiV1RrhhAsistenciasListar(this.asistencias.query(this.filtroAsistencia.getRawValue())).pipe(takeUntil(this.destroy$)).subscribe({
       next: (page) => this.asistencias.apply(page),
       error: (error: unknown) => this.asistencias.fail(problemText(error), problemStatus(error)),
@@ -210,8 +238,9 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
   abrirCrear(): void {
     this.editando = false;
     this.errorFormulario = null;
-    this.legajoForm.reset({ empleadoId: '', tipoContrato: 'PLANILLA', fechaIngreso: '', sueldoBase: 0, sistemaPension: 'ONP', porcentajeComision: 0, tasaPension: 0, activo: true });
-    this.asistenciaForm.reset({ empleadoId: '', tipoMarcacion: 'ENTRADA', fechaHora: '', dispositivoInfo: 'manual' });
+    this.legajoForm.reset({ empleadoId: '', tipoContrato: 'PLANILLA', fechaIngreso: '', sueldoBase: 0, diaCobro: null, sistemaPension: 'ONP', porcentajeComision: 0, tasaPension: 0, activo: true, fechaVigenciaCambio: '', motivoCambio: '', politicaDivision: '', tratamientoAusencias: '' });
+    this.marcarDias(undefined);
+    this.politicaEfectiva = null;
     this.turnoForm.reset({ id: '', userId: '', nombreTurno: '', horaInicio: '08:00', horaFin: '17:00', diasSemana: 'LUNES,MARTES,MIERCOLES,JUEVES,VIERNES', toleranciaMinutos: 10, sedeId: '', activo: true });
     this.nominaForm.reset({ periodo: periodoLocal(), sedeId: '' });
     this.comisionForm.reset({ periodo: periodoLocal(), sedeId: '' });
@@ -229,15 +258,75 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
           tipoContrato: data.tipoContrato ?? 'PLANILLA',
           fechaIngreso: (data.fechaIngreso ?? '').slice(0, 10),
           sueldoBase: data.sueldoBase ?? 0,
+          diaCobro: data.diaCobro ?? null,
           sistemaPension: data.sistemaPension ?? 'ONP',
           porcentajeComision: data.porcentajeComision ?? 0,
           tasaPension: data.tasaPension ?? 0,
           activo: data.activo ?? true,
+          // Los campos del cambio no vienen en la respuesta: siempre parten vacíos
+          // ("hoy" y sin motivo), que es exactamente la semántica de "sin cambio".
+          fechaVigenciaCambio: '',
+          motivoCambio: '',
+          politicaDivision: data.politicaDivision ?? '',
+          tratamientoAusencias: data.tratamientoAusencias ?? '',
         });
+        this.marcarDias(data.diasLaborables);
+        this.cargarPoliticaEfectiva(data.empleadoId ?? '');
         this.legajoForm.controls.empleadoId.disable();
         this.modal = true;
       },
       error: (error: unknown) => this.toast.error(problemText(error)),
+    });
+  }
+
+  /**
+   * Historial salarial de un legajo (§2.4). Se abre desde la tabla: es lectura, no edición.
+   * El backend ya devuelve las filas del más reciente al más antiguo, con el periodo resuelto.
+   */
+  abrirHistorial(row: unknown): void {
+    const item = row as Api.LegajoListadoDTO;
+    if (!item.empleadoId) return;
+    this.historialEmpleado = item.empleadoNombre ?? 'Empleado';
+    this.historialFilas = [];
+    this.historialError = null;
+    this.historialAbierto = true;
+    this.historialCargando = true;
+    this.historialApi.deEmpleado(item.empleadoId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (filas) => { this.historialFilas = filas; this.historialCargando = false; },
+      error: (error: unknown) => { this.historialError = problemText(error); this.historialCargando = false; },
+    });
+  }
+
+  get historialVigente(): HistorialSalarialResponseDTO | null {
+    return this.historialFilas.find((fila) => fila.vigente) ?? null;
+  }
+
+  /** El signo es parte del dato: "+200" y "−200" no pueden verse iguales en la tabla. */
+  esSubida(fila: HistorialSalarialResponseDTO): boolean { return fila.sueldoDelta !== null && Number(fila.sueldoDelta) > 0; }
+  esBaja(fila: HistorialSalarialResponseDTO): boolean { return fila.sueldoDelta !== null && Number(fila.sueldoDelta) < 0; }
+  sinVariacion(fila: HistorialSalarialResponseDTO): boolean { return fila.sueldoDelta !== null && Number(fila.sueldoDelta) === 0; }
+  variacionAbsoluta(fila: HistorialSalarialResponseDTO): number { return Math.abs(Number(fila.sueldoDelta ?? 0)); }
+
+  get controlesDias(): FormArray {
+    return this.legajoForm.controls.diasLaborables as FormArray;
+  }
+
+  private marcarDias(dias: string[] | null | undefined): void {
+    const elegidos = new Set((dias ?? []).map((d) => String(d).toUpperCase()));
+    this.diasSemana.forEach((dia, i) => this.controlesDias.at(i).setValue(elegidos.has(dia), { emitEvent: false }));
+  }
+
+  private diasSeleccionados(): string[] | undefined {
+    const elegidos = this.diasSemana.filter((_dia, i) => this.controlesDias.at(i).value === true);
+    return elegidos.length ? elegidos : undefined;
+  }
+
+  /** Se consulta al abrir el legajo: sin el origen, un override que no gana se ve como un fallo. */
+  private cargarPoliticaEfectiva(empleadoId: string): void {
+    this.politicaEfectiva = null;
+    this.politicaApi.deEmpleado(empleadoId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (p) => { this.politicaEfectiva = p; },
+      error: () => { this.politicaEfectiva = null; },
     });
   }
 
@@ -253,7 +342,6 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
 
   guardar(): void {
     if (this.tab === 'legajos') this.guardarLegajo();
-    else if (this.tab === 'asistencias') this.guardarAsistencia();
     else if (this.tab === 'turnos') this.guardarTurno();
     else if (this.tab === 'nominas') this.generarNomina();
     else this.calcularComisiones();
@@ -265,7 +353,13 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
     const value = this.legajoForm.getRawValue();
     const body: Api.LegajoRequestDTO = {
       empleadoId: value.empleadoId, tipoContrato: value.tipoContrato, fechaIngreso: value.fechaIngreso, sueldoBase: Number(value.sueldoBase),
+      diaCobro: this.diaCobroDelFormulario(),
       sistemaPension: value.sistemaPension, porcentajeComision: Number(value.porcentajeComision), tasaPension: Number(value.tasaPension), activo: value.activo,
+      fechaVigenciaCambio: value.fechaVigenciaCambio || undefined,
+      motivoCambio: String(value.motivoCambio ?? '').trim() || undefined,
+      politicaDivision: value.politicaDivision || undefined,
+      diasLaborables: this.diasSeleccionados(),
+      tratamientoAusencias: value.tratamientoAusencias || undefined,
     };
     this.guardando = true;
     const request = this.editando ? this.api.PutApiV1RrhhLegajosEmpleadoId({ empleadoId: value.empleadoId }, body) : this.api.PostApiV1RrhhLegajos({}, body);
@@ -275,15 +369,14 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  guardarAsistencia(): void {
-    this.asistenciaForm.markAllAsTouched();
-    if (this.asistenciaForm.invalid) return;
-    const value = this.asistenciaForm.getRawValue();
-    this.guardando = true;
-    this.api.PostApiV1RrhhAsistenciasManual({}, { empleadoId: value.empleadoId, tipoMarcacion: value.tipoMarcacion, fechaHora: value.fechaHora || undefined, dispositivoInfo: value.dispositivoInfo || 'manual' }).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => this.ok('Marcación registrada.'),
-      error: (error: unknown) => this.fail(error, this.asistenciaForm),
-    });
+  /**
+   * El día de paga es opcional: vacío o 0 se envía undefined para que el backend conserve
+   * el valor previo (PUT con diaCobro null = "sin cambio").
+   */
+  diaCobroDelFormulario(): number | undefined {
+    const raw = this.legajoForm.getRawValue().diaCobro as number | null | '';
+    if (raw === null || raw === '' || Number(raw) <= 0) return undefined;
+    return Number(raw);
   }
 
   guardarTurno(): void {
@@ -364,8 +457,12 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
   estadoPendiente(row: unknown): boolean { return (row as Api.NominaListadoDTO).estado === 'PENDIENTE'; }
   estadoAprobada(row: unknown): boolean { return (row as Api.NominaListadoDTO).estado === 'APROBADA'; }
   comisionCalculada(row: unknown): boolean { return (row as Api.ComisionResponseDTO).estado === 'CALCULADA'; }
+  /** El modal solo aplica a legajos/turnos/nóminas/comisiones. Asistencias y Mi régimen tienen su propia UI. */
+  get hayAccion(): boolean {
+    return this.tab !== 'asistencias' && this.tab !== 'mi-regimen';
+  }
+
   tituloAccion(): string {
-    if (this.tab === 'asistencias') return 'Marcación manual';
     if (this.tab === 'turnos') return this.editando ? 'Editar turno' : 'Nuevo turno';
     if (this.tab === 'nominas') return 'Generar nómina';
     if (this.tab === 'comisiones') return 'Calcular comisiones';
@@ -373,7 +470,6 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
   }
 
   accionLabel(): string {
-    if (this.tab === 'asistencias') return 'Nueva marcación';
     if (this.tab === 'turnos') return 'Nuevo turno';
     if (this.tab === 'nominas') return 'Generar';
     if (this.tab === 'comisiones') return 'Calcular';
@@ -382,13 +478,12 @@ export class RrhhPageComponent implements OnInit, OnDestroy {
 
   formularioInvalido(): boolean {
     if (this.tab === 'legajos') return this.legajoForm.invalid;
-    if (this.tab === 'asistencias') return this.asistenciaForm.invalid;
     if (this.tab === 'turnos') return this.turnoForm.invalid;
     if (this.tab === 'nominas') return this.nominaForm.invalid;
     return this.comisionForm.invalid;
   }
 
-  errorDe(nombre: 'empleadoId' | 'fechaIngreso' | 'sueldoBase'): string | null { return fieldError(this.legajoForm.controls[nombre]); }
+  errorDe(nombre: 'empleadoId' | 'fechaIngreso' | 'sueldoBase' | 'diaCobro'): string | null { return fieldError(this.legajoForm.controls[nombre]); }
 
   private estadoActual(): { page: number; size: number } {
     if (this.tab === 'asistencias') return this.asistencias;

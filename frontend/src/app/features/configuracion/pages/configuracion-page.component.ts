@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Routes } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import * as Api from '../../../core/api/openapi.types';
@@ -62,7 +62,19 @@ export class ConfiguracionPageComponent implements OnInit, OnDestroy {
     preformaMinutosMin: [5, [Validators.required, Validators.min(1)]],
     preformaMinutosMax: [120, [Validators.required, Validators.min(1)]],
     vigenciaCotizacionDias: [7, [Validators.required, Validators.min(1)]],
+    // Política de remuneración de la empresa (§8.1). Es el último nivel de la cadena: sede y
+    // legajo pueden sobreescribirla campo por campo.
+    politicaDivision: ['DIAS_30' as Api.ParametrosRrhhRequestDTO['politicaDivision'], Validators.required],
+    tratamientoAusencias: ['NO_AFECTA' as Api.ParametrosRrhhRequestDTO['tratamientoAusencias'], Validators.required],
+    diasLaborables: this.fb.array([false, false, false, false, false, false, false]),
   });
+  /** Orden canónico LUNES→DOMINGO, el mismo con el que el backend normaliza la máscara. */
+  readonly diasSemana = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+  readonly etiquetaDia: Record<string, string> = {
+    LUNES: 'Lunes', MARTES: 'Martes', MIERCOLES: 'Miércoles', JUEVES: 'Jueves',
+    VIERNES: 'Viernes', SABADO: 'Sábado', DOMINGO: 'Domingo',
+  };
+
   readonly serie = this.fb.nonNullable.group({
     sedeId: ['', Validators.required],
     serie: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9]{4}$/)]],
@@ -109,21 +121,51 @@ export class ConfiguracionPageComponent implements OnInit, OnDestroy {
       error: (error: unknown) => { this.cargando = false; this.error = problemText(error); },
     });
     this.api.GetApiV1ConfiguracionParametros().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (data) => this.parametros.patchValue({
-        mesesHistoricosProyeccion: data.finanzas?.mesesHistoricosProyeccion ?? 6,
-        mesesProyeccionDefault: data.finanzas?.mesesProyeccionDefault ?? 3,
-        mesesProyeccionMax: data.finanzas?.mesesProyeccionMax ?? 12,
-        minCaracteresJustificacion: data.inventario?.minCaracteresJustificacion ?? 10,
-        umbralJustificacionAjuste: data.inventario?.umbralJustificacionAjuste ?? 0,
-        maxFilasExportacion: data.reportes?.maxFilasExportacion ?? 5000,
-        preformaMinutosDefault: data.ventas?.preformaMinutosDefault ?? 30,
-        preformaMinutosMin: data.ventas?.preformaMinutosMin ?? 5,
-        preformaMinutosMax: data.ventas?.preformaMinutosMax ?? 120,
-        vigenciaCotizacionDias: data.ventas?.vigenciaCotizacionDias ?? 7,
-      }),
+      next: (data) => {
+        this.parametros.patchValue({
+          mesesHistoricosProyeccion: data.finanzas?.mesesHistoricosProyeccion ?? 6,
+          mesesProyeccionDefault: data.finanzas?.mesesProyeccionDefault ?? 3,
+          mesesProyeccionMax: data.finanzas?.mesesProyeccionMax ?? 12,
+          minCaracteresJustificacion: data.inventario?.minCaracteresJustificacion ?? 10,
+          umbralJustificacionAjuste: data.inventario?.umbralJustificacionAjuste ?? 0,
+          maxFilasExportacion: data.reportes?.maxFilasExportacion ?? 5000,
+          preformaMinutosDefault: data.ventas?.preformaMinutosDefault ?? 30,
+          preformaMinutosMin: data.ventas?.preformaMinutosMin ?? 5,
+          preformaMinutosMax: data.ventas?.preformaMinutosMax ?? 120,
+          vigenciaCotizacionDias: data.ventas?.vigenciaCotizacionDias ?? 7,
+          politicaDivision: data.rrhh?.politicaDivision ?? 'DIAS_30',
+          tratamientoAusencias: data.rrhh?.tratamientoAusencias ?? 'NO_AFECTA',
+        });
+        // Un FormArray no se puede llenar con patchValue: se marca día por día.
+        this.marcarDiasLaborables(data.rrhh?.diasLaborables);
+      },
       error: (error: unknown) => this.toast.error(problemText(error)),
     });
     this.api.GetApiV1ConfiguracionSeries().pipe(takeUntil(this.destroy$)).subscribe({ next: (rows) => (this.series = rows ?? []), error: () => (this.series = []) });
+  }
+
+  /** Controles del FormArray de días laborables, en el orden de `diasSemana`. */
+  get controlesDias(): FormArray {
+    return this.parametros.controls.diasLaborables as FormArray;
+  }
+
+  private marcarDiasLaborables(dias: string[] | undefined): void {
+    const elegidos = new Set((dias ?? []).map((d) => String(d).toUpperCase()));
+    this.diasSemana.forEach((dia, i) => this.controlesDias.at(i).setValue(elegidos.has(dia), { emitEvent: false }));
+  }
+
+  private diasSeleccionados(): string[] {
+    return this.diasSemana.filter((_dia, i) => this.controlesDias.at(i).value === true);
+  }
+
+  /**
+   * DIAS_LABORABLES sin ningún día marcado es la única combinación que el backend rechaza a
+   * nivel empresa: no hay un nivel inferior del cual heredar la máscara. Se bloquea acá en vez
+   * de dejar que el usuario reciba un 400.
+   */
+  get politicaInvalida(): boolean {
+    return this.parametros.controls.politicaDivision.value === 'DIAS_LABORABLES'
+      && this.diasSeleccionados().length === 0;
   }
 
   elegirLogo(event: Event): void {
@@ -207,6 +249,11 @@ export class ConfiguracionPageComponent implements OnInit, OnDestroy {
       inventario: { minCaracteresJustificacion: Number(value.minCaracteresJustificacion), umbralJustificacionAjuste: Number(value.umbralJustificacionAjuste) },
       reportes: { maxFilasExportacion: Number(value.maxFilasExportacion) },
       ventas: { preformaMinutosDefault: Number(value.preformaMinutosDefault), preformaMinutosMin: Number(value.preformaMinutosMin), preformaMinutosMax: Number(value.preformaMinutosMax), vigenciaCotizacionDias: Number(value.vigenciaCotizacionDias) },
+      rrhh: {
+        politicaDivision: value.politicaDivision,
+        diasLaborables: this.diasSeleccionados(),
+        tratamientoAusencias: value.tratamientoAusencias,
+      },
     };
     this.guardando = true;
     this.api.PutApiV1ConfiguracionParametros({}, body).pipe(takeUntil(this.destroy$)).subscribe({

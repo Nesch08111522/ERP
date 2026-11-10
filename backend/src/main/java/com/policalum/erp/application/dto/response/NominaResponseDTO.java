@@ -2,6 +2,7 @@ package com.policalum.erp.application.dto.response;
 
 import com.policalum.erp.domain.enums.EstadoNomina;
 import com.policalum.erp.domain.enums.MetodoPago;
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
 import com.policalum.erp.domain.enums.SistemaPension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,6 +17,9 @@ public record NominaResponseDTO(
         String periodo,
         String tipoContrato,
         Integer diasComputados,
+        /** Snapshot de la política (§8.1) con la que se generó esta nómina. */
+        Integer divisorRemuneracion,
+        PoliticaDivisionSueldo politicaDivision,
         BigDecimal sueldoBaseCalculado,
         UUID comisionId,
         BigDecimal ventasBaseComision,

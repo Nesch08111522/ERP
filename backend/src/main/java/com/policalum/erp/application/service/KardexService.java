@@ -43,7 +43,7 @@ public interface KardexService {
 
     /** Movimientos filtrados, más recientes primero. Fechas inclusivas; sin fechas = todo el historial. */
     Page<KardexMovimientoDetalleDTO> buscarMovimientos(UUID productoId, UUID almacenId, TipoReferencia tipoReferencia,
-                                                       LocalDate desde, LocalDate hasta, Pageable pageable);
+                                                        LocalDate desde, LocalDate hasta, UUID sedeId, String busqueda, Pageable pageable);
 
     /** Detalle de un movimiento. 404 si no existe. */
     KardexMovimientoDetalleDTO obtenerMovimiento(UUID id);

@@ -53,13 +53,41 @@
     <app-form-field label="Mínimo de justificación" inputId="par-jus"><input id="par-jus" class="input" type="number" min="0" formControlName="minCaracteresJustificacion" /></app-form-field>
     <app-form-field label="Umbral de ajuste" inputId="par-umb"><input id="par-umb" class="input" type="number" min="0" step="0.01" formControlName="umbralJustificacionAjuste" /></app-form-field>
     </div></details>
+    <details open><summary>RRHH · política de remuneración</summary><div class="acordeon-cuerpo form-grid">
+      <app-form-field label="División mensual del sueldo" inputId="par-div" hint="Cómo se convierte el sueldo pactado en costo diario.">
+        <select id="par-div" class="select" formControlName="politicaDivision">
+          <option value="DIAS_30">Siempre 30 días (convención legal peruana)</option>
+          <option value="DIAS_CALENDARIO">Días reales del mes (28 a 31)</option>
+          <option value="DIAS_LABORABLES">Solo los días laborables de la máscara</option>
+        </select>
+      </app-form-field>
+      <app-form-field label="Tratamiento de ausencias" inputId="par-aus" hint="El descuento por días sin marcación está declarado pero bloqueado: el ERP aún no registra inasistencias ni permisos.">
+        <select id="par-aus" class="select" formControlName="tratamientoAusencias">
+          <option value="NO_AFECTA">No afecta el sueldo</option>
+          <option value="DESCUENTO_DIAS_SIN_MARCACION" disabled>Descontar días sin marcación (no disponible)</option>
+        </select>
+      </app-form-field>
+      <div class="span-2">
+        <p class="subtitulo-dias">Días laborables</p>
+        <div class="dias-laborables" formArrayName="diasLaborables">
+          <label *ngFor="let dia of diasSemana; let i = index" class="dia">
+            <input class="checkbox" type="checkbox" [formControlName]="i" /> {{ etiquetaDia[dia] }}
+          </label>
+        </div>
+        <p *ngIf="politicaInvalida" class="alert alert-warning">Marque al menos un día: sin máscara no hay entre cuántos días dividir.</p>
+      </div>
+      <p class="span-2 text-muted nota-rrhh">
+        La sede y cada legajo pueden sobreescribir esta política. Un nivel solo gana si definió
+        ese campo: cambiar la división en una sede no descarta la máscara de la empresa.
+      </p>
+    </div></details>
     <details open><summary>Ventas y reportes</summary><div class="acordeon-cuerpo form-grid">
     <app-form-field label="Vigencia de cotización (días)" inputId="par-vig"><input id="par-vig" class="input" type="number" min="1" formControlName="vigenciaCotizacionDias" /></app-form-field>
     <app-form-field label="Preforma por defecto (min)" inputId="par-pre"><input id="par-pre" class="input" type="number" min="1" formControlName="preformaMinutosDefault" /></app-form-field>
     <app-form-field label="Preforma mínima" inputId="par-pmin"><input id="par-pmin" class="input" type="number" min="1" formControlName="preformaMinutosMin" /></app-form-field>
     <app-form-field label="Preforma máxima" inputId="par-pmax"><input id="par-pmax" class="input" type="number" min="1" formControlName="preformaMinutosMax" /></app-form-field>
     <app-form-field label="Máximo de filas al exportar" inputId="par-exp"><input id="par-exp" class="input" type="number" min="1" formControlName="maxFilasExportacion" /></app-form-field>
-    <div class="filter-actions span-2"><button type="submit" class="btn btn-primary" [disabled]="parametros.invalid || guardando">Guardar parámetros</button></div>
+    <div class="filter-actions span-2"><button type="submit" class="btn btn-primary" [disabled]="parametros.invalid || politicaInvalida || guardando">Guardar parámetros</button></div>
     </div></details>
   </form>
 

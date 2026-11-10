@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, Routes } from '@angular/router';
 import { RoleGuard } from '../../../guards/role.guard';
 import { Subject, takeUntil } from 'rxjs';
@@ -57,7 +57,17 @@ export class SedesPageComponent implements OnInit, OnDestroy {
     activa: [true],
     latitud: [''],
     longitud: [''],
+    // Política de remuneración de la sede (§8.1). Vacío = hereda la de la empresa.
+    politicaDivision: ['' as '' | Api.SedeRequestDTO['politicaDivision']],
+    tratamientoAusencias: ['' as '' | Api.SedeRequestDTO['tratamientoAusencias']],
+    diasLaborables: this.fb.array([false, false, false, false, false, false, false]),
   });
+  /** Orden canónico LUNES→DOMINGO, el mismo con el que el backend normaliza la máscara. */
+  readonly diasSemana = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO'];
+  readonly etiquetaDia: Record<string, string> = {
+    LUNES: 'Lunes', MARTES: 'Martes', MIERCOLES: 'Miércoles', JUEVES: 'Jueves',
+    VIERNES: 'Viernes', SABADO: 'Sábado', DOMINGO: 'Domingo',
+  };
   private todos: Api.SedeResponseDTO[] = [];
   modal = false;
   editando = false;
@@ -143,7 +153,8 @@ export class SedesPageComponent implements OnInit, OnDestroy {
     this.punto = null;
     this.avisoMapa = 'Busca una ciudad o dirección, o haz clic en el mapa para soltar el logo.';
     this.otrasSedes = this.puntosVista;
-    this.form.reset({ id: '', nombre: '', pais: 'Perú', ciudad: '', direccion: '', celularSede: '', moneda: 'PEN', activa: true, latitud: '', longitud: '' });
+    this.form.reset({ id: '', nombre: '', pais: 'Perú', ciudad: '', direccion: '', celularSede: '', moneda: 'PEN', activa: true, latitud: '', longitud: '', politicaDivision: '', tratamientoAusencias: '' });
+    this.marcarDias(undefined);
     this.modal = true;
   }
   abrirEditar(row: unknown): void {
@@ -158,7 +169,9 @@ export class SedesPageComponent implements OnInit, OnDestroy {
       id: sede.id ?? '', nombre: sede.nombre ?? '', pais: sede.pais ?? '', ciudad: sede.ciudad ?? '',
       direccion: sede.direccion ?? '', celularSede: sede.celularSede ?? '', moneda: sede.moneda ?? 'PEN',
       activa: sede.activa ?? true, latitud: sede.latitud == null ? '' : String(sede.latitud), longitud: sede.longitud == null ? '' : String(sede.longitud),
+      politicaDivision: sede.politicaDivision ?? '', tratamientoAusencias: sede.tratamientoAusencias ?? '',
     });
+    this.marcarDias(sede.diasLaborables);
     if (sede.latitud != null && sede.longitud != null) {
       this.punto = { latitud: sede.latitud, longitud: sede.longitud };
       this.avisoMapa = 'Punto guardado. Arrastra el logo si el local está en otra esquina.';
@@ -168,6 +181,25 @@ export class SedesPageComponent implements OnInit, OnDestroy {
     }
     this.modal = true;
   }
+
+  get controlesDias(): FormArray {
+    return this.form.controls.diasLaborables as FormArray;
+  }
+
+  private marcarDias(dias: string[] | undefined): void {
+    const elegidos = new Set((dias ?? []).map((d) => String(d).toUpperCase()));
+    this.diasSemana.forEach((dia, i) => this.controlesDias.at(i).setValue(elegidos.has(dia), { emitEvent: false }));
+  }
+
+  /**
+   * Acá "sin ningún día marcado" sí significa "hereda de la empresa" (en Parámetros RRHH, en
+   * cambio, la máscara es obligatoria porque no hay un nivel inferior del cual bajar).
+   */
+  private diasSeleccionados(): string[] | undefined {
+    const elegidos = this.diasSemana.filter((_dia, i) => this.controlesDias.at(i).value === true);
+    return elegidos.length ? elegidos : undefined;
+  }
+
   ubicar(avisar = true): Promise<void> {
     const texto = this.textoBusqueda();
     if (!texto) {
@@ -241,6 +273,9 @@ export class SedesPageComponent implements OnInit, OnDestroy {
       direccion: value.direccion.trim() || undefined, celularSede: value.celularSede.trim() || undefined,
       moneda: value.moneda.trim() || undefined, activa: value.activa,
       latitud: latitud ?? undefined, longitud: longitud ?? undefined,
+      politicaDivision: value.politicaDivision || undefined,
+      diasLaborables: this.diasSeleccionados(),
+      tratamientoAusencias: value.tratamientoAusencias || undefined,
     };
     this.guardando = true;
     const request = this.editando && value.id ? this.api.PutApiV1SedesId({ id: value.id }, body) : this.api.PostApiV1Sedes({}, body);

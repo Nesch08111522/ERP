@@ -147,16 +147,27 @@ export class ServiciosPageComponent implements OnInit, OnDestroy {
       activo: item.activo ?? true,
     });
     for (const persona of item.colaboradores ?? []) {
-      if (persona.userId) this.agregarPersona(persona.userId, persona.participacion === 'INSTALO' ? 'INSTALO' : 'AYUDO');
+      this.agregarPersona({
+        userId: persona.userId ?? '',
+        participacion: persona.participacion === 'INSTALO' ? 'INSTALO' : 'AYUDO',
+        tipoColaborador: persona.tipoColaborador === 'EXTERNO' ? 'EXTERNO' : 'REGISTRADO',
+        nombreExterno: persona.nombreExterno ?? '',
+        costo: persona.costo ?? 0,
+        estadoLiquidacion: persona.estadoLiquidacion ?? 'PENDIENTE',
+      });
     }
     this.detalle = item;
     this.modal = true;
   }
 
-  agregarPersona(userId = '', participacion: 'INSTALO' | 'AYUDO' = 'AYUDO'): void {
+  agregarPersona(p?: Partial<{ userId: string; participacion: string; tipoColaborador: string; nombreExterno: string; costo: number; estadoLiquidacion: string }>): void {
     this.equipo.push(this.fb.nonNullable.group({
-      userId: [userId, Validators.required],
-      participacion: [participacion, Validators.required],
+      userId: [p?.userId ?? ''],
+      participacion: [p?.participacion ?? 'AYUDO'],
+      tipoColaborador: [p?.tipoColaborador ?? 'REGISTRADO'],
+      nombreExterno: [p?.nombreExterno ?? ''],
+      costo: [Number(p?.costo ?? 0)],
+      estadoLiquidacion: [p?.estadoLiquidacion ?? 'PENDIENTE'],
     }));
   }
 
@@ -167,8 +178,24 @@ export class ServiciosPageComponent implements OnInit, OnDestroy {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
     const value = this.form.getRawValue();
-    const personas = value.colaboradores as { userId: string; participacion: string }[];
-    const ids = personas.map((persona) => persona.userId);
+    const personas = value.colaboradores as {
+      userId: string; participacion: string; tipoColaborador: string;
+      nombreExterno: string; costo: number; estadoLiquidacion: string;
+    }[];
+    const registrados = personas.filter((p) => p.tipoColaborador !== 'EXTERNO');
+    if (registrados.some((p) => !p.userId)) {
+      this.errorFormulario = 'Cada colaborador registrado necesita un usuario, o cámbialo a externo.';
+      return;
+    }
+    if (personas.some((p) => p.tipoColaborador === 'EXTERNO' && !p.nombreExterno.trim())) {
+      this.errorFormulario = 'Los colaboradores externos necesitan un nombre.';
+      return;
+    }
+    if (personas.some((p) => Number(p.costo) < 0)) {
+      this.errorFormulario = 'El costo de un colaborador no puede ser negativo.';
+      return;
+    }
+    const ids = registrados.map((p) => p.userId);
     if (new Set(ids).size !== ids.length) {
       this.errorFormulario = 'La misma persona está repetida en el equipo.';
       return;
@@ -178,10 +205,17 @@ export class ServiciosPageComponent implements OnInit, OnDestroy {
       descripcion: value.descripcion.trim() || undefined,
       precio: Number(value.precio),
       activo: value.activo,
-      colaboradores: personas.map((persona) => ({
-        userId: persona.userId,
-        participacion: persona.participacion === 'INSTALO' ? 'INSTALO' : 'AYUDO',
-      })),
+      colaboradores: personas.map((p) => {
+        const externo = p.tipoColaborador === 'EXTERNO';
+        return {
+          userId: externo ? undefined : p.userId,
+          participacion: p.participacion === 'INSTALO' ? 'INSTALO' : 'AYUDO',
+          tipoColaborador: externo ? 'EXTERNO' : 'REGISTRADO',
+          nombreExterno: externo ? p.nombreExterno.trim() : undefined,
+          costo: Number(p.costo) || 0,
+          estadoLiquidacion: p.estadoLiquidacion || 'PENDIENTE',
+        };
+      }),
     };
     this.guardando = true;
     const request = this.editando && value.id ? this.api.PutApiV1ServiciosId({ id: value.id }, body) : this.api.PostApiV1Servicios({}, body);
@@ -219,11 +253,22 @@ export class ServiciosPageComponent implements OnInit, OnDestroy {
   equipoTexto(item: Api.ServicioResponseDTO): string {
     const personas = item.colaboradores ?? [];
     if (!personas.length) return 'Sin personas asignadas';
-    return personas.map((persona) => `${this.nombrePersona(persona)} · ${persona.participacion === 'INSTALO' ? 'Instaló' : 'Ayudó'}`).join(', ');
+    return personas.map((p) => `${this.nombrePersona(p)} · ${p.participacion === 'INSTALO' ? 'Instaló' : 'Ayudó'}`).join(', ');
   }
 
-  nombrePersona(persona: { nombre?: string; apellido?: string; email?: string }): string {
+  nombrePersona(persona: { nombre?: string; apellido?: string; email?: string; tipoColaborador?: string; nombreExterno?: string }): string {
+    if (persona.tipoColaborador === 'EXTERNO') return persona.nombreExterno || 'Externo';
     return [persona.nombre, persona.apellido].filter(Boolean).join(' ') || persona.email || 'Usuario';
+  }
+
+  /** Costo total del servicio = Σ costos de sus colaboradores (registrados y externos). */
+  get costoTotal(): number {
+    return (this.detalle?.colaboradores ?? []).reduce((acc, p) => acc + Number(p.costo ?? 0), 0);
+  }
+
+  /** Margen = precio del servicio − costo total. Negativo = el servicio cuesta más de lo que cobra. */
+  get margen(): number {
+    return Number(this.detalle?.precio ?? 0) - this.costoTotal;
   }
 
   nombreUsuario(usuario: Api.UserResponseDTO): string {

@@ -47,17 +47,17 @@ class DespachoPermissionControllerTest {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void crearDespachoRequierePermisoDelModulo() throws Exception {
-        User admin = User.builder()
+        User operador = User.builder()
                 .rol(Rol.builder()
-                        .nombre(RolNombre.ROLE_ADMIN)
+                        .nombre(RolNombre.ROLE_MULTIFUNCIONAL)
                         .permisosJson(Map.of(
                                 "despachos", Map.of("leer", true, "crear", false),
                                 "ventas", Map.of("leer", true)))
                         .build())
                 .build();
-        when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
+        when(userRepository.findPerfilByEmail("operador@policalum.com")).thenReturn(Optional.of(operador));
 
         mvc.perform(post("/api/v1/despachos")
                         .contentType(MediaType.APPLICATION_JSON)

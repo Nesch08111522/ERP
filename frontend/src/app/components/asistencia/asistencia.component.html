@@ -33,9 +33,16 @@
   <div class="qr-section">
     <div class="qr-header">
       <h3 class="with-icon"><app-icon name="qr"></app-icon> QR de asistencia</h3>
-      <p>Muestra este QR para que los empleados marquen su asistencia.</p>
+      <!--
+        El kiosco (QR público que otros escanean) solo tiene sentido en la pantalla del
+        administrador. El empleado usa la vista contraria: escanear con su cámara, o mostrar
+        su QR personal para que el administrador le registre la marcación.
+      -->
+      <p *ngIf="isAdmin">Deje esta pantalla visible: los empleados la escanean para marcar su asistencia.</p>
+      <p *ngIf="!isAdmin">Marque desde su celular: escanee el QR de la sede, o muestre su QR al administrador.</p>
     </div>
-    <app-qr-publico></app-qr-publico>
+    <app-qr-publico *ngIf="isAdmin"></app-qr-publico>
+    <app-mi-qr *ngIf="!isAdmin"></app-mi-qr>
   </div>
 
   <app-listado-asistencias></app-listado-asistencias>

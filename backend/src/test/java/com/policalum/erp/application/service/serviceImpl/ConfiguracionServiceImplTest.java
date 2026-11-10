@@ -9,6 +9,7 @@ import com.policalum.erp.application.dto.request.MarcaRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosFinanzasRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosInventarioRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosRequestDTO;
+import com.policalum.erp.application.dto.request.ParametrosRrhhRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosVentasRequestDTO;
 import com.policalum.erp.application.dto.request.SerieComprobanteRequestDTO;
 import com.policalum.erp.application.dto.request.SeriesRequestDTO;
@@ -25,12 +26,15 @@ import com.policalum.erp.application.mapper.SerieComprobanteMapper;
 import com.policalum.erp.application.service.AuditService;
 import com.policalum.erp.application.service.FileStorageService;
 import com.policalum.erp.domain.enums.AccionAudit;
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
 import com.policalum.erp.domain.enums.RolNombre;
+import com.policalum.erp.domain.enums.TratamientoAusencias;
 import com.policalum.erp.domain.enums.TipoComprobante;
 import com.policalum.erp.domain.model.ConfiguracionEmpresa;
 import com.policalum.erp.domain.model.ConfiguracionFinanzas;
 import com.policalum.erp.domain.model.ConfiguracionInventario;
 import com.policalum.erp.domain.model.ConfiguracionReportes;
+import com.policalum.erp.domain.model.ConfiguracionRrhh;
 import com.policalum.erp.domain.model.ConfiguracionVentas;
 import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.domain.model.Sede;
@@ -41,6 +45,7 @@ import com.policalum.erp.infrastructure.repository.ConfiguracionEmpresaRepositor
 import com.policalum.erp.infrastructure.repository.ConfiguracionFinanzasRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionInventarioRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionReportesRepository;
+import com.policalum.erp.infrastructure.repository.ConfiguracionRrhhRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionVentasRepository;
 import com.policalum.erp.infrastructure.repository.SedeRepository;
 import com.policalum.erp.infrastructure.repository.SerieComprobanteRepository;
@@ -77,6 +82,7 @@ class ConfiguracionServiceImplTest {
     @Mock ConfiguracionInventarioRepository inventarioRepository;
     @Mock ConfiguracionFinanzasRepository finanzasRepository;
     @Mock ConfiguracionReportesRepository reportesRepository;
+    @Mock ConfiguracionRrhhRepository rrhhRepository;
     @Mock SerieComprobanteRepository serieRepository;
     @Mock SedeRepository sedeRepository;
     @Mock UserRepository userRepository;
@@ -121,6 +127,10 @@ class ConfiguracionServiceImplTest {
         assertEquals(new ParametrosInventarioDTO(new BigDecimal("500.00"), 30), service.inventario());
         assertEquals(new ParametrosFinanzasDTO(3, 3, 12), service.finanzas());
         assertEquals(new ParametrosReportesDTO(50_000), service.reportes());
+        // DIAS_30 es el divisor histórico: la default no puede cambiar ninguna liquidación.
+        assertEquals(com.policalum.erp.domain.enums.PoliticaDivisionSueldo.DIAS_30, service.rrhh().politicaDivision());
+        assertEquals(com.policalum.erp.domain.enums.TratamientoAusencias.NO_AFECTA, service.rrhh().tratamientoAusencias());
+        assertEquals(List.of("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"), service.rrhh().diasLaborables());
     }
 
     @Test
@@ -140,6 +150,7 @@ class ConfiguracionServiceImplTest {
         when(inventarioRepository.existsById(1L)).thenReturn(false);
         when(finanzasRepository.existsById(1L)).thenReturn(true);
         when(reportesRepository.existsById(1L)).thenReturn(false);
+        when(rrhhRepository.existsById(1L)).thenReturn(false);
 
         service.inicializarSiFalta();
 
@@ -150,9 +161,10 @@ class ConfiguracionServiceImplTest {
         assertEquals(1L, ventas.getValue().getId());
         verify(inventarioRepository).save(any());
         verify(reportesRepository).save(any());
+        verify(rrhhRepository).save(any());
         verify(auditService).registrar(eq("configuracion_ventas"), eq(ConfiguracionServiceImpl.registroId("configuracion_ventas")),
                 eq(AccionAudit.INSERT), isNull(), eq("SISTEMA"), anyMap());
-        verify(auditService, times(3)).registrar(anyString(), any(), eq(AccionAudit.INSERT), isNull(), eq("SISTEMA"), anyMap());
+        verify(auditService, times(4)).registrar(anyString(), any(), eq(AccionAudit.INSERT), isNull(), eq("SISTEMA"), anyMap());
     }
 
     // ================================================================ empresa
@@ -309,14 +321,14 @@ class ConfiguracionServiceImplTest {
     @Test
     void actualizarParametros_sinNingunGrupo_lanza400() {
         assertThrows(IllegalArgumentException.class,
-                () -> service.actualizarParametros(new ParametrosRequestDTO(null, null, null, null)));
+                () -> service.actualizarParametros(new ParametrosRequestDTO(null, null, null, null, null)));
         verifyNoInteractions(auditService);
     }
 
     @Test
     void actualizarParametros_preformaDefaultFueraDeRango_lanza400SinBloquearNada() {
         ParametrosRequestDTO r = new ParametrosRequestDTO(new ParametrosVentasRequestDTO(15, 4, 5, 4320),
-                new ParametrosInventarioRequestDTO(new BigDecimal("800"), 40), null, null);
+                new ParametrosInventarioRequestDTO(new BigDecimal("800"), 40), null, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> service.actualizarParametros(r));
         verify(ventasRepository, never()).findParaActualizar(any());
@@ -327,7 +339,7 @@ class ConfiguracionServiceImplTest {
     @Test
     void actualizarParametros_proyeccionDefaultMayorQueMaximo_lanza400() {
         assertThrows(IllegalArgumentException.class, () -> service.actualizarParametros(
-                new ParametrosRequestDTO(null, null, new ParametrosFinanzasRequestDTO(3, 13, 12), null)));
+                new ParametrosRequestDTO(null, null, new ParametrosFinanzasRequestDTO(3, 13, 12), null, null)));
         verify(finanzasRepository, never()).findParaActualizar(any());
     }
 
@@ -339,8 +351,8 @@ class ConfiguracionServiceImplTest {
         when(inventarioRepository.findById(1L)).thenReturn(Optional.of(inv));
         when(inventarioRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        ParametrosResponseDTO r = service.actualizarParametros(new ParametrosRequestDTO(null,
-                new ParametrosInventarioRequestDTO(new BigDecimal("1000.5"), 50), null, null));
+        ParametrosResponseDTO r =         service.actualizarParametros(new ParametrosRequestDTO(null,
+                new ParametrosInventarioRequestDTO(new BigDecimal("1000.5"), 50), null, null, null));
 
         assertEquals(0, new BigDecimal("1000.50").compareTo(r.inventario().umbralJustificacionAjuste()));
         assertEquals(2, inv.getUmbralJustificacionAjuste().scale());
@@ -366,7 +378,7 @@ class ConfiguracionServiceImplTest {
         when(inventarioRepository.findParaActualizar(1L)).thenReturn(Optional.of(inv));
 
         service.actualizarParametros(new ParametrosRequestDTO(null,
-                new ParametrosInventarioRequestDTO(new BigDecimal("500"), 30), null, null));
+                new ParametrosInventarioRequestDTO(new BigDecimal("500"), 30), null, null, null));
 
         verify(inventarioRepository, never()).save(any());
         verifyNoInteractions(auditService);
@@ -377,13 +389,66 @@ class ConfiguracionServiceImplTest {
         when(ventasRepository.findParaActualizar(1L)).thenReturn(Optional.empty());
         when(ventasRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        service.actualizarParametros(new ParametrosRequestDTO(new ParametrosVentasRequestDTO(20, 60, 10, 600), null, null, null));
+        service.actualizarParametros(new ParametrosRequestDTO(new ParametrosVentasRequestDTO(20, 60, 10, 600), null, null, null, null));
 
         ArgumentCaptor<ConfiguracionVentas> c = ArgumentCaptor.forClass(ConfiguracionVentas.class);
         verify(ventasRepository).save(c.capture());
         assertEquals(1L, c.getValue().getId());
         assertEquals(20, c.getValue().getVigenciaCotizacionDias());
         verify(auditService).registrar(eq("configuracion_ventas"), any(), eq(AccionAudit.INSERT), anyMap());
+    }
+
+    // ================================================================ política de remuneración (§8.1)
+
+    @Test
+    void actualizarParametros_rrhh_normalizaLaMascaraYAudita() {
+        ConfiguracionRrhh fila = ConfiguracionRrhh.builder().id(1L)
+                .politicaDivision(PoliticaDivisionSueldo.DIAS_30).diasLaborables(List.of("LUNES"))
+                .tratamientoAusencias(TratamientoAusencias.NO_AFECTA).build();
+        when(rrhhRepository.findParaActualizar(1L)).thenReturn(Optional.of(fila));
+        when(rrhhRepository.findById(1L)).thenReturn(Optional.of(fila));
+        when(rrhhRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        ParametrosResponseDTO r = service.actualizarParametros(new ParametrosRequestDTO(null, null, null, null,
+                new ParametrosRrhhRequestDTO(PoliticaDivisionSueldo.DIAS_LABORABLES,
+                        List.of("viernes", "LUNES", "lunes"), TratamientoAusencias.NO_AFECTA)));
+
+        assertEquals(PoliticaDivisionSueldo.DIAS_LABORABLES, fila.getPoliticaDivision());
+        assertEquals(List.of("LUNES", "VIERNES"), fila.getDiasLaborables(), "ordenada L->D y sin duplicados");
+        assertSame(admin, fila.getActualizadoPor());
+        assertEquals(List.of("LUNES", "VIERNES"), r.rrhh().diasLaborables());
+
+        ArgumentCaptor<Map<String, Object>> datos = ArgumentCaptor.forClass(Map.class);
+        verify(auditService).registrar(eq("configuracion_rrhh"), any(), eq(AccionAudit.UPDATE), datos.capture());
+    }
+
+    /**
+     * DIAS_LABORABLES sin máscara solo es inválida en el nivel empresa: ahí no hay de quién
+     * heredarla. En sede y legajo es legítimo (heredan la de arriba), y esa distinción se prueba
+     * en PoliticaRemuneracionServiceImplTest.
+     */
+    @Test
+    void actualizarParametros_rrhhLaborablesSinMascara_lanza400SinGuardar() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.actualizarParametros(new ParametrosRequestDTO(null, null, null, null,
+                        new ParametrosRrhhRequestDTO(PoliticaDivisionSueldo.DIAS_LABORABLES,
+                                List.of(), TratamientoAusencias.NO_AFECTA))));
+
+        assertTrue(ex.getMessage().contains("al menos un día"));
+        verify(rrhhRepository, never()).findParaActualizar(any());
+        verify(rrhhRepository, never()).save(any());
+    }
+
+    @Test
+    void actualizarParametros_rrhhAusenciasNoImplementadas_lanza400() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.actualizarParametros(new ParametrosRequestDTO(null, null, null, null,
+                        new ParametrosRrhhRequestDTO(PoliticaDivisionSueldo.DIAS_30,
+                                List.of("LUNES", "MARTES"),
+                                TratamientoAusencias.DESCUENTO_DIAS_SIN_MARCACION))));
+
+        assertTrue(ex.getMessage().contains("inasistencias"));
+        verify(rrhhRepository, never()).save(any());
     }
 
     // ================================================================ series

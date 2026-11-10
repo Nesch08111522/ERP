@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import com.policalum.erp.util.HorarioUtil;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +38,9 @@ public class SedeServiceImpl implements SedeService {
     @Transactional
     @CacheEvict(value = "sedes", allEntries = true)
     public SedeResponseDTO crearSede(SedeRequestDTO request) {
+        List<String> diasLaborables = validarPoliticaDeSede(request);
         Sede sede = sedeMapper.toEntity(request);
+        sede.setDiasLaborables(diasLaborables);
 
         if (sede.getPais() == null) sede.setPais("Perú");
         if (sede.getMoneda() == null) sede.setMoneda("PEN");
@@ -76,12 +79,29 @@ public class SedeServiceImpl implements SedeService {
         Sede sedeExistente = sedeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No se puede actualizar. Sede no encontrada con ID: " + id));
 
+        List<String> diasLaborables = validarPoliticaDeSede(request);
         sedeMapper.updateEntityFromDto(request, sedeExistente);
+        sedeExistente.setDiasLaborables(diasLaborables);
         if (request.imagen() != null && !request.imagen().isBlank()) sedeExistente.setImagen(request.imagen().trim());
         completarUbicacion(sedeExistente);
 
         Sede actualizada = sedeRepository.save(sedeExistente);
         return sedeMapper.toResponseDto(actualizada);
+    }
+
+    /**
+     * La política de la sede se valida con la misma regla que la de empresa y la del legajo, y se
+     * normaliza (orden LUNES→DOMINGO, sin duplicados ni tildes) para que comparar herencias no
+     * dependa de cómo escribió el usuario.
+     *
+     * @return la máscara lista para guardar, o null = "la sede no define días, hereda"
+     */
+    private static List<String> validarPoliticaDeSede(SedeRequestDTO request) {
+        PoliticaRemuneracionServiceImpl.validarPolitica(request.politicaDivision(),
+                request.diasLaborables(), request.tratamientoAusencias());
+        return request.diasLaborables() == null || request.diasLaborables().isEmpty()
+                ? null
+                : HorarioUtil.normalizarDias(request.diasLaborables());
     }
 
     @Override

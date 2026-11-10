@@ -1,0 +1,168 @@
+<div class="asistencia-admin">
+
+  <nav class="modos" aria-label="Modos de marcación">
+    <button *ngFor="let m of modos" type="button" class="modo" [class.activo]="modo === m.id" (click)="cambiarModo(m.id)">
+      <app-icon [name]="m.icono"></app-icon> {{ m.label }}
+    </button>
+  </nav>
+
+  <!-- ══════════════ 1. ASISTIERON HOY (roster + lote) ══════════════ -->
+  <section *ngIf="modo === 'asistieron'" class="bloque">
+    <div class="stats-grid">
+      <app-stat-card label="Presentes" [value]="presentes" icon="check"></app-stat-card>
+      <app-stat-card label="Ausentes" [value]="ausentes" icon="alert"></app-stat-card>
+      <app-stat-card label="Tardanzas" [value]="tardanzas" icon="clock"></app-stat-card>
+      <app-stat-card label="Empleados" [value]="roster.length" icon="people"></app-stat-card>
+    </div>
+
+    <div class="filtros">
+      <label class="campo">
+        <span>Fecha</span>
+        <input class="input" type="date" [(ngModel)]="fecha" (change)="cargarRoster()" />
+      </label>
+      <label class="campo">
+        <span>Sede</span>
+        <select class="select" [(ngModel)]="sedeId" (change)="cargarRoster()">
+          <option value="">Todas las sedes</option>
+          <option *ngFor="let s of sedes" [value]="s.value">{{ s.label }}</option>
+        </select>
+      </label>
+      <div class="filtros-acciones">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="cargarRoster()" [disabled]="rosterCargando">
+          <app-icon name="refresh"></app-icon> Recargar
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="marcarPendientes()" [disabled]="marcando">
+          <app-icon name="check"></app-icon> Marcar a todos los que no entraron
+        </button>
+      </div>
+    </div>
+
+    <p *ngIf="rosterCargando" class="text-muted">Cargando el roster…</p>
+    <p *ngIf="rosterError" class="alert alert-error">{{ rosterError }}</p>
+
+    <div class="barra-lote" *ngIf="!rosterCargando && roster.length">
+      <label class="check-row">
+        <input class="checkbox" type="checkbox" [checked]="todosMarcados()" (change)="toggleTodos()" />
+        Seleccionar todos los que aún no entraron
+      </label>
+      <span class="contador">{{ seleccionados() }} seleccionado(s)</span>
+      <button type="button" class="btn btn-primary btn-sm" (click)="marcarSeleccion('ENTRADA')" [disabled]="!seleccionados() || marcando">
+        <app-icon name="check"></app-icon> Registrar ENTRADA
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm" (click)="marcarSeleccion('SALIDA')" [disabled]="!seleccionados() || marcando">
+        <app-icon name="logout"></app-icon> Registrar SALIDA
+      </button>
+      <span class="text-muted" *ngIf="marcando">Marcando…</span>
+    </div>
+
+    <p *ngIf="!esHoy() && roster.length" class="aviso">
+      Está editando el {{ fecha }}. Las marcaciones en lote de un día pasado se anotan a las 08:00.
+    </p>
+
+    <div class="tabla-wrap" *ngIf="!rosterCargando && roster.length">
+      <table class="roster">
+        <thead>
+          <tr>
+            <th class="col-check"></th>
+            <th>Empleado</th>
+            <th>Sede</th>
+            <th>Turno</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Horas</th>
+            <th>Estado</th>
+            <th>Origen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let fila of roster" [class.sin-marca]="!fila.marcoEntrada">
+            <td class="col-check">
+              <input class="checkbox" type="checkbox"
+                     [disabled]="!fila.puedeMarcarEntrada && !fila.puedeMarcarSalida"
+                     [checked]="seleccion.has(fila.empleadoId)"
+                     (change)="marcar(fila)" />
+            </td>
+            <td class="col-nombre">{{ fila.empleadoNombre }}</td>
+            <td>{{ fila.sedeNombre || '—' }}</td>
+            <td>{{ fila.turnoNombre || 'Sin turno' }}</td>
+            <td>{{ hora(fila.horaEntrada) }}</td>
+            <td>{{ hora(fila.horaSalida) }}</td>
+            <td>{{ fila.horasTrabajadas != null ? (fila.horasTrabajadas | number:'1.0-2') + 'h' : '—' }}</td>
+            <td><span class="estado" [class]="tonoEstado(fila.estado)">{{ fila.estado || 'Sin marcación' }}</span></td>
+            <td class="origen">{{ fila.origenMarcacion || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p *ngIf="!rosterCargando && !roster.length && !rosterError" class="text-muted">No hay empleados activos para mostrar.</p>
+
+    <div class="detalle-lote" *ngIf="ultimoLote">
+      <strong>Último lote:</strong>
+      {{ ultimoLote.registrados }} registradas · {{ ultimoLote.omitidos }} omitidas · {{ ultimoLote.rechazados }} rechazadas
+      <ul>
+        <li *ngFor="let d of ultimoLote.detalle">{{ d }}</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══════════════ 2. ESCANEAR QR DEL EMPLEADO ══════════════ -->
+  <section *ngIf="modo === 'escanear'" class="bloque">
+    <header class="bloque-head">
+      <h2>Escanear el QR del empleado</h2>
+      <p class="text-muted">
+        Cada empleado abre <em>Asistencias → Mi QR</em> en su celular y le muestra este código.
+        El QR cambia cada 60 segundos y está firmado con su secreto personal, así que no sirve
+        una foto vieja ni el QR de otra persona.
+      </p>
+    </header>
+    <app-qr-escaner
+      [facingMode]="'back'"
+      etiquetaIniciar="Abrir cámara"
+      ayudaInactivo="La cámara está apagada. Pida al empleado que muestre su QR y pulse Abrir cámara."
+      (detectado)="onQrDetectado($event)">
+    </app-qr-escaner>
+    <p class="exito" *ngIf="resultadoEscaneo"><app-icon name="check"></app-icon> {{ resultadoEscaneo }}</p>
+    <p class="alert alert-error" *ngIf="errorEscaneo">{{ errorEscaneo }}</p>
+  </section>
+
+  <!-- ══════════════ 3. KIOSCO: QR DINÁMICO PÚBLICO ══════════════ -->
+  <section *ngIf="modo === 'kiosco'" class="bloque">
+    <header class="bloque-head">
+      <h2>QR dinámico de la sede</h2>
+      <p class="text-muted">
+        Deje esta pantalla visible en un punto de marcación. El empleado escanea desde su celular
+        y el sistema registra su entrada o salida con su propia sesión.
+      </p>
+    </header>
+    <app-qr-publico></app-qr-publico>
+  </section>
+
+  <!-- ══════════════ 4. MARCACIÓN MANUAL ══════════════ -->
+  <section *ngIf="modo === 'manual'" class="bloque">
+    <header class="bloque-head">
+      <h2>Marcación manual</h2>
+      <p class="text-muted">Para correcciones retroactivas. No se aceptan fechas futuras.</p>
+    </header>
+    <form class="form-grid" [formGroup]="manualForm">
+      <app-form-field label="Empleado" inputId="ma-emp" [required]="true">
+        <app-select inputId="ma-emp" [options]="usuarios" placeholder="Empleado" formControlName="empleadoId" [clearable]="false"></app-select>
+      </app-form-field>
+      <app-form-field label="Tipo" inputId="ma-tipo" [required]="true">
+        <select id="ma-tipo" class="select" formControlName="tipoMarcacion">
+          <option value="ENTRADA">Entrada</option>
+          <option value="SALIDA">Salida</option>
+          <option value="INICIO_RECESO">Inicio de receso</option>
+          <option value="FIN_RECESO">Fin de receso</option>
+        </select>
+      </app-form-field>
+      <app-form-field label="Fecha y hora" inputId="ma-fecha" hint="Vacío usa la hora actual.">
+        <input id="ma-fecha" class="input" type="datetime-local" formControlName="fechaHora" />
+      </app-form-field>
+      <div class="span-2">
+        <button type="button" class="btn btn-primary" (click)="guardarManual()" [disabled]="manualForm.invalid || marcando">Registrar</button>
+      </div>
+    </form>
+  </section>
+
+</div>

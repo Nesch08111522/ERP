@@ -227,10 +227,10 @@ public class KardexServiceImpl implements KardexService {
     @Override
     @Transactional(readOnly = true)
     public Page<KardexMovimientoDetalleDTO> buscarMovimientos(UUID productoId, UUID almacenId, TipoReferencia tipoReferencia,
-                                                              LocalDate desde, LocalDate hasta, Pageable pageable) {
+                                                              LocalDate desde, LocalDate hasta, UUID sedeId, String busqueda, Pageable pageable) {
         Rango r = rango(desde, hasta);
-        return kardexRepository.buscar(productoId, almacenId, tipoReferencia, r.inicio(), r.fin(), r.incluirSinFecha(),
-                sinOrden(pageable)).map(consultaMapper::toDetalleDto);
+        return kardexRepository.buscarFiltrado(productoId, almacenId, tipoReferencia, r.inicio(), r.fin(), r.incluirSinFecha(),
+                sedeId, patronBusqueda(busqueda), sinOrden(pageable)).map(consultaMapper::toDetalleDto);
     }
 
     @Override

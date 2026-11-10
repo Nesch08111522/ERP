@@ -75,6 +75,25 @@ public interface KardexRepository extends JpaRepository<KardexMovimiento, UUID> 
                                   @Param("incluirSinFecha") boolean incluirSinFecha,
                                   Pageable pageable);
 
+    /** Igual que {@link #buscar} pero añade filtro por sede y búsqueda por nombre/SKU del producto. */
+    @EntityGraph(attributePaths = {"producto", "almacen", "almacen.sede", "user"})
+    @Query(value = "SELECT k FROM KardexMovimiento k WHERE " + FILTROS_KARDEX +
+            " AND (CAST(:sedeId AS string) IS NULL OR k.almacen.sede.id = :sedeId) AND " +
+            "(CAST(:busqueda AS string) IS NULL OR LOWER(k.producto.nombre) LIKE :busqueda OR LOWER(k.producto.codigoSku) LIKE :busqueda) " +
+            "ORDER BY k.createdAt DESC NULLS LAST, k.id DESC",
+            countQuery = "SELECT COUNT(k) FROM KardexMovimiento k WHERE " + FILTROS_KARDEX +
+            " AND (CAST(:sedeId AS string) IS NULL OR k.almacen.sede.id = :sedeId) AND " +
+            "(CAST(:busqueda AS string) IS NULL OR LOWER(k.producto.nombre) LIKE :busqueda OR LOWER(k.producto.codigoSku) LIKE :busqueda)")
+    Page<KardexMovimiento> buscarFiltrado(@Param("productoId") UUID productoId,
+                                          @Param("almacenId") UUID almacenId,
+                                          @Param("tipoReferencia") TipoReferencia tipoReferencia,
+                                          @Param("desde") LocalDateTime desde,
+                                          @Param("hasta") LocalDateTime hasta,
+                                          @Param("incluirSinFecha") boolean incluirSinFecha,
+                                          @Param("sedeId") UUID sedeId,
+                                          @Param("busqueda") String busqueda,
+                                          Pageable pageable);
+
     /** Orden cronológico estable (fecha, id) para exportar por lotes. */
     @EntityGraph(attributePaths = {"producto", "almacen", "almacen.sede", "user"})
     @Query(value = "SELECT k FROM KardexMovimiento k WHERE " + FILTROS_KARDEX + " ORDER BY k.createdAt ASC NULLS FIRST, k.id ASC",

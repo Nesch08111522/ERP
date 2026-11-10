@@ -34,9 +34,18 @@ public class CotizacionDocumentoService {
 
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> descargar(UUID id, String formato) {
-        CotizacionResponseDTO cotizacion = cotizacionService.findById(id);
+        return descargar(id, formato, false);
+    }
+
+    /**
+     * Variante pública: el documento que descarga el portal no debe desglosar la utilidad
+     * de la empresa (§4: sin exposición de información privada). El total ya la incorpora.
+     */
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> descargar(UUID id, String formato, boolean publico) {
+        CotizacionResponseDTO cotizacion = publico ? cotizacionService.findById(id).sinMargen() : cotizacionService.findById(id);
         boolean pdf = "pdf".equalsIgnoreCase(formato);
-        ReporteSolicitud solicitud = armar(cotizacion);
+        ReporteSolicitud solicitud = armar(cotizacion, publico);
         byte[] cuerpo = pdf ? PdfCorporativo.generar(solicitud, empresa()) : ExcelEstilos.generar(solicitud);
         String nombre = "cotizacion-" + id.toString().substring(0, 8) + (pdf ? ".pdf" : ".xlsx");
         return ResponseEntity.ok()
@@ -45,7 +54,7 @@ public class CotizacionDocumentoService {
                 .body(cuerpo);
     }
 
-    private ReporteSolicitud armar(CotizacionResponseDTO cotizacion) {
+    private ReporteSolicitud armar(CotizacionResponseDTO cotizacion, boolean publico) {
         List<String> filtros = new ArrayList<>(List.of(
                 "Cotización: COT-" + cotizacion.id().toString().substring(0, 8).toUpperCase(),
                 "Cliente: " + (cotizacion.clienteNombre() == null ? "Público" : cotizacion.clienteNombre()),
@@ -77,7 +86,9 @@ public class CotizacionDocumentoService {
         if (cotizacion.cargos() != null) {
             var cargos = cotizacion.cargos();
             filas.add(List.of("Subtotal materiales", "", "", ReporteSolicitud.dinero(cargos.subtotalMateriales())));
-            filas.add(List.of("Utilidad " + cargos.utilidadPorcentaje() + "%", "", "", ReporteSolicitud.dinero(cargos.utilidadMonto())));
+            if (!publico) {
+                filas.add(List.of("Utilidad " + cargos.utilidadPorcentaje() + "%", "", "", ReporteSolicitud.dinero(cargos.utilidadMonto())));
+            }
             filas.add(List.of("Movilidad " + (cargos.distrito() == null ? "" : cargos.distrito()), "", "", ReporteSolicitud.dinero(cargos.movilidadMonto())));
             filas.add(List.of("Otros cargos", "", "", ReporteSolicitud.dinero(cargos.otrosMonto())));
             if (cargos.modificada() && cargos.notaCambio() != null) {

@@ -10,6 +10,7 @@ import com.policalum.erp.application.dto.response.LegajoDashboardDTO;
 import com.policalum.erp.application.mapper.LegajoMapper;
 import com.policalum.erp.application.service.AuditService;
 import com.policalum.erp.application.service.FileStorageService;
+import com.policalum.erp.application.service.HistorialSalarialService;
 import com.policalum.erp.domain.enums.*;
 import com.policalum.erp.domain.model.*;
 import com.policalum.erp.exception.ResourceNotFoundException;
@@ -39,6 +40,7 @@ class LegajoServiceImplTest {
     @Mock FileStorageService fileStorageService;
     @Mock LegajoMapper mapper;
     @Mock AuditService auditService;
+    @Mock HistorialSalarialService historialSalarial;
     @InjectMocks LegajoServiceImpl service;
 
     private static final String EMAIL = "admin@policalum.com";
@@ -254,6 +256,51 @@ class LegajoServiceImplTest {
         verify(legajoRepository).search(null, "CAS", null, true, "%", pageable);
     }
 
+    // ===================== HISTORIAL SALARIAL (delegación) =====================
+
+    @Test
+    void crear_siembraElSueldoInicialEnElHistorial() {
+        prepararAlta();
+        LocalDate ingreso = LocalDate.of(2024, 3, 1);
+
+        service.crear(request("PLANILLA", "1500.00", "3.00", SistemaPension.ONP, null, ingreso));
+
+        ArgumentCaptor<HistorialSalarialService.Retrato> retrato =
+                ArgumentCaptor.forClass(HistorialSalarialService.Retrato.class);
+        verify(historialSalarial).registrarCambios(retrato.capture(), any(RrhhLegajoDigital.class),
+                eq(ingreso), eq("Sueldo inicial registrado en el legajo"), eq(actual));
+        assertNull(retrato.getValue(), "en el alta no hay un retrato previo");
+    }
+
+    /**
+     * Regresión clave: el retrato "antes" debe tomarse ANTES de que el mapper sobrescriba la
+     * entidad gestionada. Si algún día se mueve esa línea, el historial quedaría con
+     * sueldo_anterior == sueldo_nuevo y el módulo mentiría en cada aumento.
+     */
+    @Test
+    void actualizar_delegaElHistorialConElSueldoPrevioNoConElNuevo() {
+        RrhhLegajoDigital legajo = legajo(); // sueldo 1500.00
+        when(legajoRepository.findDetalleByUserId(empleado.getId())).thenReturn(Optional.of(legajo));
+        when(documentoRepository.findByLegajo_IdOrderByCreatedAtDesc(legajoId)).thenReturn(List.of());
+        // El mapper real copia sueldoBase sobre la misma entidad gestionada; el mock tiene que
+        // hacer lo mismo o la prueba no puede demostrar el orden.
+        doAnswer(i -> {
+            RrhhLegajoDigital l = i.getArgument(1);
+            l.setSueldoBase(((LegajoRequestDTO) i.getArgument(0)).sueldoBase());
+            return null;
+        }).when(mapper).updateEntityFromDto(any(), any());
+
+        service.actualizar(empleado.getId(),
+                request("PLANILLA", "1800.00", "3.00", SistemaPension.ONP, "13.00", LocalDate.of(2024, 3, 1)));
+
+        ArgumentCaptor<HistorialSalarialService.Retrato> retrato =
+                ArgumentCaptor.forClass(HistorialSalarialService.Retrato.class);
+        verify(historialSalarial).registrarCambios(retrato.capture(), same(legajo), isNull(), isNull(), eq(actual));
+
+        assertEquals(new BigDecimal("1500.00"), retrato.getValue().sueldoBase(), "el retrato debe ser el previo");
+        assertEquals(new BigDecimal("1800.00"), legajo.getSueldoBase(), "la entidad ya quedó en el valor nuevo");
+    }
+
     // ===================== DOCUMENTOS =====================
 
     @Test
@@ -399,7 +446,7 @@ class LegajoServiceImplTest {
                                      String tasa, LocalDate ingreso) {
         return new LegajoRequestDTO(empleado.getId(), contrato, ingreso, new BigDecimal(sueldo), null,
                 comision == null ? null : new BigDecimal(comision), sistema,
-                tasa == null ? null : new BigDecimal(tasa), null);
+                tasa == null ? null : new BigDecimal(tasa), null, null, null, null, null, null);
     }
 
     private RrhhLegajoDigital legajo() {

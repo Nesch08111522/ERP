@@ -3,6 +3,7 @@ package com.policalum.erp.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -10,7 +11,9 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
 import com.policalum.erp.domain.enums.SistemaPension;
+import com.policalum.erp.domain.enums.TratamientoAusencias;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -88,6 +91,23 @@ public class RrhhLegajoDigital {
      */
     @Column(name = "tasa_pension", precision = 5, scale = 2)
     private BigDecimal tasaPension;
+
+    // ============ POLÍTICA DE REMUNERACIÓN (§8.1, nivel EMPLEADO) ============
+    // null = hereda de la sede y, si la sede tampoco define, de la empresa. A diferencia de
+    // diaCobro, aquí null SÍ es un valor con sentido ("sin override"): limpiar el override es
+    // una intención explícita del administrador.
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "politica_division", length = 20)
+    private PoliticaDivisionSueldo politicaDivision;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "dias_laborables", columnDefinition = "jsonb")
+    private List<String> diasLaborables;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tratamiento_ausencias", length = 30)
+    private TratamientoAusencias tratamientoAusencias;
 
     // FIX: @Builder ignora los inicializadores de arriba
     @PrePersist

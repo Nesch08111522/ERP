@@ -47,7 +47,9 @@ public class SecurityConfig {
                         .contentTypeOptions(Customizer.withDefaults())
                         .frameOptions(frame -> frame.deny())
                         .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                        .permissionsPolicy(policy -> policy.policy("camera=(), microphone=(), geolocation=()"))
+                        // camera=(self): la marcación por QR usa la cámara del propio origen.
+                        // Sin esto el navegador deniega getUserMedia y el lector QR no arranca.
+                        .permissionsPolicy(policy -> policy.policy("camera=(self), microphone=(), geolocation=()"))
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))

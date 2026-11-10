@@ -41,6 +41,32 @@
       <app-form-field label="Celular" inputId="sede-cel" [error]="errorDe('celularSede')"><input id="sede-cel" class="input" formControlName="celularSede" /></app-form-field>
       <app-form-field label="Moneda" inputId="sede-moneda"><input id="sede-moneda" class="input" formControlName="moneda" maxlength="10" /></app-form-field>
       <app-form-field label="Activa" inputId="sede-act"><input id="sede-act" class="switch" type="checkbox" formControlName="activa" /></app-form-field>
+
+      <!-- Política de remuneración de la sede (§8.1). Vacío = hereda la de la empresa. -->
+      <app-form-field label="División del sueldo" inputId="sede-div" hint="Vacío = hereda la política de la empresa.">
+        <select id="sede-div" class="select" formControlName="politicaDivision">
+          <option value="">Heredar de la empresa</option>
+          <option value="DIAS_30">Siempre 30 días</option>
+          <option value="DIAS_CALENDARIO">Días reales del mes</option>
+          <option value="DIAS_LABORABLES">Solo días laborables</option>
+        </select>
+      </app-form-field>
+      <app-form-field label="Ausencias" inputId="sede-aus" hint="Vacío = hereda. El descuento por días sin marcar aún no está disponible.">
+        <select id="sede-aus" class="select" formControlName="tratamientoAusencias">
+          <option value="">Heredar de la empresa</option>
+          <option value="NO_AFECTA">No afecta el sueldo</option>
+          <option value="DESCUENTO_DIAS_SIN_MARCACION" disabled>Descontar días sin marcación (no disponible)</option>
+        </select>
+      </app-form-field>
+      <div class="span-2">
+        <p class="sede-dias-titulo">Días laborables de esta sede</p>
+        <div class="sede-dias" formArrayName="diasLaborables">
+          <label *ngFor="let dia of diasSemana; let i = index" class="sede-dia">
+            <input class="checkbox" type="checkbox" [formControlName]="i" /> {{ etiquetaDia[dia] }}
+          </label>
+        </div>
+        <p class="text-muted sede-dias-nota">Sin ninguno marcado = se usan los días laborables de la empresa.</p>
+      </div>
     </div>
     <div class="sede-lugar">
       <div class="ubicar">

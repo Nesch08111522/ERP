@@ -9,8 +9,12 @@ import com.policalum.erp.application.dto.request.UserRequestDTO;
 import com.policalum.erp.application.dto.response.UserResponseDTO;
 import com.policalum.erp.application.mapper.UserMapper;
 import com.policalum.erp.application.service.UserService;
+import com.policalum.erp.domain.model.Rol;
+import com.policalum.erp.domain.model.Sede;
 import com.policalum.erp.domain.model.User;
 import com.policalum.erp.exception.ResourceNotFoundException;
+import com.policalum.erp.infrastructure.repository.RolRepository;
+import com.policalum.erp.infrastructure.repository.SedeRepository;
 import com.policalum.erp.infrastructure.repository.RefreshTokenRepository;
 import com.policalum.erp.infrastructure.repository.UserRepository;
 import com.policalum.erp.infrastructure.security.SesionUsuarioCache;
@@ -30,6 +34,30 @@ public class UserImpl implements UserService {
     private final UserMapper userMapper;
     private final RefreshTokenRepository refreshTokenRepository;
     private final SesionUsuarioCache sesionUsuarioCache;
+    private final RolRepository rolRepository;
+    private final SedeRepository sedeRepository;
+
+    /**
+     * El DTO trae `rol` y `sede` como objetos recién deserializados por Jackson: para
+     * Hibernate son instancias TRANSITORIAS, y `User.sede`/`User.rol` son
+     * `optional = false` sin cascada, así que `save` explota con
+     * TransientPropertyValueException (HTTP 500). Se reemplazan siempre por la entidad
+     * gestionada que corresponde al id recibido.
+     */
+    private void fijarRelacionesGestionadas(User user, UserRequestDTO dto) {
+        if (dto.rol() != null && dto.rol().getId() != null) {
+            Rol rol = rolRepository.findById(dto.rol().getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "El rol indicado no existe: " + dto.rol().getId()));
+            user.setRol(rol);
+        }
+        if (dto.sede() != null && dto.sede().getId() != null) {
+            Sede sede = sedeRepository.findById(dto.sede().getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "La sede indicada no existe: " + dto.sede().getId()));
+            user.setSede(sede);
+        }
+    }
 
     // Crear usuario
     @Transactional
@@ -37,6 +65,7 @@ public class UserImpl implements UserService {
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
 
         User user = userMapper.toEntity(userRequestDTO);
+        fijarRelacionesGestionadas(user, userRequestDTO);
 
         String securedPassword = passwordEncoder.encode(
                 userRequestDTO.passwordHash()
@@ -94,6 +123,7 @@ public class UserImpl implements UserService {
         String currentPasswordHash = existingUser.getPasswordHash();
 
         userMapper.updateEntityFromDto(dto, existingUser);
+        fijarRelacionesGestionadas(existingUser, dto);
 
         if (dto.passwordHash() != null && !dto.passwordHash().isBlank()) {
 

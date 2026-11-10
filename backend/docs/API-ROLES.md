@@ -2,6 +2,13 @@
 
 > Generado el 2026-10-09 a partir del código (`@PreAuthorize` de cada controller + validaciones de rol en los servicios) y cruzado
 > con `/v3/api-docs`. **273 endpoints.** Fuente de verdad para mostrar u ocultar botones en el frontend.
+>
+> **Actualizado el 2026-11-06 (Módulo 10 — Administrador vs Multifuncional):** se corrigieron las filas
+> obsoletas de Asistencia y Administración (los `@PreAuthorize` ya existían cuando se regeneró el código),
+> y se documentan 7 endpoints nuevos: `mi-qr`, `escanear-qr`, `roster`, `marcar-lote`,
+> `mi-regimen` (GET/PUT) y `mi-regimen/resumen`. El conteo total pasa a **280**.
+> Antes de usar esta tabla para una auditoría, vuelva a generarla contra `/v3/api-docs`: el resto de
+> secciones conserva la fecha del 2026-10-09.
 
 ## Cómo usar esta tabla en el frontend
 
@@ -27,9 +34,13 @@
 |---|---|
 | Públicos (sin token) | 5 |
 | ADMIN y MULTIFUNCIONAL | 67 |
-| Solo ADMIN | 71 |
+| Solo ADMIN | 78 |
 | Sin `@PreAuthorize` (cualquier autenticado) | 130 |
-| **Total** | **273** |
+| **Total** | **280** |
+
+> "Solo ADMIN" subió de 71 a 78 y el total de 273 a 280: 7 endpoints nuevos (todos solo-ADMIN o
+> de régimen propio) y 7 filas previamente mal marcadas en Asistencia y Administración. Las 130
+> sin `@PreAuthorize` siguen sin revisar: ver `docs/DEUDA-TECNICA.md`.
 
 Respuestas de error comunes: **401** usuario inactivo · **403** sin token, token inválido o rol sin permiso · **404** no existe ·
 **409** estado no permite la acción · **400** validación (cuerpo `ErrorRespuesta`, ver Swagger).
@@ -301,20 +312,24 @@ Respuestas de error comunes: **401** usuario inactivo · **403** sin token, toke
 
 | Módulo | Método | Endpoint | ADMIN | MULTIFUNCIONAL | Notas |
 |--------|--------|----------|-------|----------------|-------|
-| RRHH | POST | `/api/v1/rrhh/asistencias/configurar-totp/{empleadoId}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | GET | `/api/v1/rrhh/asistencias/dashboard` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | GET | `/api/v1/rrhh/asistencias/empleados` | ✅ | ✅ | Público (sin token). Público (combo del kiosco); expone la lista de empleados |
-| RRHH | GET | `/api/v1/rrhh/asistencias/estado-dia` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | GET | `/api/v1/rrhh/asistencias/listar` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | POST | `/api/v1/rrhh/asistencias/manual` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | POST | `/api/v1/rrhh/asistencias/marcar-qr` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | POST | `/api/v1/rrhh/asistencias/marcar-qr-real` | ✅ | ✅ | Público (sin token). Público (kiosco de marcación con QR/TOTP) |
-| RRHH | GET | `/api/v1/rrhh/asistencias/mis-asistencias` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | GET | `/api/v1/rrhh/asistencias/qr-config/{empleadoId}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | GET | `/api/v1/rrhh/asistencias/qr-publico` | ✅ | ✅ | Público (sin token). Público (kiosco de marcación) |
-| RRHH | GET | `/api/v1/rrhh/asistencias/ultima-marcacion` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | GET | `/api/v1/rrhh/asistencias/{id}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| RRHH | PUT | `/api/v1/rrhh/asistencias/{id}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
+| RRHH | POST | `/api/v1/rrhh/asistencias/configurar-totp/{empleadoId}` | ✅ | ❌ | Solo ADMIN |
+| RRHH | GET | `/api/v1/rrhh/asistencias/dashboard` | ✅ | ✅ | Ambos ven los contadores globales del día; MULTIFUNCIONAL no usa esta pantalla (el módulo RRHH es solo-ADMIN) |
+| RRHH | GET | `/api/v1/rrhh/asistencias/empleados` | ✅ | ❌ | `SecurityConfig` lo limita a ROLE_ADMIN. **Antes era público y exponía la lista de empleados** |
+| RRHH | GET | `/api/v1/rrhh/asistencias/estado-dia` | ✅ | ✅ | `asistencia.ver_mis_marcaciones` |
+| RRHH | GET | `/api/v1/rrhh/asistencias/listar` | ✅ | ✅ | `asistencia.ver_mis_marcaciones`. MULTIFUNCIONAL: el servidor le fuerza su propio empleadoId |
+| RRHH | POST | `/api/v1/rrhh/asistencias/manual` | ✅ | ❌ | `hasRole('ADMIN')` + `asistencia.marcar`. Marcación retroactiva de otro empleado |
+| RRHH | POST | `/api/v1/rrhh/asistencias/marcar-qr` | ✅ | ✅ | `asistencia.marcar`. QR público de kiosco |
+| RRHH | POST | `/api/v1/rrhh/asistencias/marcar-qr-real` | ✅ | ✅ | `asistencia.marcar`. Requiere sesión: **no es público**, el empleadoId se toma del JWT |
+| RRHH | GET | `/api/v1/rrhh/asistencias/mis-asistencias` | ✅ | ✅ | `asistencia.ver_mis_marcaciones`. Siempre las del usuario autenticado |
+| RRHH | GET | `/api/v1/rrhh/asistencias/qr-config/{empleadoId}` | ✅ | ❌ | Solo ADMIN. **Advertencia:** emite `POLICALUM|CONFIG|…` que ningún validador reconoce; el flujo real de QR personal es `/mi-qr` |
+| RRHH | GET | `/api/v1/rrhh/asistencias/qr-publico` | ✅ | ✅ | Público (sin token). Kiosco de marcación |
+| RRHH | GET | `/api/v1/rrhh/asistencias/ultima-marcacion` | ✅ | ✅ | `asistencia.ver_mis_marcaciones` |
+| RRHH | GET | `/api/v1/rrhh/asistencias/mi-qr` | ✅ | ✅ | **NUEVO.** `asistencia.marcar`. QR dinámico personal firmado con el secreto TOTP del propio usuario, que se provisiona en la primera llamada |
+| RRHH | POST | `/api/v1/rrhh/asistencias/escanear-qr` | ✅ | ❌ | **NUEVO.** El admin escanea el QR personal de un empleado y le marca entrada/salida. Valida la firma contra el secreto de ese empleado y rechaza ventanas vencidas |
+| RRHH | GET | `/api/v1/rrhh/asistencias/roster` | ✅ | ❌ | **NUEVO.** "Quiénes asistieron hoy": una fila por empleado activo. Rechaza fechas futuras |
+| RRHH | POST | `/api/v1/rrhh/asistencias/marcar-lote` | ✅ | ❌ | **NUEVO.** Entrada o salida en lote desde el roster. Los que ya marcaron se omiten, no fallan |
+| RRHH | GET | `/api/v1/rrhh/asistencias/{id}` | ✅ | ✅ | `asistencia.ver_mis_marcaciones`. MULTIFUNCIONAL: 403 si no es suya |
+| RRHH | PUT | `/api/v1/rrhh/asistencias/{id}` | ✅ | ❌ | Solo ADMIN (`asistencia.editar`) |
 | RRHH | DELETE | `/api/v1/rrhh/asistencias/{id}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
 | RRHH | GET | `/api/v1/rrhh/comisiones` | ✅ | ❌ | Solo ADMIN |
 | RRHH | POST | `/api/v1/rrhh/comisiones/calcular` | ✅ | ❌ | Solo ADMIN |
@@ -324,9 +339,16 @@ Respuestas de error comunes: **401** usuario inactivo · **403** sin token, toke
 | RRHH | GET | `/api/v1/rrhh/legajos` | ✅ | ❌ | Solo ADMIN |
 | RRHH | POST | `/api/v1/rrhh/legajos` | ✅ | ❌ | Solo ADMIN |
 | RRHH | GET | `/api/v1/rrhh/legajos/dashboard` | ✅ | ❌ | Solo ADMIN |
-| RRHH | GET | `/api/v1/rrhh/legajos/me` | ✅ | ✅ | Legajo propio |
+| RRHH | GET | `/api/v1/rrhh/legajos/me` | ✅ | ✅ | Legajo propio. Devuelve sueldoBase, diaCobro, porcentajeComision y tasaPension **solo del dueño**: es "lo suyo", no lo de otros |
 | RRHH | GET | `/api/v1/rrhh/legajos/{empleadoId}` | ✅ | ❌ | Solo ADMIN |
-| RRHH | PUT | `/api/v1/rrhh/legajos/{empleadoId}` | ✅ | ❌ | Solo ADMIN |
+| RRHH | PUT | `/api/v1/rrhh/legajos/{empleadoId}` | ✅ | ❌ | Solo ADMIN. `diaCobro: null` = conservar el valor previo; la UI de Legajos ahora lo envía siempre. **NUEVO:** `fechaVigenciaCambio` y `motivoCambio` alimentan el historial salarial solo si el guardado mueve sueldo, comisión, día de paga o contrato |
+| RRHH | GET | `/api/v1/rrhh/legajos/{empleadoId}/historial-salarial` | ✅ | ❌ | **NUEVO.** Historial de cambios salariales (§2.4), del más reciente al más antiguo. Solo ADMIN con `rrhh.ver_legajos`. Append-only: no hay PUT ni DELETE |
+| RRHH | GET | `/api/v1/rrhh/legajos/me/historial-salarial` | ✅ | ✅ | **NUEVO.** Su propio historial. Mismo criterio que `/me`: no exige `ver_legajos`, el multifuncional ve solo el suyo. 404 si no tiene legajo |
+| RRHH | GET | `/api/v1/rrhh/legajos/{empleadoId}/politica-remuneracion` | ✅ | ❌ | **NUEVO.** Política efectiva (§8.1) tras resolver legajo → sede → empresa, con el origen de cada campo y el divisor del mes corriente |
+| RRHH | GET | `/api/v1/rrhh/legajos/me/politica-remuneracion` | ✅ | ✅ | **NUEVO.** La política que se le aplica a uno mismo. No exige `ver_legajos` |
+| RRHH | GET | `/api/v1/rrhh/mi-regimen` | ✅ | ❌ | **NUEVO.** Régimen de ganancia personal del admin autenticado. Un admin no puede leer el de otro: no existe variante `/{userId}` |
+| RRHH | PUT | `/api/v1/rrhh/mi-regimen` | ✅ | ❌ | **NUEVO.** El admin decide si cobra sueldo, comisión por ventas propias y/o % de reparto de utilidad |
+| RRHH | GET | `/api/v1/rrhh/mi-regimen/resumen` | ✅ | ❌ | **NUEVO.** Separa ganancia de la empresa (utilidad neta) de ganancia personal del admin, para un periodo |
 | RRHH | GET | `/api/v1/rrhh/legajos/{id}/documentos` | ✅ | ✅ | MULTIFUNCIONAL: solo los de su propio legajo |
 | RRHH | POST | `/api/v1/rrhh/legajos/{id}/documentos` | ✅ | ❌ | Solo ADMIN |
 | RRHH | GET | `/api/v1/rrhh/legajos/{id}/documentos/{docId}` | ✅ | ✅ | MULTIFUNCIONAL: solo los de su propio legajo |
@@ -372,7 +394,7 @@ Respuestas de error comunes: **401** usuario inactivo · **403** sin token, toke
 | Configuración | GET | `/api/v1/configuracion/empresa` | ✅ | ✅ | MULTIFUNCIONAL: solo lectura |
 | Configuración | PUT | `/api/v1/configuracion/empresa` | ✅ | ❌ | Solo ADMIN |
 | Configuración | GET | `/api/v1/configuracion/parametros` | ✅ | ✅ | MULTIFUNCIONAL: solo lectura |
-| Configuración | PUT | `/api/v1/configuracion/parametros` | ✅ | ❌ | Solo ADMIN |
+| Configuración | PUT | `/api/v1/configuracion/parametros` | ✅ | ❌ | Solo ADMIN. Desde el 2026-11-08 hay un quinto grupo, `rrhh`, con la política de división mensual, días laborables y tratamiento de ausencias (§8.1). Es el nivel empresa: sede y legajo pueden sobreescribirlo campo por campo |
 | Configuración | GET | `/api/v1/configuracion/publica` | ✅ | ✅ | Público (sin token). Público (pantalla de login): nombre comercial y logo |
 | Configuración | GET | `/api/v1/configuracion/series` | ✅ | ✅ | MULTIFUNCIONAL: solo lectura |
 | Configuración | PUT | `/api/v1/configuracion/series` | ✅ | ❌ | Solo ADMIN |
@@ -390,21 +412,27 @@ Respuestas de error comunes: **401** usuario inactivo · **403** sin token, toke
 
 ### Administración
 
+> **Corregido el 2026-11-06.** Las filas que esta tabla marcaba 🔴 ("MULTIFUNCIONAL puede ejecutarlo,
+> escalamiento de privilegios") ya no son ciertas: `UserController`, `RolController` y `SedeController`
+> llevan `@PreAuthorize("hasRole('ADMIN')")` a nivel de clase y por método. Verificado leyendo los
+> tres controllers. La tabla anterior se generó el 2026-10-09, antes de esos cambios.
+
 | Módulo | Método | Endpoint | ADMIN | MULTIFUNCIONAL | Notas |
 |--------|--------|----------|-------|----------------|-------|
-| Administración | GET | `/api/v1/roles` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| Administración | POST | `/api/v1/roles` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | GET | `/api/v1/roles/{id}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| Administración | PUT | `/api/v1/roles/{id}` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | DELETE | `/api/v1/roles/{id}` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | GET | `/api/v1/sedes` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| Administración | POST | `/api/v1/sedes` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | GET | `/api/v1/sedes/estado` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| Administración | GET | `/api/v1/sedes/{id}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| Administración | PUT | `/api/v1/sedes/{id}` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | DELETE | `/api/v1/sedes/{id}` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | GET | `/api/v1/users` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| Administración | POST | `/api/v1/users` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | GET | `/api/v1/users/{id}` | ✅ | ✅ | ⚠️ Sin @PreAuthorize: cualquier usuario autenticado |
-| Administración | PUT | `/api/v1/users/{id}` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
-| Administración | DELETE | `/api/v1/users/{id}` | ✅ | ✅ | 🔴 Sin @PreAuthorize: MULTIFUNCIONAL puede ejecutarlo (escalamiento de privilegios). Debe ser solo ADMIN |
+| Administración | GET | `/api/v1/roles` | ✅ | ❌ | Solo ADMIN |
+| Administración | POST | `/api/v1/roles` | ✅ | ❌ | Solo ADMIN |
+| Administración | GET | `/api/v1/roles/{id}` | ✅ | ❌ | Solo ADMIN |
+| Administración | PUT | `/api/v1/roles/{id}` | ✅ | ❌ | Solo ADMIN |
+| Administración | DELETE | `/api/v1/roles/{id}` | ✅ | ❌ | Solo ADMIN |
+| Administración | PATCH | `/api/v1/roles/{id}/permisos/{grupo}` | ✅ | ❌ | Solo ADMIN |
+| Administración | GET | `/api/v1/sedes` | ✅ | ✅ | `sedes.leer`: el operativo necesita la sede para filtrar su trabajo |
+| Administración | POST | `/api/v1/sedes` | ✅ | ❌ | Solo ADMIN (`sedes.crear`) |
+| Administración | GET | `/api/v1/sedes/estado` | ✅ | ✅ |  |
+| Administración | GET | `/api/v1/sedes/{id}` | ✅ | ✅ |  |
+| Administración | PUT | `/api/v1/sedes/{id}` | ✅ | ❌ | Solo ADMIN (`sedes.editar`) |
+| Administración | DELETE | `/api/v1/sedes/{id}` | ✅ | ❌ | Solo ADMIN (`sedes.eliminar`) |
+| Administración | GET | `/api/v1/users` | ✅ | ❌ | Solo ADMIN (`usuarios.leer`) |
+| Administración | POST | `/api/v1/users` | ✅ | ❌ | Solo ADMIN (`usuarios.crear`) |
+| Administración | GET | `/api/v1/users/{id}` | ✅ | ❌ | Solo ADMIN (`usuarios.leer`) |
+| Administración | PUT | `/api/v1/users/{id}` | ✅ | ❌ | Solo ADMIN (`usuarios.editar`) |
+| Administración | DELETE | `/api/v1/users/{id}` | ✅ | ❌ | Solo ADMIN (`usuarios.eliminar`) |

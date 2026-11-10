@@ -8,4 +8,9 @@ public record VistaCotizacionDTO(
         BigDecimal total,
         CargosCotizacionDTO cargos,
         List<DetalleCotizacionResponseDTO> lineas
-) {}
+) {
+    /** Vista sin el margen de la empresa, para el portal público. El total se conserva. */
+    public VistaCotizacionDTO sinMargen() {
+        return new VistaCotizacionDTO(total, cargos == null ? null : cargos.sinMargen(), lineas);
+    }
+}

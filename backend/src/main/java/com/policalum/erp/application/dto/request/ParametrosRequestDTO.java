@@ -10,4 +10,5 @@ public record ParametrosRequestDTO(
         @Valid ParametrosVentasRequestDTO ventas,
         @Valid ParametrosInventarioRequestDTO inventario,
         @Valid ParametrosFinanzasRequestDTO finanzas,
-        @Valid ParametrosReportesRequestDTO reportes) { }
+        @Valid ParametrosReportesRequestDTO reportes,
+        @Valid ParametrosRrhhRequestDTO rrhh) { }

@@ -108,7 +108,14 @@
         <div class="card-body side-list" *ngIf="detalle?.colaboradores?.length; else sinEquipo">
           <div *ngFor="let persona of detalle?.colaboradores">
             <strong>{{ nombrePersona(persona) }}</strong>
-            <span>{{ persona.participacion === 'INSTALO' ? 'Instaló' : 'Ayudó' }}</span>
+            <span>{{ persona.tipoColaborador === 'EXTERNO' ? 'Externo · ' : '' }}{{ persona.participacion === 'INSTALO' ? 'Instaló' : 'Ayudó' }} · {{ persona.costo | pen }}</span>
+          </div>
+          <div class="equipo-total">
+            <span>Costo total</span><strong>{{ costoTotal | pen }}</strong>
+          </div>
+          <div class="equipo-total">
+            <span>Margen (precio − costo)</span>
+            <strong [class.texto-peligro]="margen < 0">{{ margen | pen }}</strong>
           </div>
         </div>
         <ng-template #sinEquipo><p class="card-body vacio">{{ detalle ? 'Sin personas asignadas a este servicio.' : 'Selecciona un servicio para ver quién lo instaló.' }}</p></ng-template>
@@ -142,13 +149,28 @@
       </div>
       <p class="ayuda" *ngIf="!usuarios.length">No hay usuarios registrados para asignar la instalación.</p>
       <div class="equipo-fila" *ngFor="let persona of equipo.controls; let i = index" [formGroupName]="i">
-        <select class="select" formControlName="userId">
-          <option value="">Selecciona un usuario</option>
-          <option *ngFor="let usuario of usuarios" [value]="usuario.id">{{ nombreUsuario(usuario) }}</option>
+        <select class="select" formControlName="tipoColaborador">
+          <option value="REGISTRADO">Registrado</option>
+          <option value="EXTERNO">Externo</option>
         </select>
+        <ng-container *ngIf="persona.get('tipoColaborador')?.value === 'EXTERNO'; else usuarioSel">
+          <input class="input" formControlName="nombreExterno" placeholder="Nombre del externo" maxlength="120" />
+        </ng-container>
+        <ng-template #usuarioSel>
+          <select class="select" formControlName="userId">
+            <option value="">Selecciona un usuario</option>
+            <option *ngFor="let usuario of usuarios" [value]="usuario.id">{{ nombreUsuario(usuario) }}</option>
+          </select>
+        </ng-template>
         <select class="select" formControlName="participacion">
           <option value="INSTALO">Instaló</option>
           <option value="AYUDO">Ayudó</option>
+        </select>
+        <input class="input" type="number" min="0" step="0.01" formControlName="costo" placeholder="Costo" />
+        <select class="select" formControlName="estadoLiquidacion">
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="PAGADO">Pagado</option>
+          <option value="NO_APLICA">No aplica</option>
         </select>
         <button type="button" class="btn btn-ghost btn-sm" (click)="quitarPersona(i)">Quitar</button>
       </div>

@@ -167,5 +167,10 @@ public class Producto {
         if (this.createdAt == null) this.createdAt = LocalDateTime.now();
         if (this.incluyeIgv == null) this.incluyeIgv = true;
         if (this.tipoAfectacion == null) this.tipoAfectacion = "10";
+        // Estos tres se quedaron fuera del FIX original y quedaban NULL al crear con builder
+        // o con MapStruct. Lo detectó EntidadesBuilderDefaultsTest, no la interfaz.
+        if (this.permiteStockNegativo == null) this.permiteStockNegativo = false;
+        if (this.visibleCatalogo == null) this.visibleCatalogo = true;
+        if (this.disponibleVenta == null) this.disponibleVenta = true;
     }
 }

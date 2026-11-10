@@ -54,6 +54,12 @@ public interface RrhhNominaRepository extends JpaRepository<RrhhNomina, UUID> {
 
     boolean existsByUser_IdAndPeriodo(UUID userId, String periodo);
 
+    /** Nómina de un usuario en un periodo, con detalle. Usada por el régimen del admin. */
+    @EntityGraph(attributePaths = {"user", "sede", "comision"})
+    @Query("SELECT n FROM RrhhNomina n WHERE n.user.id = :userId AND n.periodo = :periodo")
+    Optional<RrhhNomina> findDetalleByUserAndPeriodo(@Param("userId") UUID userId,
+                                                     @Param("periodo") String periodo);
+
     @EntityGraph(attributePaths = {"user", "sede", "comision", "generadoPor", "aprobadoPor", "pagadoPor"})
     @Query("SELECT n FROM RrhhNomina n WHERE n.id = :id")
     Optional<RrhhNomina> findDetalleById(@Param("id") UUID id);

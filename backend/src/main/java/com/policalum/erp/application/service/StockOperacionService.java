@@ -42,7 +42,7 @@ public interface StockOperacionService {
     TransferenciaStockResponseDTO obtenerTransferencia(UUID id);
 
     /** Saldos con mínimo configurado y cantidad <= mínimo, por sede o almacén. */
-    Page<SaldoKardexDTO> bajoStock(UUID sedeId, UUID almacenId, Pageable pageable);
+    Page<SaldoKardexDTO> bajoStock(UUID sedeId, UUID almacenId, String busqueda, Pageable pageable);
 
     /** Stock total por producto sumando todos los almacenes (de la sede, si se indica). */
     Page<StockConsolidadoDTO> consolidado(UUID sedeId, String busqueda, Pageable pageable);

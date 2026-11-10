@@ -101,8 +101,9 @@ public class StockOperacionController {
     public ResponseEntity<Page<SaldoKardexDTO>> bajoStock(
             @RequestParam(required = false) UUID sedeId,
             @RequestParam(required = false) UUID almacenId,
+            @RequestParam(required = false) String busqueda,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(service.bajoStock(sedeId, almacenId, pageable));
+        return ResponseEntity.ok(service.bajoStock(sedeId, almacenId, busqueda, pageable));
     }
 
     /** Stock total por producto sumando todos los almacenes. */

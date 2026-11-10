@@ -1,6 +1,8 @@
 package com.policalum.erp.application.dto.request;
 
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
 import com.policalum.erp.domain.enums.SistemaPension;
+import com.policalum.erp.domain.enums.TratamientoAusencias;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -10,8 +12,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,8 +23,12 @@ import java.util.UUID;
  *
  * @param empleadoId         id del User. En PUT debe coincidir con el de la URL.
  * @param tasaPension        ONP: opcional (13.00 por defecto). AFP: obligatoria (> 0). NINGUNO: null o 0.
+ * @param diaCobro           día del mes en que cobra (1-31). Opcional; null = "sin cambio" al actualizar.
  * @param porcentajeComision opcional, 0 a 100 (null = 0)
  * @param activo             opcional; null = true al crear y "sin cambio" al actualizar
+ * @param fechaVigenciaCambio opcional; solo importa si este guardado mueve la remuneración.
+ *                            Null = hoy. Ver {@code HistorialSalarialService}.
+ * @param motivoCambio        opcional; por qué cambió la remuneración. Se ignora si no hubo cambio.
  */
 public record LegajoRequestDTO(
         @NotNull(message = "El empleado es obligatorio")
@@ -57,5 +65,21 @@ public record LegajoRequestDTO(
         @Digits(integer = 3, fraction = 2, message = "Tasa inválida")
         BigDecimal tasaPension,
 
-        Boolean activo
+        Boolean activo,
+
+        @PastOrPresent(message = "La fecha de vigencia no puede ser futura")
+        LocalDate fechaVigenciaCambio,
+
+        @Size(max = 255, message = "El motivo no puede superar 255 caracteres")
+        String motivoCambio,
+
+        /** Política de remuneración de ESTE empleado (§8.1). null = hereda de su sede. */
+        PoliticaDivisionSueldo politicaDivision,
+
+        /** Solo cuenta si la política es DIAS_LABORABLES. null = hereda. */
+        @Size(max = 7, message = "Máximo 7 días laborables")
+        List<String> diasLaborables,
+
+        /** null = hereda. */
+        TratamientoAusencias tratamientoAusencias
 ) { }

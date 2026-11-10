@@ -15,7 +15,9 @@
     <button type="button" class="btn btn-primary" (click)="abrirAjuste()">Ajustar stock</button>
   </div>
   <app-filter-bar>
+    @if (tab !== 'ajustes' && tab !== 'transferencias') {
     <app-form-field label="Búsqueda" inputId="stock-q"><input id="stock-q" class="input" [formControl]="filtros.controls.busqueda" placeholder="Nombre o SKU" /></app-form-field>
+    }
     <app-form-field label="Sede" inputId="stock-sede"><app-select inputId="stock-sede" [options]="sedes" placeholder="Todas" [formControl]="filtros.controls.sedeId"></app-select></app-form-field>
     <app-form-field label="Almacén" inputId="stock-alm"><app-select inputId="stock-alm" [options]="almacenes" placeholder="Todos" [formControl]="filtros.controls.almacenId"></app-select></app-form-field>
     <app-form-field label="Producto" inputId="stock-prod"><app-select inputId="stock-prod" [options]="productos" placeholder="Todos" [formControl]="filtros.controls.productoId"></app-select></app-form-field>

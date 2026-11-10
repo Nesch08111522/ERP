@@ -12,4 +12,12 @@ public record CotizacionResponseDTO(UUID id, UUID sedeId, String sedeNombre, UUI
         String usuarioNombre, UUID clienteId, String clienteNombre, EstadoCotizacion estado,
         BigDecimal total, LocalDate fechaVigencia, String observaciones, UUID ventaId,
         LocalDateTime createdAt, List<DetalleCotizacionResponseDTO> lineas,
-        CanalCotizacion canal, String origen, CargosCotizacionDTO cargos) { }
+        CanalCotizacion canal, String origen, CargosCotizacionDTO cargos) {
+
+    /** Respuesta sin el margen de la empresa, para el portal público. El total se conserva. */
+    public CotizacionResponseDTO sinMargen() {
+        return new CotizacionResponseDTO(id, sedeId, sedeNombre, usuarioId, usuarioNombre,
+                clienteId, clienteNombre, estado, total, fechaVigencia, observaciones, ventaId,
+                createdAt, lineas, canal, origen, cargos == null ? null : cargos.sinMargen());
+    }
+}

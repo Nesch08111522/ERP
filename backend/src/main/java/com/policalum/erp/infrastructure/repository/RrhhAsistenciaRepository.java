@@ -126,5 +126,27 @@ public interface RrhhAsistenciaRepository extends JpaRepository<RrhhAsistencia, 
     @Query("SELECT COUNT(u) FROM User u WHERE u.activo = true")
     long countEmpleadosActivos();
 
+    // ============================================
+    // ROSTER DEL DÍA (Módulo 10)
+    // ============================================
+
+    /**
+     * Todas las marcaciones de un día con su empleado cargado. Se agrupa en memoria
+     * por empleado: así el roster devuelve también a los que NO asistieron.
+     */
+    @Query("SELECT a FROM RrhhAsistencia a JOIN FETCH a.empleado u " +
+            "WHERE a.fechaHora >= CAST(:inicioDia AS timestamp) AND a.fechaHora < CAST(:finDia AS timestamp) " +
+            "ORDER BY u.apellido, u.nombre, a.fechaHora")
+    List<RrhhAsistencia> findDelDia(@Param("inicioDia") LocalDateTime inicioDia,
+                                    @Param("finDia") LocalDateTime finDia);
+
+    /** Primera marcación del día para un empleado (origen de la marcación: QR, manual, lote). */
+    @Query("SELECT a FROM RrhhAsistencia a WHERE a.empleado.id = :empleadoId " +
+            "AND a.fechaHora >= CAST(:inicioDia AS timestamp) AND a.fechaHora < CAST(:finDia AS timestamp) " +
+            "ORDER BY a.fechaHora ASC LIMIT 1")
+    RrhhAsistencia findPrimeraDelDia(@Param("empleadoId") UUID empleadoId,
+                                     @Param("inicioDia") LocalDateTime inicioDia,
+                                     @Param("finDia") LocalDateTime finDia);
+
 
 }

@@ -63,17 +63,17 @@ class CmsPermissionControllerTest {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void configuracionRequierePermisoPeroLaLecturaPublicaSigueAbierta() throws Exception {
-        User admin = User.builder()
+        User operador = User.builder()
                 .rol(Rol.builder()
-                        .nombre(RolNombre.ROLE_ADMIN)
+                        .nombre(RolNombre.ROLE_MULTIFUNCIONAL)
                         .permisosJson(Map.of("sitio_web", Map.of(
                                 "leer", true,
                                 "configurar", false)))
                         .build())
                 .build();
-        when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
+        when(userRepository.findPerfilByEmail("operador@policalum.com")).thenReturn(Optional.of(operador));
         when(cms.publico()).thenReturn(new CmsPublicoDTO("#111111", "#FFFFFF", 16, "claro", "", false,
                 null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 

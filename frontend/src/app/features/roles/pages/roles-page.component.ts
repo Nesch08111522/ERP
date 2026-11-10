@@ -429,6 +429,15 @@ export class RolesPageComponent implements OnInit, OnDestroy {
     return grupos;
   }
 
+  /**
+   * El ADMIN no se recorta con un `false` en el mapa: RolePermissionGuard resuelve el rol antes
+   * (paso 4) y DataLoader lo siembra con todo true. Editar sus casillas sería un control que
+   * no hace nada, así que se muestra cerrado y con la razón escrita en pantalla.
+   */
+  get esRolAdmin(): boolean {
+    return this.form.controls.nombre.value === 'ROLE_ADMIN';
+  }
+
   abrirEditar(row: Api.RolResponseDTO): void {
     this.errorFormulario = null;
     const nombre = row.nombre === 'ROLE_ADMIN' ? 'ROLE_ADMIN' : 'ROLE_MULTIFUNCIONAL';

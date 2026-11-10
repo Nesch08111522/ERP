@@ -54,15 +54,15 @@ class TurnoCajaPermissionControllerTest {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void consultarEstadoDeCajaNoConcedePermisoParaAbrirTurno() throws Exception {
-        User admin = User.builder()
+        User operador = User.builder()
                 .rol(Rol.builder()
-                        .nombre(RolNombre.ROLE_ADMIN)
+                        .nombre(RolNombre.ROLE_MULTIFUNCIONAL)
                         .permisosJson(Map.of("caja", Map.of("leer", true, "abrir", false)))
                         .build())
                 .build();
-        when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
+        when(userRepository.findPerfilByEmail("operador@policalum.com")).thenReturn(Optional.of(operador));
 
         mvc.perform(get("/api/v1/turnos-caja/abierto"))
                 .andExpect(status().isOk());

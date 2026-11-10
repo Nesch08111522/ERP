@@ -1,6 +1,10 @@
 package com.policalum.erp.application.dto.response;
 
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
 import com.policalum.erp.domain.enums.SistemaPension;
+import com.policalum.erp.domain.enums.TratamientoAusencias;
+import com.policalum.erp.domain.enums.TratamientoAusencias;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,5 +27,9 @@ public record LegajoResponseDTO(
         BigDecimal tasaPension,
         Boolean activo,
         LocalDateTime createdAt,
-        List<LegajoDocumentoResponseDTO> documentos
+        List<LegajoDocumentoResponseDTO> documentos,
+        /** Override de este empleado en la cadena de política de remuneración (§8.1). */
+        PoliticaDivisionSueldo politicaDivision,
+        List<String> diasLaborables,
+        TratamientoAusencias tratamientoAusencias
 ) { }

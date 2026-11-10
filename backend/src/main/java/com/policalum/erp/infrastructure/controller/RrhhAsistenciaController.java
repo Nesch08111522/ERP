@@ -2,6 +2,8 @@ package com.policalum.erp.infrastructure.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.policalum.erp.application.dto.request.AsistenciaQrDTO;
+import com.policalum.erp.application.dto.request.MarcarLoteRequestDTO;
+import com.policalum.erp.application.dto.request.MarcarQrAdminRequestDTO;
 import com.policalum.erp.application.dto.request.RrhhAsistenciaRequestDTO;
 import com.policalum.erp.application.dto.response.*;
 import com.policalum.erp.application.service.RrhhAsistenciaService;
@@ -133,13 +135,54 @@ public class RrhhAsistenciaController {
     }
 
     // ============================================
-    // MARCACIÓN POR QR (MULTIFUNCIONAL)
+    // MARCACIÓN POR QR — SOLO ADMIN
     // ============================================
+    // Regla del Módulo 10 (§2.3 de la especificación): el MULTIFUNCIONAL no escanea ni se
+    // auto-registra por QR; solo muestra su QR y el administrador lo lee. Por esto estos dos
+    // endpoints pasaron de hasAnyRole('ADMIN','MULTIFUNCIONAL') a hasRole('ADMIN').
     @PostMapping("/marcar-qr")
-    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'asistencia', 'marcar')")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'asistencia', 'marcar')")
     public ResponseEntity<RrhhAsistenciaResponseDTO> marcarPorQr(@Valid @RequestBody AsistenciaQrDTO qrRequest) {
         RrhhAsistenciaResponseDTO response = asistenciaService.procesarMarcacionQr(qrRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // ============================================
+    // MÓDULO 10: QR PERSONAL + ESCANEO POR EL ADMIN + ROSTER
+    // ============================================
+
+    /**
+     * QR dinámico del usuario autenticado (ADMIN o MULTIFUNCIONAL). Se muestra en pantalla
+     * para que el administrador lo escanee y le registre la marcación.
+     */
+    @GetMapping("/mi-qr")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'asistencia', 'marcar')")
+    public ResponseEntity<QrPersonalDTO> miQr() {
+        return ResponseEntity.ok(asistenciaService.qrPersonal());
+    }
+
+    /** El administrador escanea el QR personal de un empleado y le marca entrada/salida. */
+    @PostMapping("/escanear-qr")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'asistencia', 'marcar')")
+    public ResponseEntity<RrhhAsistenciaResponseDTO> escanearQr(@Valid @RequestBody MarcarQrAdminRequestDTO request) {
+        RrhhAsistenciaResponseDTO response = asistenciaService.marcarPorQrEscaneado(request.payload());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /** "Quiénes asistieron hoy": una fila por empleado activo, marque o no. */
+    @GetMapping("/roster")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'asistencia', 'ver_mis_marcaciones')")
+    public ResponseEntity<List<AsistenciaRosterDTO>> roster(
+            @RequestParam(required = false) LocalDate fecha,
+            @RequestParam(required = false) UUID sedeId) {
+        return ResponseEntity.ok(asistenciaService.roster(fecha, sedeId));
+    }
+
+    /** Marca entrada o salida en lote desde el roster. Rechaza fechas futuras. */
+    @PostMapping("/marcar-lote")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'asistencia', 'marcar')")
+    public ResponseEntity<MarcarLoteResponseDTO> marcarLote(@Valid @RequestBody MarcarLoteRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(asistenciaService.marcarLote(request));
     }
 
     // ============================================
@@ -310,10 +353,13 @@ public class RrhhAsistenciaController {
     }
 
     // ============================================
-// ✅ MARCACIÓN POR QR REAL (CON AUTENTICACIÓN)
-// ============================================
+    // MARCACIÓN POR QR DEL KIOSCO — SOLO ADMIN
+    // ============================================
+    // El kiosco público sigue existiendo para el puesto de trabajo del administrador.
+    // Un MULTIFUNCIONAL que llame aquí recibe 403: registrar asistencia por QR es potestad
+    // del administrador (§2.3). Su camino es GET /mi-qr y que el admin lo escanee.
     @PostMapping("/marcar-qr-real")
-    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL') and @rolePermissionGuard.permite(authentication, 'asistencia', 'marcar')")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'asistencia', 'marcar')")
     public ResponseEntity<RrhhAsistenciaResponseDTO> marcarPorQrReal(
             @Valid @RequestBody AsistenciaQrDTO qrRequest) {
 

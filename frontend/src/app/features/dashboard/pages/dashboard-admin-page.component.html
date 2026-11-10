@@ -36,6 +36,40 @@
       <p class="eje-nota" *ngIf="esAdmin && kpis">Utilidad del periodo {{ (kpis.utilidadNeta ?? 0) | pen }}.</p>
     </article>
 
+    <article class="tile tile-ganancias" *ngIf="esAdmin && ganancia as g">
+      <header class="tile-head">
+        <div>
+          <h2>Ganancia de la empresa vs mi ganancia</h2>
+          <p>{{ g.periodo }}</p>
+        </div>
+        <a routerLink="/modules/rrhh" class="chip">Mi régimen</a>
+      </header>
+
+      <div class="bolsillos">
+        <div class="bolsillo bolsillo-empresa">
+          <span class="bolsillo-label">Empresa · utilidad neta</span>
+          <strong class="bolsillo-valor">{{ (g.empresaUtilidadNeta ?? 0) | pen }}</strong>
+          <span class="bolsillo-nota">margen {{ g.empresaMargenNetoPct }}%</span>
+        </div>
+        <div class="bolsillo bolsillo-personal">
+          <span class="bolsillo-label">Mi ganancia personal</span>
+          <strong class="bolsillo-valor">{{ (g.personalTotal ?? 0) | pen }}</strong>
+          <span class="bolsillo-nota">{{ g.personalSobreEmpresaPct }}% de la utilidad</span>
+        </div>
+      </div>
+
+      <ul class="desglose-ganancias">
+        <li><span>Sueldo</span><strong>{{ (g.personalSueldo ?? 0) | pen }}</strong></li>
+        <li><span>Comisión por mis ventas</span><strong>{{ (g.personalComision ?? 0) | pen }}</strong></li>
+        <li><span>Reparto de utilidad</span><strong>{{ (g.personalRepartoUtilidad ?? 0) | pen }}</strong></li>
+        <li class="saldo" [class.negativo]="(g.saldoEmpresaTrasReparto ?? 0) < 0">
+          <span>Queda en la empresa tras su reparto</span><strong>{{ (g.saldoEmpresaTrasReparto ?? 0) | pen }}</strong>
+        </li>
+      </ul>
+
+      <p class="eje-nota" *ngIf="g.advertencia">{{ g.advertencia }}</p>
+    </article>
+
     <article class="tile">
       <header class="tile-head">
         <h2>Inventario fraccionado</h2>

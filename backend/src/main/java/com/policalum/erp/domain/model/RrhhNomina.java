@@ -8,6 +8,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import com.policalum.erp.domain.enums.EstadoNomina;
 import com.policalum.erp.domain.enums.MetodoPago;
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
 import com.policalum.erp.domain.enums.SistemaPension;
 
 import jakarta.persistence.Column;
@@ -94,6 +95,19 @@ public class RrhhNomina {
 
     @Column(name = "dias_computados")
     private Integer diasComputados;
+
+    /**
+     * Snapshot de la política usada al generar (§8.1): entre cuántos días se dividió el sueldo.
+     * Nullable porque las nóminas anteriores a la política no lo registraron; para ellas el
+     * valor histórico es 30 ({@code NominaServiceImpl.DIVISOR_HISTORICO}).
+     */
+    @Column(name = "divisor_remuneracion")
+    private Integer divisorRemuneracion;
+
+    /** Y con qué política se llegó a ese divisor. Se guarda el nombre, no un cálculo derivado. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "politica_division", length = 20)
+    private PoliticaDivisionSueldo politicaDivision;
 
     @Column(name = "ventas_base_comision", precision = 12, scale = 2)
     private BigDecimal ventasBaseComision;

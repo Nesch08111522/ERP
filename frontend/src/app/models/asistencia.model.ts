@@ -55,3 +55,50 @@ export interface AsistenciaQrDTO {
   segundosRestantes: number;
   expiraEnEpoch: number;
 }
+
+// ============================================================
+// MÓDULO 10: QR personal, escaneo por el admin y roster del día
+// ============================================================
+
+/** GET /rrhh/asistencias/mi-qr — QR dinámico del usuario autenticado. */
+export interface QrPersonalDTO {
+  empleadoId: string;
+  empleadoNombre: string;
+  payload: string;
+  segundosRestantes: number;
+  expiraEnEpoch: number;
+  ventana: number;
+}
+
+/** GET /rrhh/asistencias/roster — una fila por empleado activo, asista o no. */
+export interface AsistenciaRosterDTO {
+  empleadoId: string;
+  empleadoNombre: string;
+  sedeNombre: string | null;
+  fecha: string;
+  marcoEntrada: boolean;
+  marcoSalida: boolean;
+  horaEntrada: string | null;
+  horaSalida: string | null;
+  estado: 'PRESENTE' | 'TARDANZA' | 'AUSENTE' | null;
+  horasTrabajadas: number | null;
+  turnoNombre: string | null;
+  origenMarcacion: string | null;
+  puedeMarcarEntrada: boolean;
+  puedeMarcarSalida: boolean;
+}
+
+/** POST /rrhh/asistencias/marcar-lote */
+export interface MarcarLoteRequestDTO {
+  fecha?: string;
+  empleadoIds: string[];
+  tipoMarcacion: 'ENTRADA' | 'SALIDA' | 'INICIO_RECESO' | 'FIN_RECESO';
+}
+
+export interface MarcarLoteResponseDTO {
+  solicitados: number;
+  registrados: number;
+  omitidos: number;
+  rechazados: number;
+  detalle: string[];
+}

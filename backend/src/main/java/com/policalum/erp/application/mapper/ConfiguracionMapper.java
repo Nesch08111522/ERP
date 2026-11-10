@@ -4,16 +4,19 @@ import com.policalum.erp.application.dto.request.EmpresaRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosFinanzasRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosInventarioRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosReportesRequestDTO;
+import com.policalum.erp.application.dto.request.ParametrosRrhhRequestDTO;
 import com.policalum.erp.application.dto.request.ParametrosVentasRequestDTO;
 import com.policalum.erp.application.dto.response.EmpresaResponseDTO;
 import com.policalum.erp.application.dto.response.ParametrosFinanzasDTO;
 import com.policalum.erp.application.dto.response.ParametrosInventarioDTO;
 import com.policalum.erp.application.dto.response.ParametrosReportesDTO;
+import com.policalum.erp.application.dto.response.ParametrosRrhhDTO;
 import com.policalum.erp.application.dto.response.ParametrosVentasDTO;
 import com.policalum.erp.domain.model.ConfiguracionEmpresa;
 import com.policalum.erp.domain.model.ConfiguracionFinanzas;
 import com.policalum.erp.domain.model.ConfiguracionInventario;
 import com.policalum.erp.domain.model.ConfiguracionReportes;
+import com.policalum.erp.domain.model.ConfiguracionRrhh;
 import com.policalum.erp.domain.model.ConfiguracionVentas;
 import com.policalum.erp.domain.model.User;
 import org.mapstruct.Mapper;
@@ -21,10 +24,10 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 /**
- * Empresa y parámetros (Módulo 14). Las tablas de parámetros son de una sola fila y las crea
- * {@code ConfiguracionServiceImpl#inicializarSiFalta} con los valores de fábrica, por eso solo tienen
+ * Empresa y parÃ¡metros (MÃ³dulo 14). Las tablas de parÃ¡metros son de una sola fila y las crea
+ * {@code ConfiguracionServiceImpl#inicializarSiFalta} con los valores de fÃ¡brica, por eso solo tienen
  * toResponseDto y updateEntityFromDto (no hay toEntity desde un request). id, actualizadoPor y la
- * normalización de textos los asigna el servicio.
+ * normalizaciÃ³n de textos los asigna el servicio.
  */
 @Mapper(componentModel = "spring")
 public interface ConfiguracionMapper {
@@ -45,7 +48,7 @@ public interface ConfiguracionMapper {
     @Mapping(target = "actualizadoPor", expression = "java(nombreCompleto(entity.getActualizadoPor()))")
     EmpresaResponseDTO toResponseDto(ConfiguracionEmpresa entity);
 
-    // ---------------------------------------------------------------- parámetros
+    // ---------------------------------------------------------------- parÃ¡metros
 
     ParametrosVentasDTO toResponseDto(ConfiguracionVentas entity);
 
@@ -54,6 +57,8 @@ public interface ConfiguracionMapper {
     ParametrosFinanzasDTO toResponseDto(ConfiguracionFinanzas entity);
 
     ParametrosReportesDTO toResponseDto(ConfiguracionReportes entity);
+
+    ParametrosRrhhDTO toResponseDto(ConfiguracionRrhh entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "actualizadoPor", ignore = true)
@@ -74,6 +79,14 @@ public interface ConfiguracionMapper {
     @Mapping(target = "actualizadoPor", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromDto(ParametrosReportesRequestDTO dto, @MappingTarget ConfiguracionReportes entity);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "actualizadoPor", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    // diasLaborables se asigna a mano en el servicio: MapStruct intentaría clear() sobre la lista
+    // ya guardada, y las máscaras de List.of(...) son inmutables (UnsupportedOperationException).
+    @Mapping(target = "diasLaborables", ignore = true)
+    void updateEntityFromDto(ParametrosRrhhRequestDTO dto, @MappingTarget ConfiguracionRrhh entity);
 
     default String nombreCompleto(User u) {
         if (u == null) return null;

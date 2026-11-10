@@ -1,5 +1,7 @@
 package com.policalum.erp.infrastructure.controller;
 
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -49,9 +51,20 @@ class UserPermissionControllerTest {
     @MockitoBean
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
+    /**
+     * Usuarios es un módulo cerrado por ROL a nivel de clase (`hasRole('ADMIN')`): un
+     * MULTIFUNCIONAL no puede ni listar. Esa es la frontera que importa aquí, y es lo que
+     * comprueba el segundo caso.
+     *
+     * El primer caso deja constancia de la decisión del 2026-11-06: un `false` explícito en el
+     * mapa de permisos NO recorta al ADMIN (RolePermissionGuard paso 4; DataLoader define ADMIN
+     * como "dios: todo true"). Por eso con `leer=false` el administrador sigue obteniendo 200.
+     * La UI de Roles ya no permite editar los permisos de ROLE_ADMIN para no ofrecer un control
+     * que no tiene efecto.
+     */
     @Test
     @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
-    void consultarUsuariosRespetaElPermisoConfigurado() throws Exception {
+    void administradorNoSeRecortaPorUnFalseExplicitoEnElMapa() throws Exception {
         Map<String, Object> permisos = new HashMap<>();
         Map<String, Boolean> permisosUsuarios = new HashMap<>();
         permisosUsuarios.put("leer", true);
@@ -62,17 +75,28 @@ class UserPermissionControllerTest {
 
         mvc.perform(get("/api/v1/users")).andExpect(status().isOk());
 
+        // Con el permiso apagado, el ADMIN conserva el acceso: el rol decide antes que el mapa.
         permisosUsuarios.put("leer", false);
-        mvc.perform(get("/api/v1/users")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/users")).andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
+    void multifuncionalNoPuedeNiListarUsuarios() throws Exception {
+        clearInvocations(userService);
+
+        mvc.perform(get("/api/v1/users")).andExpect(status().isForbidden());
+
+        verifyNoInteractions(userService);
+    }
+
+    @Test
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void actualizarUsuarioNoUsaElPermisoCrearComoSustitutoDeEditar() throws Exception {
         Map<String, Object> permisos = new HashMap<>();
         permisos.put("usuarios", Map.of("crear", true, "editar", false));
-        User admin = User.builder().rol(Rol.builder().nombre(RolNombre.ROLE_ADMIN).permisosJson(permisos).build()).build();
-        when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
+        User operador = User.builder().rol(Rol.builder().nombre(RolNombre.ROLE_MULTIFUNCIONAL).permisosJson(permisos).build()).build();
+        when(userRepository.findPerfilByEmail("operador@policalum.com")).thenReturn(Optional.of(operador));
 
         mvc.perform(put("/api/v1/users/" + UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)

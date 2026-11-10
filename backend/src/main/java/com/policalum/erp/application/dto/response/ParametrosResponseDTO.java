@@ -5,4 +5,5 @@ public record ParametrosResponseDTO(
         ParametrosVentasDTO ventas,
         ParametrosInventarioDTO inventario,
         ParametrosFinanzasDTO finanzas,
-        ParametrosReportesDTO reportes) { }
+        ParametrosReportesDTO reportes,
+        ParametrosRrhhDTO rrhh) { }
