@@ -1,4 +1,4 @@
-<div class="shell" [class.menu-abierto]="menu()">
+<div class="shell" [class.menu-abierto]="menu()" [class.inicio-cinema]="ruta().split('?')[0].split('#')[0] === '/'">
   <div class="marco">
   <aside class="browse" aria-label="Menú">
     <a class="brand side-brand" routerLink="/">@if (marca.logo(); as logo) { <img class="mark" [src]="logo" [alt]="marca.empresa().nombreComercial" /> } @else { <span class="mark">{{ (marca.empresa().nombreComercial || 'P').charAt(0) }}</span> }<span>{{ marca.empresa().nombreComercial }}</span></a>
@@ -26,7 +26,7 @@
   @if (menu() && angosto()) { <button type="button" class="velo" aria-label="Cerrar menú" (click)="alternarMenu()"></button> }
 
   <div class="columna">
-  <p class="trust">{{ cms.paquete()?.banner || 'Stock publicado desde el almacén · Cotización formal con RUC · Atención B2B desde Trujillo' }}</p>
+  @if (bannerVisible()) { <p class="trust">{{ bannerVisible() }}</p> }
   @if (cms.paquete()?.atencion?.configurado) {
     <p class="atencion" [class.abierto]="cms.paquete()?.atencion?.abiertoAhora" [class.cerrado]="cms.paquete()?.atencion?.configurado && !cms.paquete()?.atencion?.abiertoAhora">{{ cms.paquete()?.atencion?.texto }}</p>
   }
@@ -93,7 +93,7 @@
     }
     <router-outlet></router-outlet>
   </main>
-    <footer class="pie">
+    <footer class="pie" id="footer">
       <div class="pie-grid">
         <div>
           <a class="brand" routerLink="/">@if (marca.logo(); as logo) { <img class="mark" [src]="logo" [alt]="marca.empresa().nombreComercial" /> } @else { <span class="mark">{{ (marca.empresa().nombreComercial || 'P').charAt(0) }}</span> }<span>{{ marca.empresa().nombreComercial }}</span></a>

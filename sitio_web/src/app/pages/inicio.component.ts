@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, Subscription } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { HeroCinematicComponent } from '../components/hero-cinematic.component';
 import { FichaProductoComponent } from '../components/ficha-producto.component';
@@ -16,6 +18,11 @@ import { CategoriaPublica, ProductoPublico, ProyectoPublico, ServicioPublico } f
 })
 export class InicioComponent implements OnInit, OnDestroy {
   private readonly api = inject(PortalApi);
+  private readonly destroyRef = inject(DestroyRef);
+  private obrasSolicitud?: Subscription;
+  readonly cargaPendiente = signal(5);
+  readonly erroresCarga = signal<string[]>([]);
+  readonly catalogoCache = signal(false);
   readonly marca = inject(EmpresaStore);
   readonly cms = inject(CmsStore);
   readonly pen = pen;
@@ -45,19 +52,31 @@ export class InicioComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.api.ofertas().subscribe({ next: (lista) => this.ofertas.set(lista), error: () => undefined });
-    this.api.destacados().subscribe({ next: (lista) => this.destacados.set(lista), error: () => undefined });
-    this.api.categorias().subscribe({ next: (lista) => this.categorias.set(lista), error: () => undefined });
-    this.api.productos({ page: 0 }).subscribe({
-      next: (pagina) => this.catalogo.set((pagina.content ?? []).slice(0, 6)),
-      error: () => undefined,
+    this.cargarPublicado('Ofertas', this.api.ofertas(), (lista) => this.ofertas.set(lista));
+    this.cargarPublicado('Destacados', this.api.destacados(), (lista) => this.destacados.set(lista));
+    this.cargarPublicado('Categorías', this.api.categorias(), (lista) => this.categorias.set(lista));
+    this.cargarPublicado('Catálogo', this.api.productos({ page: 0 }), (pagina) => {
+      this.catalogo.set((pagina.content ?? []).slice(0, 6));
+      this.catalogoCache.set(!!pagina.enCache);
     });
-    this.api.servicios().subscribe({ next: (lista) => this.servicios.set(lista), error: () => undefined });
+    this.cargarPublicado('Servicios', this.api.servicios(), (lista) => this.servicios.set(lista));
     this.cargarObras();
+  }
+
+  private cargarPublicado<T>(nombre: string, solicitud: Observable<T>, aplicar: (valor: T) => void): void {
+    solicitud.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (valor) => aplicar(valor),
+      error: (error: unknown) => {
+        this.erroresCarga.update((lista) => [...lista, `${nombre}: ${mensajeError(error)}`]);
+        this.cargaPendiente.update((total) => total - 1);
+      },
+      complete: () => this.cargaPendiente.update((total) => total - 1),
+    });
   }
 
   ngOnDestroy(): void {
     this.pausarBanner();
+    this.obrasSolicitud?.unsubscribe();
   }
 
   avanzar(delta: number): void {
@@ -96,7 +115,8 @@ export class InicioComponent implements OnInit, OnDestroy {
   cargarObras(): void {
     this.obrasCargando.set(true);
     this.obrasError.set('');
-    this.api.portafolio().subscribe({
+    this.obrasSolicitud?.unsubscribe();
+    this.obrasSolicitud = this.api.portafolio().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (lista) => {
         this.obras.set(lista ?? []);
         this.obrasCargando.set(false);

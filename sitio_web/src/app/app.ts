@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, HostListener, OnDestroy, ViewChild, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AvisoService } from './core/aviso.service';
@@ -35,6 +35,7 @@ export class App implements OnDestroy {
   readonly carrito = inject(CarritoService);
   readonly marca = inject(EmpresaStore);
   readonly cms = inject(CmsStore);
+  readonly bannerVisible = computed(() => (this.cms.paquete()?.banner ?? '').split('·').map(texto => texto.trim()).filter(texto => !['Stock publicado desde el almacén', 'Cotización formal con RUC', 'Atención B2B desde Trujillo'].includes(texto)).join(' · '));
   readonly avisos = inject(AvisoService);
   readonly tema = inject(TemaService);
   private readonly api = inject(PortalApi);

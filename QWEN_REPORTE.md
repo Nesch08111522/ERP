@@ -8,6 +8,26 @@ Fecha de esta tanda: 2026-11-10 (actualización; la anterior fue 2026-11-08)
 Stack: backend Spring Boot (JDK 17, PostgreSQL 17 como servicio de Windows) + frontend
 Angular 22 (`frontend/`) + sitio web público Angular 22 (`sitio_web/`).
 
+## Revision visual vigente (2026-11-10)
+
+**NO APROBADO para cierre integral.** Capturas del usuario contradicen aprobacion previa: alas/H parecian satelite y footer interferido. Historia anterior no es aceptacion vigente.
+
+- NUEVA idea.mp4 analizada realmente desde copia unica .work/idea-reference-20261110-roof-01.mp4: storytelling scroll de residencia/interiores, no despiece constructivo. Adaptacion, no clon.
+- Cubierta procedural cuatro vanos contiguos, apoyos/marco, juntas H, U perimetral, extremos cerrados y fijaciones; paredes alveolares/cabezas instanciadas. Sin datos comerciales inventados ni deps/DB/ERP writes/procesos detenidos.
+- Capturas nuevas desktop/movil internas reconocidas como cubierta y despiece ordenado; lectura dedicada contacto/footer confirma sin geometria. Ensamblado demasiado oscuro segun lectura; luz ajustada pero recaptura final pendiente.
+- CDP completo local/LAN con diez posiciones sin overflow/Runtime errors/writes; reverse movil coincide, escritorio mismatches producto/ensamblaje: continuidad NO aprobada. Pares +/-12px muestreados, no aceptacion subjetiva integral. Ultimos reintentos timeout Runtime.evaluate/Fetch.disable; JSON final incompleto no acredita corrida completa.
+- Build final OK15.008s; suite threads9 archivos23 tests OK antes de prueba adicional fases. Default forks timeout; warning TLS heredado. Detalle, limites y evidencia exacta en inicio de end.md.
+- Ultima suite serial9 archivos24 tests OK8.63s; build posterior OK13.467s inicial269.87kB. Fallback CSS ahora cubierta de cuatro paños/apoyos, verificacion visual pendiente.
+- Pendientes: continuidad bandas/desktop, recapturas ultimo ajuste, validar fallback cubierta, topologia automatizada, perf prolongada. Imagenes BD quedan para preview posterior con salvaguardas, no implementadas.
+
+## Mejora sitio alveolar (2026-11-10, historico no aceptacion vigente)
+
+- Hero procedural reemplaza bloques por dos planchas huecas con skins finas, 21 ribs por plancha, perfil H de alma/alas finas y translucidez no metalica. Luz acento sigue CMS; aluminio neutral. Timeline/cleanup y contenido existente conservados.
+- Eliminadas solo tres etiquetas de banner solicitadas, filtrando CMS sin perder mensajes adicionales ni funciones stock/RUC. Mobile canvas visible separado del texto; carrusel usa poster ante error de video.
+- CDP 1440x900/390x844 producto+ensamblaje: canvas1/h1=1/overflow=false/exceptions=[]; cuatro capturas internas media-read identifican canales/translucidez/policarbonato reconocible. Referencia SHA256 coincide con original. Modelo conceptual sin GLB ni exactitud certificada.
+- Build OK21.528s; suite9 archivos/23 tests OK, regresion posiciones de alas y dos planchas; diff check OK. Followup localhost4201/LAN contenido exacto, modos GPU, filtros/producto/disposal/noWebGL y writes=[]; dos intentos previos timeout no ocultados. Red: error cache ubicanos.mp4 LAN, fallback poster incorporado, raiz servidor/cache pendiente.
+- Rendimiento instrumentado mediana56.7ms/p95 210.1ms: no acredita 60fps/Core Web Vitals. Sin dependencias/commits/DB/ERP/backend ni detencion de procesos. Pendientes: movimiento continuo, produccion, CMS/SSE real y sesiones GPU prolongadas. APROBADO CON OBSERVACIONES para mejora conceptual; no entrega integral al 100%. Detalle en end.md.
+
 ## 0. Evidencia de esta tanda (medida, no afirmada)
 
 | Verificación | Resultado | Cómo se obtuvo |
@@ -251,3 +271,30 @@ en la raíz del repo y rige como política permanente para todo cambio futuro
 Resultado según criterios §18: **APROBADO CON OBSERVACIONES** — todo lo
 implementado está verificado; las observaciones son los ítems abiertos del
 checklist §5 (decisiones de negocio H2 y auditorías de breakpoints/CSV/openapi).
+
+## 7. Rediseño sitio: continuación 3D (2026-11-10)
+
+- Historial anterior intacto; esta entrada no modifica sus cifras ni acredita aprobación integral.
+- Controlador/poses cinematic-sequence.ts: timeline reversible única hero-footer, renderer existente reutilizado, mediciones dinámicas agrupadas y cleanup. Scroll nativo, enlaces por anclas, paleta CMS de Nancy respetada. Inicio informa carga/error/cache y cancela peticiones; sin cambios comerciales, DB, backend ni ERP.
+- Build final OK: npm run build, 18.471 s, inicial 268.47 kB. Suite final npm test -- --watch=false --runner-config=vitest-base.config.ts: 7 archivos, 18 pruebas aprobadas; repetida tras timeout threads de intento paralelo. git diff --check sin errores, avisos CRLF.
+- API existente 8080 read-only: siete GET públicos HTTP 200; sin escrituras. Servidor sitio iniciado http://127.0.0.1:4307/ PID 46472; 8080 intacto.
+- MCP no ofrece herramientas (lista vacía). CDP Edge real verifica tres tamaños sin overflow, h1 único, canvas único, scroll contacto, eliminación al navegar /catalogo, recreación al volver y fallback reduced motion; sin excepciones Runtime en esos ensayos.
+- WebGL2 disponible y contexto no perdido NO demuestra resultado visual: readPixels fuera del frame devuelve cero; intento sincronizado RAF bloqueado sin evidencia útil. No afirmar escena dibujada/continuidad artística aprobada. Evidencia y límites completos en end.md y ensayo .work/verify-cinema.cjs.
+- Estado entrega integral: NO APROBADO; faltan validación visual de escena, consola completa, pruebas exhaustivas rutas/formularios, WebGL no disponible, tema renderizado y medición rendimiento/fugas. Sin screenshots/artifacts presentados ni commits.
+
+## 8. Sitio LAN y GPU objetiva (2026-11-10)
+
+- Solo sitio_web e informes: environment.ts resuelve host/protocolo del origen, puerto backend 8080; catalogo cancela solicitudes obsoletas y al destruir. Tres tests nuevos de contacto con transporte simulado. Sin cambios ERP/backend/BD ni procesos detenidos; se usa 4201 actual.
+- HTTP 200 sitio/CMS localhost y 192.168.100.11; CORS exacto LAN confirmado. CDP demuestra API localhost:8080 vs 192.168.100.11:8080 y mismo acento publicado #90CAF9 noche. Azul dia #0D47A1 viene del CMS, no impuesto.
+- .work/cinema-browser.log: ejecucion completa con draws reales y pixels alpha no cero en framebuffer principal (ambos origenes 33463). Muestreo anterior tomaba framebuffer de transmission y ventana oculta pausaba RAF. Ensayo corrige ambos, sin tocar renderer de produccion.
+- Tres viewports y diez anclas cada uno sin overflow; trece rutas con h1/titulo, canvas ausente fuera de inicio; perdida contexto y reduced motion muestran fallback. Errores=[]/escrituras=[] en ejecucion completa. Repeticion anterior error cache video, ultima repeticion usando boton real de tema timeout CDP: no se consideran verificaciones exitosas.
+- Suite final: 8 archivos / 21 tests OK; build final OK, 16.200 s, inicial 268.47 kB. Warning TLS heredado sin alterar. No medicion de carga ni FPS aceptable inferida del bundle o de readPixels intrusivo.
+- NO APROBADO integral: pendientes screenshots interpretadas, continuidad artistica, filtros/producto y comparacion exacta contenidos, CMS/tema reactivo GPU, WebGL indisponible inicial, disposal/RAF y rendimiento. HTTPS requiere TLS backend o proxy de despliegue; otros puertos requieren CORS exacto existente. Media absoluta legacy requiere auditoria adicional. Detalle en end.md, sin archivos presentados.
+
+## 9. Continuacion ejecutada (2026-11-10)
+
+- CDP followup completo con evaluaciones sincronas acotadas: botones reales tema cambian CSS y uniforms GPU; contenido principal/enlaces sin host/paleta exactamente iguales localhost-IP (SHA256 en .work/followup-evidence.json). Sin escrituras ni errores en ejecucion final.
+- Capturas internas interpretadas por media_read en hero/galeria/catalogo/CTA: objeto visible hero y CTA, textos legibles; no prueba movimiento continuo. No screenshots presentados. Catalogo 18 productos, orden por nombre y stock; ofertas 11 todas etiquetadas; producto real Arandela de neopreno cargado por SPA, precio/stock publicados.
+- WebGL ausente desde inicio muestra fallback sin canvas; salida SPA libera 25 recursos GL y draws se mantienen estables despues. Medicion limitada, no garantia universal de cero fugas.
+- Medios propios absolutos loopback/backend publicos normalizados con mismo puerto; galeria reutiliza helper. Terceros y puertos/rutas ajenos conservados; IP historica desconocida no inferida. Dos tests nuevos: suite 9 archivos/23 pruebas OK tras timeout threads inicial; build posterior serial OK 13.634s, 268.46kB.
+- Intervalos instrumentados dev 105 muestras: mediana 54.9ms/p95 256.1ms. No son FPS presentados ni Lighthouse; no promesa 60fps. Pendientes movimiento artistico/reverso y captura movil, SSE/CMS GPU simulado, sesiones/fugas repetidas y rendimiento produccion. Cache video fallo una repeticion anterior; ultima sin error. TLS/otros puertos requieren configuracion explicita sin wildcard. Estado integral NO APROBADO; detalle en end.md.

@@ -1,0 +1,249 @@
+Diseño definitivo propuesto: Homepage Policalum — Cinematic 3D Experience
+La página de inicio debe sentirse como una experiencia de exploración de materiales industriales de alta gama. No como una plantilla de comercio electrónico tradicional.
+Mi propuesta es combinar los tres estilos que has identificado: producto 3D cinematográfico + arquitectura audiovisual + diseño editorial minimalista, conservando la identidad azul de Policalum.
+Quiero que imagines que una persona entra a Policalum y, en los primeros cinco segundos, percibe que está frente a una empresa moderna, especializada y profesional.
+Voy a describirte cómo debería verse y comportarse cada sección.
+1. Dirección artística general
+La identidad visual tendrá estos elementos:
+
+
+
+
+
+
+Paleta cromática
+Principios visuales
+Fondos oscuros con profundidad.
+Azul como identidad y luz ambiental.
+Blanco para transmitir limpieza y legibilidad.
+Cristal translúcido en navegación y controles.
+Materiales con texturas realistas.
+Tipografía grande y composiciones asimétricas.
+2. Estructura completa de la página de inicio
+La dividiría en diez grandes momentos visuales.
+Sección 01. Hero principal — Una entrada cinematográfica
+
+Visualización inicial:
+La pantalla completa comienza con un fondo azul noche casi negro. En el centro y ligeramente hacia la derecha aparece una enorme plancha de policarbonato tridimensional, suspendida en el espacio.
+Delante de ella se encuentra un perfil H de aluminio con acabado metálico realista.
+Los objetos no son imágenes planas: tienen profundidad, reflejos, transparencias y sombras.
+Comportamiento:
+La plancha gira lentamente sobre su propio eje.
+El perfil de aluminio rota independientemente.
+La iluminación azul recorre sus superficies.
+El movimiento del cursor produce un desplazamiento sutil de la cámara.
+El scroll comienza a acercar la cámara hacia los materiales.
+Pequeñas partículas ambientales aportan profundidad sin saturar la escena.
+Composición del contenido:
+P
+POLICALUM
+NAVIGATION GLASS
+SOLUCIONES EN POLICARBONATO Y ALUMINIO
+Construimos ideas.
+Creamos soluciones.
+Materiales, accesorios y soluciones para proyectos que exigen resistencia, precisión y calidad.
+Explorar catálogo ↗
+Solicitar cotización ↗
+POLICARBONATO · ALUMINIO · ACCESORIOSSCROLL ↓
+La navegación estaría flotando en la parte superior, con transparencia y desenfoque. Nada de una barra negra rígida que corte la escena.
+Sección 02. Introducción de marca — La ingeniería detrás de cada material
+Perfilería de aluminio y policarbonato | Eriplas
+eriplas.com
+Al bajar, el hero no desaparece abruptamente.
+El modelo 3D comienza a desplazarse hacia un costado y el contenido cambia progresivamente.
+Aparece un mensaje editorial de gran tamaño:
+«No se trata solamente de materiales. Se trata de lo que puedes construir con ellos».
+Debajo, una descripción corporativa breve de Policalum.
+A la derecha, una composición audiovisual con acercamientos de:
+Superficies de policarbonato.
+Acabados de aluminio.
+Sistemas de unión.
+Accesorios de instalación.
+Los textos aparecen secuencialmente mediante GSAP.
+Sección 03. Scrollytelling — La ingeniería cobra vida
+Skin System | CrystaLite, Inc.
+Verlegeanleitung Stegplatten - Polycarbonatstore.de
+China polycarbonate roofing trusses Manufacturers Suppliers Factory - Hetai New Material Technology
+7
+Esta sería una de las secciones más espectaculares.
+Aquí utilizaría un modelo 3D de un sistema de cubierta de policarbonato.
+Mientras el usuario hace scroll:
+Aparece una plancha de policarbonato.
+Se aproxima la cámara para mostrar su estructura interna.
+Aparecen perfiles de aluminio.
+Los perfiles se separan y muestran su geometría.
+Aparecen los conectores y accesorios.
+Todos los componentes se ensamblan formando una estructura completa.
+Los textos se posicionan a los lados del modelo.
+Momento
+Contenido
+01
+Protección y transmisión de luz
+02
+Resistencia y estructura
+03
+Sistemas de unión
+04
+Soluciones de instalación
+La experiencia debe explicar visualmente cómo trabajan juntos los materiales, no limitarse a mostrar animaciones decorativas.
+Sección 04. Categorías principales — Explora nuestros materiales
+Poliwęglan komorowy i lity na wymiar | Sinsi Tech
+2026工业铝型材厂家哪家好？如何避开铝型材采购陷阱，锁定“高精度工业骨骼”供应商？_搜狐汽车_搜狐网
+Accessoires Fixation Couverture - Plaques Ondulées Polycarbonate & Polyester – Polycarbonate-Plexi.com
+8
+En lugar de cuatro tarjetas tradicionales con fotografías pequeñas, utilizaría una composición editorial de grandes elementos visuales.
+Fijación, sellado y terminación.
+Cada categoría tendrá:
+Imagen de gran tamaño.
+Animación de entrada.
+Efecto de profundidad al pasar el cursor.
+Nombre y descripción.
+Acceso directo a su catálogo.
+Sección 05. Productos destacados — Catálogo conectado al ERP
+Alu Profile für Doppelstegplatten und Stegplatten kaufen
+full size bi flex screws self tapping screws with hex head
+Aluminium-Klebeband 38 mm breit / 25 m Rolle, silber, für Stegplatten | 38 mm breit (für 16 mm Platten) | TJ-74022
+6
+Esta sección debe conservar su función comercial.
+No sacrificaría la información por conseguir un diseño espectacular.
+Los productos se presentarían en una composición visual más libre, con imágenes grandes y fondos oscuros.
+Cada producto mostraría:
+Imagen o modelo 3D.
+Nombre comercial.
+Descripción.
+Precio vigente.
+Disponibilidad.
+Unidad de venta.
+Botón de consulta o compra, según las funcionalidades habilitadas.
+Un detalle importante: para Policalum debemos contemplar la venta fraccionada de planchas:
+¼ plancha
+½ plancha
+¾ plancha
+1 plancha
+Los precios y el stock deben proceder del ERP, no de información escrita manualmente en Angular.
+Sección 06. Aplicaciones — Del material al proyecto terminado
+12
+Aquí cambiaría completamente el lenguaje visual.
+Pasaríamos de los renders 3D a fotografías y vídeos arquitectónicos de gran formato.
+La sección tendría:
+Cubiertas de policarbonato.
+Techos y estructuras.
+Instalaciones comerciales.
+Aplicaciones industriales.
+Proyectos arquitectónicos.
+Cada escenario tendría un título grande, una descripción breve y una imagen panorámica.
+Las transiciones se comportarían como una secuencia cinematográfica.
+Sección 07. ¿Por qué elegir Policalum?
+Una sección corporativa minimalista, con cuatro pilares:
+Calidad
+Materiales para proyectos exigentes.
+Variedad
+Soluciones y accesorios especializados.
+Asesoría
+Orientación para elegir los materiales.
+Atención local
+Atención en nuestras sedes.
+Sección 08. Nuestras sedes — Atención y disponibilidad
+Esta parte tendría dos grandes paneles de cristal translúcido.
+Cada sede mostraría:
+Nombre.
+Dirección.
+Fotografías reales.
+Horarios de atención.
+Ubicación en mapa.
+Acceso a indicaciones.
+No utilizaría dos tarjetas pequeñas tradicionales. Haría una composición amplia, elegante y con fotografías de las instalaciones.
+Sección 09. Contacto y cotización — Convirtamos tu proyecto en realidad
+Una sección de cierre con un mensaje protagonista:
+«¿Tienes un proyecto en mente?»
+Debajo:
+Formulario de cotización.
+Nombre.
+Teléfono.
+Producto de interés.
+Cantidad.
+Descripción del proyecto.
+Botón para enviar solicitud.
+WhatsApp permanecería flotante en toda la navegación, sin tapar contenido ni interferir con los controles.
+3. Cómo se comportará toda la página al hacer scroll
+La clave no es que cada sección tenga una animación independiente. Quiero que toda la experiencia tenga continuidad visual.
+Este sería el recorrido:
+Experiencia de navegación
+Entrada cinematográfica
+Aparece la plancha 3D, se ilumina el material y entra el mensaje principal.
+Desplazamiento de cámara
+La plancha se aproxima y el texto cambia para introducir la marca.
+Despiece técnico
+Aparecen los perfiles, conectores y accesorios mediante una secuencia de ensamblaje.
+Transición a categorías
+Los modelos tridimensionales se transforman en productos y categorías comerciales.
+Catálogo conectado
+Aparecen productos reales, precios y disponibilidad del ERP.
+Escenarios arquitectónicos
+La escena cambia a vídeos y fotografías de aplicaciones reales.
+Empresa y sedes
+Se presenta Policalum, su atención y sus ubicaciones.
+Conversión comercial
+El recorrido termina con la cotización y los canales de contacto.
+4. Reglas de diseño que no debemos romper
+Hay algunas decisiones que considero fundamentales para que el resultado realmente tenga calidad profesional.
+Elemento
+Decisión
+Color
+Azul corporativo, negro y blanco
+Fondos
+Oscuros, con cambios de escena
+Navegación
+Glassmorphism flotante
+Botones
+Minimalistas, con iluminación azul
+Imágenes
+Fotografías reales y renders de alta calidad
+3D
+Modelos reales de productos Policalum
+Scroll
+Animaciones coordinadas
+Catálogo
+Información comercial legible
+Móvil
+Versión optimizada, no una reducción del escritorio
+SEO
+HTML semántico y contenido indexable
+También evitaría tres errores:
+Poner efectos 3D en absolutamente todos los elementos.
+Oscurecer tanto la interfaz que resulte difícil leer precios, descripciones y productos.
+Hacer que las animaciones bloqueen la navegación o ralenticen la carga.
+5. Arquitectura técnica definitiva
+Para implementar esta experiencia en tu proyecto actual:
+Tecnología
+Implementación
+Angular
+Componentes y estructura de la web
+Three.js
+Hero 3D y escenas técnicas
+GSAP
+Animaciones y transiciones
+ScrollTrigger
+Sincronización con el scroll
+CSS
+Glassmorphism, iluminación y responsive
+GLB / GLTF
+Modelos 3D optimizados
+WebM / MP4
+Escenarios arquitectónicos
+WebP / AVIF
+Imágenes optimizadas
+Spring Boot
+API comercial
+PostgreSQL
+Información persistente del ERP
+Además, implementaría prefers-reduced-motion, carga diferida de escenas, alternativas visuales para dispositivos de menor capacidad y renderizado SEO mediante Angular SSR cuando corresponda.
+6. Resultado visual que buscamos
+Mi visión final es que Policalum tenga una identidad reconocible:
+Al entrar: impacto visual y producto tridimensional.
+Al explorar: ingeniería, movimiento y profundidad.
+Al descubrir productos: información comercial clara y elegante.
+Al conocer la empresa: confianza, profesionalismo y presencia.
+Al terminar: una ruta sencilla para cotizar o comprar.
+La prioridad será que la experiencia visual sea extraordinaria, pero que siga siendo una herramienta comercial real.
+Mi recomendación final: mantendría el hero y el primer recorrido 3D como el elemento diferencial de la página. Después introduciría gradualmente las secciones comerciales, arquitectónicas y corporativas. Así conseguimos una web espectacular sin perder la esencia de Policalum ni su capacidad de vender.

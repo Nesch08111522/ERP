@@ -1,5 +1,6 @@
 import { Component, DestroyRef, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FichaProductoComponent } from '../components/ficha-producto.component';
 import { CategoriaPublica, ProductoPublico } from '../core/models';
@@ -80,6 +81,7 @@ export class CatalogoComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private solicitud?: Subscription;
   readonly categorias = signal<CategoriaPublica[]>([]);
   readonly productos = signal<ProductoPublico[]>([]);
   readonly pagina = signal(0);
@@ -149,7 +151,7 @@ export class CatalogoComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.api.categorias().subscribe({ next: (lista) => this.categorias.set(lista), error: () => undefined });
+    this.api.categorias().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (lista) => this.categorias.set(lista), error: () => undefined });
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.categoriaId.set(params.get('categoria') ?? '');
       this.vista.set(params.get('vista') ?? '');
@@ -230,12 +232,13 @@ export class CatalogoComponent implements OnInit {
   }
 
   private cargar(silencioso = false): void {
+    this.solicitud?.unsubscribe();
     if (!silencioso) {
       this.cargando.set(true);
       this.error.set('');
     }
     if (this.vista() === 'destacados' && !this.q() && !this.categoriaId()) {
-      this.api.destacados().subscribe({
+      this.solicitud = this.api.destacados().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (lista) => {
           this.enCache.set(false);
           this.productos.set(lista);
@@ -250,12 +253,12 @@ export class CatalogoComponent implements OnInit {
       });
       return;
     }
-    this.api.productos({
+    this.solicitud = this.api.productos({
       categoriaId: this.categoriaId() || undefined,
       q: this.q().trim() || undefined,
       page: this.pagina(),
       size: 48,
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (pagina) => {
         this.enCache.set(Boolean(pagina.enCache));
         this.productos.set(pagina.content ?? []);

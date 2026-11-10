@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, inject, signal } from '@angular/core';
-import { environment } from '../../environments/environment';
+import { media } from '../core/portal.api';
 import { CmsStore } from '../core/cms.store';
 
 interface MaterialVista {
@@ -272,7 +272,6 @@ function textoClaro(valor: string): string {
 function medioVisible(ruta?: string | null): string {
   const texto = ruta?.trim() ?? '';
   if (!texto) return '';
-  if (texto.startsWith('http://') || texto.startsWith('https://')) return texto;
-  if (texto.startsWith('/api/')) return `${environment.apiUrl}${texto}`;
+  if (/^https?:\/\//i.test(texto) || texto.startsWith('/api/')) return media(texto) ?? '';
   return texto;
 }
