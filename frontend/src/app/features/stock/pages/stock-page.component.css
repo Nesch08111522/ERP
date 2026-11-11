@@ -1,1 +1,14 @@
 :host { display: block; min-width: 0; }
+
+/* Inventario: densidad empresarial con lectura rápida */
+.module-page { display: grid; gap: clamp(1rem, 1.8vw, 1.5rem); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .85rem; }
+.stats-grid app-stat-card { min-width: 0; border-radius: var(--radius-lg); }
+.cluster { flex-wrap: wrap; gap: .6rem; }
+.filter-actions { display: flex; align-items: end; gap: .5rem; flex-wrap: wrap; }
+app-data-table { display: block; min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; box-shadow: var(--shadow-sm); }
+@media (max-width: 640px) {
+  .filter-actions { width: 100%; }
+  .filter-actions .btn { flex: 1 1 8rem; }
+  .cluster > .btn { flex: 1 1 10rem; }
+}
