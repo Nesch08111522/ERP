@@ -4,7 +4,16 @@ import { Component, Input } from '@angular/core';
   selector: 'mn-button',
   standalone: true,
   template: `
-    <button class="btn" [class.btn-primary]="variant === 'primary'" [class.btn-outline]="variant === 'outline'" [class.btn-sm]="size === 'sm'" [disabled]="disabled" [attr.type]="type">
+    <button
+      class="btn"
+      [class.btn-primary]="variant === 'primary'"
+      [class.btn-outline]="variant === 'outline'"
+      [class.btn-ghost]="variant === 'quiet'"
+      [class.btn-sm]="size === 'sm'"
+      [disabled]="disabled"
+      [attr.aria-disabled]="disabled"
+      [attr.type]="type"
+    >
       <ng-content></ng-content>
     </button>
   `,

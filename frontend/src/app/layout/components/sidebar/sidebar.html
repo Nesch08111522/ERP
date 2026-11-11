@@ -1,21 +1,74 @@
-<div class="sidebar-backdrop" *ngIf="layout.mobileOpen()" (click)="layout.closeMobile()"></div>
-<aside class="app-sidebar" aria-label="Navegación principal">
+
+<!-- ============================================================
+     BACKDROP: CAPA OSCURA SOBRE TODA LA APLICACIÓN
+     ============================================================ -->
+
+<div
+  class="sidebar-backdrop"
+  *ngIf="layout.mobileOpen()"
+  aria-hidden="true"
+  (click)="layout.closeMobile()">
+</div>
+
+
+<!-- ============================================================
+     SIDEBAR PRINCIPAL
+     ============================================================ -->
+
+<aside
+  class="app-sidebar"
+  [class.mobile-overlay-open]="layout.mobileOpen()"
+  aria-label="Navegación principal">
+
+  <!-- Marca y logotipo -->
   <div class="sidebar-brand">
-    <img class="brand-logo" [src]="marca.logoSrc()" [alt]="marca.nombre()" (error)="marca.usarRespaldo()" />
-    <span class="brand-name"><strong>{{ marca.nombre() }}</strong><span class="text-xs">ERP</span></span>
+
+    <img
+      class="brand-logo"
+      [src]="marca.logoSrc()"
+      [alt]="marca.nombre()"
+      (error)="marca.usarRespaldo()"
+    />
+
+    <span class="brand-name">
+      <strong>{{ marca.nombre() }}</strong>
+      <span class="text-xs">ERP</span>
+    </span>
+
   </div>
-  <nav class="sidebar-scroll">
-    <section *ngFor="let section of sections" class="nav-group">
+
+
+  <!-- Navegación desplazable -->
+  <nav
+    class="sidebar-scroll"
+    aria-label="Módulos del ERP">
+
+    <section
+      *ngFor="let section of sections"
+      class="nav-group">
+
+      <!-- Encabezado de sección -->
       <button
         type="button"
         class="nav-section nav-section-btn"
         (click)="toggleGroup(section.id)"
         [title]="section.label"
         [attr.aria-expanded]="isOpen(section.id)">
+
         <span>{{ section.label }}</span>
-        <app-icon [name]="isOpen(section.id) ? 'chevronDown' : 'chevron'"></app-icon>
+
+        <app-icon
+          [name]="isOpen(section.id) ? 'chevronDown' : 'chevron'">
+        </app-icon>
+
       </button>
-      <div class="nav-items" *ngIf="isOpen(section.id) || layout.collapsed()">
+
+
+      <!-- Opciones de navegación -->
+      <div
+        class="nav-items"
+        *ngIf="isOpen(section.id) || layout.collapsed()">
+
         <a
           *ngFor="let item of section.items"
           class="nav-link"
@@ -23,13 +76,32 @@
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: item.path === '/inicio' }"
           [title]="item.label"
-          [attr.aria-label]="layout.collapsed() ? item.label : null"
+          [attr.aria-label]="item.label"
           (click)="layout.closeMobile()">
+
+          <!-- Icono -->
           <app-icon [name]="item.icon"></app-icon>
-          <span class="nav-label">{{ item.label }}</span>
-          <span class="nav-aviso" *ngIf="item.id === 'mensajes-web' && bandeja.total() > 0">{{ bandeja.total() > 99 ? '99+' : bandeja.total() }}</span>
+
+          <!-- Nombre del módulo -->
+          <span class="nav-label">
+            {{ item.label }}
+          </span>
+
+          <!-- Notificaciones -->
+          <span
+            class="nav-aviso"
+            *ngIf="item.id === 'mensajes-web' && bandeja.total() > 0">
+
+            {{ bandeja.total() > 99 ? '99+' : bandeja.total() }}
+
+          </span>
+
         </a>
+
       </div>
+
     </section>
+
   </nav>
+
 </aside>

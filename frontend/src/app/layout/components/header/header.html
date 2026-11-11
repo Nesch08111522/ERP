@@ -1,69 +1,488 @@
-<header class="app-header">
-  <div class="cluster">
-    <button type="button" class="btn btn-ghost icon-btn" (click)="toggleMenu()" aria-label="Abrir menú">
+
+<header class="app-header" aria-label="Barra de navegación principal">
+
+  <!-- ======================================================
+       1. BOTÓN DEL MENÚ PRINCIPAL
+       ====================================================== -->
+
+  <div class="cluster header-menu">
+
+    <button
+      type="button"
+      class="btn btn-ghost icon-btn menu-trigger"
+      (click)="toggleMenu()"
+      aria-label="Abrir o cerrar menú principal"
+      title="Menú principal">
+
       <app-icon name="menu"></app-icon>
+
     </button>
+
   </div>
-  <div class="search-shell">
-    <app-icon name="search"></app-icon>
-    <label class="sr-only" for="global-search">Ir a un módulo</label>
-    <input id="global-search" class="input" type="search" placeholder="Ir a un módulo..." [value]="query" (input)="onQuery($event)" (keydown.enter)="goFirst()" />
-    <div class="dropdown-panel search-results" *ngIf="results.length">
-      <a class="dropdown-item" *ngFor="let item of results" [routerLink]="item.path" (click)="clear()">{{ item.label }}</a>
-    </div>
+
+
+  <!-- ======================================================
+       2. BUSCADOR GLOBAL
+       ====================================================== -->
+
+  <div class="search-shell" role="search">
+
+    <app-icon
+      name="search"
+      class="search-icon"
+      aria-hidden="true">
+    </app-icon>
+
+    <label
+      class="sr-only"
+      for="global-search">
+      Buscar módulos del ERP
+    </label>
+
+    <input
+      id="global-search"
+      class="input search-input"
+      type="search"
+      name="globalSearch"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Ir a un módulo..."
+      [value]="query"
+      (input)="onQuery($event)"
+      (keydown.enter)="goFirst()"
+      [attr.aria-expanded]="results.length > 0"
+      [attr.aria-controls]="results.length ? 'global-search-results' : null"
+      aria-autocomplete="list"
+    />
+
+    <!-- Resultados de búsqueda -->
+    <nav
+      id="global-search-results"
+      class="dropdown-panel search-results"
+      *ngIf="results.length"
+      aria-label="Resultados de búsqueda">
+
+      <a
+        class="dropdown-item search-result-item"
+        *ngFor="let item of results"
+        [routerLink]="item.path"
+        (click)="clear()">
+
+        <span>{{ item.label }}</span>
+
+      </a>
+
+    </nav>
+
   </div>
-  <div class="cluster">
-    <a class="btn btn-ghost btn-sm web-link" [href]="sitioWeb" target="_blank" rel="noopener noreferrer" title="Ir a la Página Web" (click)="abrirSitio($event)">
+
+
+  <!-- ======================================================
+       3. ACCIONES GLOBALES
+       Cinco controles:
+       Portal | Tema | Sede | Notificaciones | Perfil
+       ====================================================== -->
+
+  <div class="cluster header-actions">
+
+
+    <!-- ==================================================
+         3.1. SITIO WEB
+         ================================================== -->
+
+    <a
+      class="btn btn-ghost icon-btn web-link"
+      [href]="sitioWeb"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Abrir sitio web de Policalum"
+      title="Visitar portal web"
+      (click)="abrirSitio($event)">
+
       <app-icon name="globe"></app-icon>
-      <span>Ir a la Página Web</span>
+
+      <span>Portal web</span>
+
     </a>
-    <button type="button" class="btn btn-ghost theme-toggle" (click)="theme.toggle()" [attr.aria-label]="theme.theme() === 'dark' ? 'Activar modo día' : 'Activar modo noche'">
-      <app-icon [name]="theme.theme() === 'dark' ? 'moon' : 'sun'"></app-icon>
-      <span class="text-sm">{{ theme.theme() === 'dark' ? 'Modo noche' : 'Modo día' }}</span>
+
+
+    <!-- ==================================================
+         3.2. CAMBIO DE TEMA
+         ================================================== -->
+
+    <button
+      type="button"
+      class="btn btn-ghost icon-btn theme-toggle"
+      (click)="theme.toggle()"
+      [attr.aria-label]="theme.theme() === 'dark'
+        ? 'Activar tema claro'
+        : 'Activar tema oscuro'"
+      [title]="theme.theme() === 'dark'
+        ? 'Cambiar a tema claro'
+        : 'Cambiar a tema oscuro'">
+
+      <app-icon
+        [name]="theme.theme() === 'dark' ? 'moon' : 'sun'">
+      </app-icon>
+
+      <span>
+        {{ theme.theme() === 'dark' ? 'Oscuro' : 'Claro' }}
+      </span>
+
     </button>
-    <div class="dropdown" [class.menu-open]="sedesAbiertas">
-      <button type="button" class="btn btn-ghost btn-sm sede-btn" (click)="sedesAbiertas = !sedesAbiertas" aria-haspopup="listbox" [attr.aria-expanded]="sedesAbiertas">
-        <app-icon name="building"></app-icon>
-        <span>{{ sedeFiltro.nombre() }}</span>
-        <app-icon name="chevronDown"></app-icon>
-      </button>
-      <div class="dropdown-panel" *ngIf="sedesAbiertas" role="listbox">
-        <button type="button" class="dropdown-item" (click)="elegirSede('', 'Sedes')">Todas las sedes</button>
-        <button type="button" class="dropdown-item" *ngFor="let sede of sedes" (click)="elegirSede(sede.id ?? '', sede.nombre ?? 'Sede')">{{ sede.nombre }}</button>
-        <a class="dropdown-item" routerLink="/elegir-sede" (click)="sedesAbiertas = false">Elegir sede</a>
-      </div>
-    </div>
-    <div class="dropdown" [class.menu-open]="avisosAbiertos">
-      <button type="button" class="btn btn-ghost icon-btn bell" (click)="avisosAbiertos = !avisosAbiertos; cargarAvisos()" aria-haspopup="menu" [attr.aria-expanded]="avisosAbiertos" aria-label="Notificaciones">
-        <app-icon name="bell"></app-icon>
-        <span class="badge-count" *ngIf="noLeidas">{{ noLeidas }}</span>
-      </button>
-      <div class="dropdown-panel avisos-panel" *ngIf="avisosAbiertos" role="menu">
-        <p class="avisos-titulo">Notificaciones</p>
-        <p class="dropdown-item text-muted" *ngIf="!avisos.length">No hay avisos nuevos.</p>
-        <button type="button" class="dropdown-item aviso" *ngFor="let aviso of avisos" (click)="abrirAviso(aviso)">
-          <strong>{{ aviso.titulo }}</strong>
-          <span>{{ aviso.detalle }}</span>
-        </button>
-        <a class="dropdown-item" routerLink="/modules/notificaciones" (click)="avisosAbiertos = false">Ver todas</a>
-      </div>
-    </div>
-    <div class="dropdown" [class.menu-open]="menuOpen">
-      <button type="button" class="btn btn-ghost" (click)="menuOpen = !menuOpen" aria-haspopup="menu" [attr.aria-expanded]="menuOpen">
-        <span class="avatar">
-          <img *ngIf="avatar.url() as foto" [src]="foto" alt="" />
-          <ng-container *ngIf="!avatar.url()">{{ initials }}</ng-container>
+
+
+    <!-- ==================================================
+         3.3. SELECTOR DE SEDES
+         ================================================== -->
+
+    <div
+      class="dropdown sede-dropdown"
+      [class.menu-open]="sedesAbiertas">
+
+      <button
+        type="button"
+        class="btn btn-ghost sede-btn"
+        (click)="sedesAbiertas = !sedesAbiertas"
+        [attr.aria-expanded]="sedesAbiertas"
+        aria-controls="sede-panel"
+        [attr.aria-label]="'Sede actual: ' + sedeFiltro.nombre()"
+        title="Seleccionar sede">
+
+        <app-icon
+          name="building"
+          class="sede-icon">
+        </app-icon>
+
+        <span class="sede-label">
+          {{ sedeFiltro.nombre() }}
         </span>
-        <span class="text-sm user-label">{{ userName }} / {{ userRole }}</span>
+
+        <app-icon
+          name="chevronDown"
+          class="sede-chevron">
+        </app-icon>
+
       </button>
-      <div class="dropdown-panel" *ngIf="menuOpen" role="menu">
-        <div class="dropdown-item">{{ userEmail }}</div>
-        <div class="dropdown-item text-muted">{{ userRole }}</div>
-        <button type="button" class="menu-item" (click)="ir('/cuenta/perfil')"><app-icon name="users"></app-icon> Mi perfil</button>
-        <button type="button" class="menu-item" (click)="ir('/cuenta/perfil?seccion=seguridad')"><app-icon name="shield"></app-icon> Cambiar contraseña</button>
-        <button type="button" class="menu-item" *ngIf="esAdmin" (click)="ir('/modules/configuracion')"><app-icon name="settings"></app-icon> Configuración</button>
-        <button type="button" class="menu-item danger" (click)="logout()"><app-icon name="logout"></app-icon> Cerrar sesión</button>
+
+      <!-- Panel de sedes -->
+      <div
+        id="sede-panel"
+        class="dropdown-panel sede-panel"
+        *ngIf="sedesAbiertas"
+        role="group"
+        aria-label="Opciones de sede">
+
+        <div class="dropdown-heading">
+          Seleccionar sede
+        </div>
+
+        <!-- Todas las sedes -->
+        <button
+          type="button"
+          class="dropdown-item"
+          (click)="elegirSede('', 'Sedes'); sedesAbiertas = false">
+
+          Todas las sedes
+
+        </button>
+
+        <!-- Sedes disponibles -->
+        <button
+          type="button"
+          class="dropdown-item"
+          *ngFor="let sede of sedes"
+          (click)="elegirSede(sede.id ?? '', sede.nombre ?? 'Sede'); sedesAbiertas = false">
+
+          {{ sede.nombre }}
+
+        </button>
+
+        <div class="dropdown-divider"></div>
+
+        <!-- Administración de sedes -->
+        <a
+          class="dropdown-item"
+          routerLink="/elegir-sede"
+          (click)="sedesAbiertas = false">
+
+          <app-icon name="settings"></app-icon>
+
+          Administrar sedes
+
+        </a>
+
       </div>
+
     </div>
+
+
+    <!-- ==================================================
+         3.4. NOTIFICACIONES
+         ================================================== -->
+
+    <div
+      class="dropdown notifications-dropdown"
+      [class.menu-open]="avisosAbiertos">
+
+      <button
+        type="button"
+        class="btn btn-ghost icon-btn bell"
+        (click)="avisosAbiertos = !avisosAbiertos; cargarAvisos()"
+        [attr.aria-expanded]="avisosAbiertos"
+        aria-controls="avisos-panel"
+        aria-label="Abrir notificaciones"
+        title="Notificaciones">
+
+        <app-icon name="bell"></app-icon>
+
+        <!-- Contador de notificaciones -->
+        <span
+          class="badge-count"
+          *ngIf="noLeidas > 0">
+
+          {{ noLeidas > 99 ? '99+' : noLeidas }}
+
+        </span>
+
+      </button>
+
+      <!-- Panel de notificaciones -->
+      <section
+        id="avisos-panel"
+        class="dropdown-panel avisos-panel"
+        *ngIf="avisosAbiertos"
+        aria-label="Panel de notificaciones">
+
+        <!-- Cabecera -->
+        <div class="avisos-header">
+
+          <div>
+            <strong>Notificaciones</strong>
+            <span>Actualizaciones del ERP</span>
+          </div>
+
+          <span
+            class="avisos-total"
+            *ngIf="noLeidas > 0">
+
+            {{ noLeidas > 99 ? '99+' : noLeidas }}
+
+          </span>
+
+        </div>
+
+        <!-- Contenido -->
+        <div class="avisos-body">
+
+          <!-- Estado vacío -->
+          <p
+            class="avisos-empty"
+            *ngIf="!avisos.length">
+
+            <app-icon name="bell"></app-icon>
+
+            No hay avisos nuevos.
+
+          </p>
+
+          <!-- Lista de notificaciones -->
+          <button
+            type="button"
+            class="dropdown-item aviso"
+            *ngFor="let aviso of avisos"
+            (click)="abrirAviso(aviso); avisosAbiertos = false">
+
+            <strong>{{ aviso.titulo }}</strong>
+
+            <span>{{ aviso.detalle }}</span>
+
+          </button>
+
+        </div>
+
+        <!-- Pie -->
+        <a
+          class="dropdown-item avisos-footer"
+          routerLink="/modules/notificaciones"
+          (click)="avisosAbiertos = false">
+
+          Ver todas las notificaciones
+
+        </a>
+
+      </section>
+
+    </div>
+
+
+    <!-- ==================================================
+         3.5. PERFIL DEL USUARIO
+         ================================================== -->
+
+    <div
+      class="dropdown profile-dropdown"
+      [class.menu-open]="menuOpen">
+
+      <!-- Botón del perfil -->
+      <button
+        type="button"
+        class="btn btn-ghost profile-trigger"
+        (click)="menuOpen = !menuOpen"
+        [attr.aria-expanded]="menuOpen"
+        aria-controls="profile-panel"
+        [attr.aria-label]="'Cuenta de usuario: ' + userName"
+        title="Mi cuenta">
+
+        <!-- Avatar -->
+        <span class="avatar">
+
+          <img
+            *ngIf="avatar.url() as foto"
+            [src]="foto"
+            alt=""
+            loading="lazy"
+          />
+
+          <ng-container *ngIf="!avatar.url()">
+            {{ initials }}
+          </ng-container>
+
+        </span>
+
+        <!-- Información del usuario -->
+        <span class="user-info">
+
+          <strong class="user-label">
+            {{ userName }}
+          </strong>
+
+          <small>
+            {{ userRole }}
+          </small>
+
+        </span>
+
+        <!-- Indicador del menú -->
+        <app-icon
+          name="chevronDown"
+          class="profile-chevron">
+        </app-icon>
+
+      </button>
+
+
+      <!-- ==================================================
+           PANEL DEL PERFIL
+           ================================================== -->
+
+      <div
+        id="profile-panel"
+        class="dropdown-panel profile-panel"
+        *ngIf="menuOpen"
+        role="group"
+        aria-label="Opciones de cuenta">
+
+
+        <!-- Resumen de usuario -->
+        <div class="profile-summary">
+
+          <span class="avatar avatar-large">
+
+            <img
+              *ngIf="avatar.url() as foto"
+              [src]="foto"
+              alt=""
+              loading="lazy"
+            />
+
+            <ng-container *ngIf="!avatar.url()">
+              {{ initials }}
+            </ng-container>
+
+          </span>
+
+          <div class="profile-details">
+
+            <strong>
+              {{ userName }}
+            </strong>
+
+            <span>
+              {{ userEmail }}
+            </span>
+
+            <small>
+              {{ userRole }}
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <div class="dropdown-divider"></div>
+
+
+        <!-- Mi perfil -->
+        <button
+          type="button"
+          class="menu-item"
+          (click)="menuOpen = false; ir('/cuenta/perfil')">
+
+          <app-icon name="users"></app-icon>
+
+          <span>Mi perfil</span>
+
+        </button>
+
+
+        <!-- Seguridad -->
+        <button
+          type="button"
+          class="menu-item"
+          (click)="menuOpen = false; ir('/cuenta/perfil?seccion=seguridad')">
+
+          <app-icon name="shield"></app-icon>
+
+          <span>Seguridad y contraseña</span>
+
+        </button>
+
+
+        <!-- Configuración: solo administrador -->
+        <button
+          type="button"
+          class="menu-item"
+          *ngIf="esAdmin"
+          (click)="menuOpen = false; ir('/modules/configuracion')">
+
+          <app-icon name="settings"></app-icon>
+
+          <span>Configuración</span>
+
+        </button>
+
+
+        <div class="dropdown-divider"></div>
+
+
+        <!-- Cerrar sesión -->
+        <button
+          type="button"
+          class="menu-item danger"
+          (click)="menuOpen = false; logout()">
+
+          <app-icon name="logout"></app-icon>
+
+          <span>Cerrar sesión</span>
+
+        </button>
+
+      </div>
+
+    </div>
+
   </div>
+
 </header>
