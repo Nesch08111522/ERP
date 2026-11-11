@@ -1,0 +1,17 @@
+@startuml
+title Registro de asistencia QR
+start
+partition "ADMIN" {
+:ADMIN envia payload al endpoint escanear-qr;
+:PreAuthorize exige ADMIN y asistencia.marcar;
+:Delegar marcarPorQrEscaneado;
+:Validar payload personal segun servicio;
+:Registrar marcacion y devolver 201;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Revisar validaciones TOTP y replay en implementacion;
+endif
+}
+stop
+@enduml

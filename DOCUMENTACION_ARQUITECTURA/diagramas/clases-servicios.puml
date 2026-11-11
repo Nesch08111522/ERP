@@ -1,0 +1,78 @@
+@startuml
+title Clases servicios
+hide empty methods
+class Sede <<referencia externa>>
+class User <<referencia externa>>
+class Venta <<referencia externa>>
+class Movilidad <<Entity>> {
+  id : UUID
+  sede : Sede
+  placa : String
+  tipo : String
+  marca : String
+  modelo : String
+  conductor : User
+  activo : Boolean
+  createdAt : LocalDateTime
+}
+class OrdenDespacho <<Entity>> {
+  id : UUID
+  venta : Venta
+  sede : Sede
+  responsable : User
+  movilidad : Movilidad
+  direccionEntrega : String
+  referenciaEntrega : String
+  estado : EstadoDespacho
+  fechaProgramada : LocalDate
+  fechaEntrega : LocalDateTime
+  observaciones : String
+  urlEvidenciaEntrega : String
+  createdAt : LocalDateTime
+  codigoSeguimiento : String
+  contactoNombre : String
+  contactoTelefono : String
+  fechaAsignacion : LocalDateTime
+  fechaSalida : LocalDateTime
+  recibidoPorNombre : String
+  recibidoPorDocumento : String
+  latitudEntrega : BigDecimal
+  longitudEntrega : BigDecimal
+  evidenciaContentType : String
+  evidenciaNombreOriginal : String
+  motivoFallo : String
+  intentosFallidos : Integer
+  creadoPor : User
+  updatedAt : LocalDateTime
+}
+class Servicio <<Entity>> {
+  id : UUID
+  nombre : String
+  descripcion : String
+  precio : BigDecimal
+  activo : Boolean
+  createdAt : LocalDateTime
+  colaboradores : ListServicioColaborador
+}
+class ServicioColaborador <<Entity>> {
+  id : UUID
+  servicio : Servicio
+  usuario : User
+  tipoColaborador : String
+  nombreExterno : String
+  costo : java.math.BigDecimal
+  estadoLiquidacion : String
+  participacion : String
+}
+Movilidad "0..*" -- "1" Sede : sede
+Movilidad "0..*" -- "0..1" User : conductor
+OrdenDespacho "0..*" -- "1" Venta : venta
+OrdenDespacho "0..*" -- "1" Sede : sede
+OrdenDespacho "0..*" -- "0..1" User : responsable
+OrdenDespacho "0..*" -- "0..1" Movilidad : movilidad
+OrdenDespacho "0..*" -- "0..1" User : creadoPor
+Servicio "0..1" -- "0..*" ServicioColaborador : colaboradores
+ServicioColaborador "0..*" -- "1" Servicio : servicio
+ServicioColaborador "0..*" -- "0..1" User : usuario
+
+@enduml

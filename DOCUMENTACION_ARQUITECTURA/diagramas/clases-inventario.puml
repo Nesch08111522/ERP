@@ -1,0 +1,136 @@
+@startuml
+title Clases inventario
+hide empty methods
+class Almacen <<referencia externa>>
+class User <<referencia externa>>
+class Proveedor <<referencia externa>>
+class AjusteStock <<Entity>> {
+  id : UUID
+  codigo : String
+  producto : Producto
+  almacen : Almacen
+  tipoMovimiento : TipoMovimiento
+  cantidad : BigDecimal
+  stockAnterior : BigDecimal
+  stockResultante : BigDecimal
+  costoUnitario : BigDecimal
+  valor : BigDecimal
+  motivo : String
+  justificacion : String
+  kardexMovimiento : KardexMovimiento
+  user : User
+  createdAt : LocalDateTime
+}
+class CatalogoFraccion <<Entity>> {
+  id : UUID
+  producto : Producto
+  nombreFraccion : String
+  factorDescuentoKardex : BigDecimal
+  precioVenta : BigDecimal
+  enOferta : Boolean
+  ofertaPorcentaje : BigDecimal
+  precioOferta : BigDecimal
+  activo : Boolean
+}
+class Categoria <<Entity>> {
+  id : UUID
+  parent : Categoria
+  nombre : String
+  slug : String
+  activa : Boolean
+}
+class KardexMovimiento <<Entity>> {
+  id : UUID
+  producto : Producto
+  almacen : Almacen
+  referenciaId : UUID
+  tipoReferencia : TipoReferencia
+  tipoMovimiento : TipoMovimiento
+  cantidadMovida : BigDecimal
+  stockResultante : BigDecimal
+  costoUnitario : BigDecimal
+  precioVenta : BigDecimal
+  user : User
+  observacion : String
+  createdAt : LocalDateTime
+}
+class Producto <<Entity>> {
+  id : UUID
+  categoria : Categoria
+  proveedor : Proveedor
+  codigoSku : String
+  nombre : String
+  descripcion : String
+  tipo : TipoProducto
+  precioCompra : BigDecimal
+  precioVentaBase : BigDecimal
+  unidad : String
+  esFraccionable : Boolean
+  activo : Boolean
+  destacado : Boolean
+  oferta : Boolean
+  ofertaManual : Boolean
+  precioOferta : BigDecimal
+  ofertaPorcentaje : BigDecimal
+  ofertaDesde : LocalDate
+  ofertaHasta : LocalDate
+  createdAt : LocalDateTime
+  incluyeIgv : Boolean
+  tipoAfectacion : String
+  codigoProveedor : String
+  tiempoReposicionDias : Integer
+  permiteStockNegativo : Boolean
+  precioMayorista : BigDecimal
+  visibleCatalogo : Boolean
+  disponibleVenta : Boolean
+  imagen : String
+  fracciones : ListCatalogoFraccion
+}
+note right of Producto : Metodos: addFraccion, clearFracciones
+class Stock <<Entity>> {
+  id : UUID
+  producto : Producto
+  almacen : Almacen
+  cantidad : BigDecimal
+  stockMinimo : BigDecimal
+  stockMaximo : BigDecimal
+  puntoReposicion : BigDecimal
+  updatedAt : LocalDateTime
+}
+class TransferenciaStock <<Entity>> {
+  id : UUID
+  codigo : String
+  producto : Producto
+  almacenOrigen : Almacen
+  almacenDestino : Almacen
+  cantidad : BigDecimal
+  entreSedes : Boolean
+  motivo : String
+  referenciaDocumento : String
+  movimientoSalida : KardexMovimiento
+  movimientoEntrada : KardexMovimiento
+  user : User
+  createdAt : LocalDateTime
+}
+AjusteStock "0..*" -- "1" Producto : producto
+AjusteStock "0..*" -- "1" Almacen : almacen
+AjusteStock "0..*" -- "0..1" KardexMovimiento : kardexMovimiento
+AjusteStock "0..*" -- "1" User : user
+CatalogoFraccion "0..*" -- "1" Producto : producto
+Categoria "0..*" -- "0..1" Categoria : parent
+KardexMovimiento "0..*" -- "1" Producto : producto
+KardexMovimiento "0..*" -- "1" Almacen : almacen
+KardexMovimiento "0..*" -- "1" User : user
+Producto "0..*" -- "0..1" Categoria : categoria
+Producto "0..*" -- "0..1" Proveedor : proveedor
+Producto "0..1" -- "0..*" CatalogoFraccion : fracciones
+Stock "0..*" -- "1" Producto : producto
+Stock "0..*" -- "1" Almacen : almacen
+TransferenciaStock "0..*" -- "1" Producto : producto
+TransferenciaStock "0..*" -- "1" Almacen : almacenOrigen
+TransferenciaStock "0..*" -- "1" Almacen : almacenDestino
+TransferenciaStock "0..*" -- "0..1" KardexMovimiento : movimientoSalida
+TransferenciaStock "0..*" -- "0..1" KardexMovimiento : movimientoEntrada
+TransferenciaStock "0..*" -- "1" User : user
+
+@enduml

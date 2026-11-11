@@ -1,0 +1,38 @@
+@startuml
+title Casos de uso configuracion
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "configuracion" {
+usecase "obtenerEmpresa\nGET /api/v1/configuracion/empresa" as U0
+usecase "actualizarEmpresa\nPUT /api/v1/configuracion/empresa" as U1
+usecase "obtenerParametros\nGET /api/v1/configuracion/parametros" as U2
+usecase "actualizarParametros\nPUT /api/v1/configuracion/parametros" as U3
+usecase "listarSeries\nGET /api/v1/configuracion/series" as U4
+usecase "actualizarSeries\nPUT /api/v1/configuracion/series" as U5
+usecase "publica\nGET /api/v1/configuracion/publica" as U6
+usecase "actualizarMarca\nPUT /api/v1/configuracion/marca" as U7
+usecase "subirLogo\nPOST /api/v1/configuracion/logo" as U8
+usecase "verLogo\nGET /api/v1/configuracion/logo" as U9
+usecase "formatoCotizacion\nGET /api/v1/configuracion/cotizacion" as U10
+usecase "guardarFormato\nPUT /api/v1/configuracion/cotizacion" as U11
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+ADMIN -- U6
+ADMIN -- U7
+ADMIN -- U8
+ADMIN -- U9
+ADMIN -- U10
+MULTIFUNCIONAL -- U10
+ADMIN -- U11
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

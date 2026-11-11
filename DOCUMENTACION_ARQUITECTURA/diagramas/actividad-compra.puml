@@ -1,0 +1,20 @@
+@startuml
+title Compra de productos
+start
+partition "Operacion documentada" {
+:Validar proveedor activo sede y fecha;
+:Procesar detalles e importes;
+:Guardar BORRADOR transitorio;
+:Ingresar en misma transaccion;
+:Entrada Kardex por detalle;
+:Actualizar costo promedio y cantidad recibida;
+:Crear cuenta por pagar;
+:Guardar RECIBIDA;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Referencia invalida o fallo de Kardex CxP causa rollback;
+endif
+}
+stop
+@enduml

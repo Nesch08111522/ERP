@@ -1,0 +1,63 @@
+@startuml
+title ERD JPA inferido - configuracion
+hide circle
+entity "configuracion_empresa\nConfiguracionEmpresa" as ConfiguracionEmpresa {
+  * id : Long <<PK JPA>>
+  ruc : String
+  razon_social : String
+  nombre_comercial : String
+  direccion_fiscal : String
+  ubigeo : String
+  telefono : String
+  email : String
+  logo_url : String
+  actualizado_por : User <<JOIN JPA>>
+  updated_at : LocalDateTime
+}
+entity "configuracion_finanzas\nConfiguracionFinanzas" as ConfiguracionFinanzas {
+  * id : Long <<PK JPA>>
+  meses_historicos_proyeccion : Integer
+  meses_proyeccion_default : Integer
+  meses_proyeccion_max : Integer
+  actualizado_por : User <<JOIN JPA>>
+  updated_at : LocalDateTime
+}
+entity "configuracion_inventario\nConfiguracionInventario" as ConfiguracionInventario {
+  * id : Long <<PK JPA>>
+  umbral_justificacion_ajuste : BigDecimal
+  min_caracteres_justificacion : Integer
+  actualizado_por : User <<JOIN JPA>>
+  updated_at : LocalDateTime
+}
+entity "configuracion_reportes\nConfiguracionReportes" as ConfiguracionReportes {
+  * id : Long <<PK JPA>>
+  max_filas_exportacion : Integer
+  actualizado_por : User <<JOIN JPA>>
+  updated_at : LocalDateTime
+}
+entity "configuracion_rrhh\nConfiguracionRrhh" as ConfiguracionRrhh {
+  * id : Long <<PK JPA>>
+  politica_division : PoliticaDivisionSueldo
+  dias_laborables : ListString
+  tratamiento_ausencias : TratamientoAusencias
+  actualizado_por : User <<JOIN JPA>>
+  updated_at : LocalDateTime
+}
+entity "configuracion_ventas\nConfiguracionVentas" as ConfiguracionVentas {
+  * id : Long <<PK JPA>>
+  vigencia_cotizacion_dias : Integer
+  preforma_minutos_default : Integer
+  preforma_minutos_min : Integer
+  preforma_minutos_max : Integer
+  actualizado_por : User <<JOIN JPA>>
+  updated_at : LocalDateTime
+}
+entity "User (externa)" as User
+ConfiguracionEmpresa -- User : ManyToOne actualizadoPor
+ConfiguracionFinanzas -- User : ManyToOne actualizadoPor
+ConfiguracionInventario -- User : ManyToOne actualizadoPor
+ConfiguracionReportes -- User : ManyToOne actualizadoPor
+ConfiguracionRrhh -- User : ManyToOne actualizadoPor
+ConfiguracionVentas -- User : ManyToOne actualizadoPor
+
+@enduml

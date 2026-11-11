@@ -1,0 +1,17 @@
+@startuml
+title Inicio de sesion
+start
+partition "Operacion documentada" {
+:Usuario envia email y password;
+:Buscar usuario por email;
+:Comprobar activo y BCrypt;
+:Guardar ultimo login e IP;
+:Emitir JWT y guardar hash refresh;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Credenciales invalidas o cuenta inactiva;
+endif
+}
+stop
+@enduml

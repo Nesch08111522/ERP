@@ -67,6 +67,28 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void retryAfter_redondeaHaciaArriba_sinExponerDatosInternos() throws Exception {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        RateLimitFilter.escribirDemasiadasPeticiones(response,
+                io.github.bucket4j.ConsumptionProbe.rejected(0, 1_500_000_000L, 0));
+
+        assertEquals(429, response.getStatus());
+        assertEquals("2", response.getHeader("Retry-After"));
+        assertEquals("{\"error\":\"demasiadas_peticiones\",\"retryAfterSeconds\":2}",
+                response.getContentAsString());
+    }
+
+    @Test
+    void retryAfter_ventanaExacta_yMinimoUnSegundo() throws Exception {
+        for (long waitNanos : new long[] {0, 1, 1_000_000_000L}) {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            RateLimitFilter.escribirDemasiadasPeticiones(response,
+                    io.github.bucket4j.ConsumptionProbe.rejected(0, waitNanos, 0));
+            assertEquals("1", response.getHeader("Retry-After"));
+        }
+    }
+
+    @Test
     void rutaNoProtegida_noFiltra() throws Exception {
         RateLimitFilter filter = new RateLimitFilter(1, 60, 30, 60);
         MockHttpServletRequest req = new MockHttpServletRequest();

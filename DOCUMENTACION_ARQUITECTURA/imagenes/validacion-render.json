@@ -1,0 +1,651 @@
+{
+  "renderer": "PlantUML 1.2026.2 / local Graphviz 2.44.1",
+  "count": 92,
+  "validation": "PNG signature, IHDR dimensions, IEND, IDAT zlib decompression; checkonly and renderer exit 0",
+  "images": [
+    {
+      "source": "actividad-asignacion.puml",
+      "image": "actividad-asignacion.png",
+      "width": 464,
+      "height": 499,
+      "bytes": 11569
+    },
+    {
+      "source": "actividad-autorizacion.puml",
+      "image": "actividad-autorizacion.png",
+      "width": 434,
+      "height": 554,
+      "bytes": 12584
+    },
+    {
+      "source": "actividad-caja.puml",
+      "image": "actividad-caja.png",
+      "width": 415,
+      "height": 664,
+      "bytes": 14959
+    },
+    {
+      "source": "actividad-colaboradores.puml",
+      "image": "actividad-colaboradores.png",
+      "width": 562,
+      "height": 609,
+      "bytes": 14744
+    },
+    {
+      "source": "actividad-compra.puml",
+      "image": "actividad-compra.png",
+      "width": 545,
+      "height": 720,
+      "bytes": 16671
+    },
+    {
+      "source": "actividad-entrada.puml",
+      "image": "actividad-entrada.png",
+      "width": 443,
+      "height": 609,
+      "bytes": 13531
+    },
+    {
+      "source": "actividad-gastos.puml",
+      "image": "actividad-gastos.png",
+      "width": 559,
+      "height": 499,
+      "bytes": 12310
+    },
+    {
+      "source": "actividad-legajo.puml",
+      "image": "actividad-legajo.png",
+      "width": 458,
+      "height": 554,
+      "bytes": 12679
+    },
+    {
+      "source": "actividad-login.puml",
+      "image": "actividad-login.png",
+      "width": 457,
+      "height": 554,
+      "bytes": 11968
+    },
+    {
+      "source": "actividad-manual.puml",
+      "image": "actividad-manual.png",
+      "width": 601,
+      "height": 554,
+      "bytes": 13472
+    },
+    {
+      "source": "actividad-producto.puml",
+      "image": "actividad-producto.png",
+      "width": 446,
+      "height": 609,
+      "bytes": 14012
+    },
+    {
+      "source": "actividad-publicacion.puml",
+      "image": "actividad-publicacion.png",
+      "width": 684,
+      "height": 609,
+      "bytes": 16871
+    },
+    {
+      "source": "actividad-qr.puml",
+      "image": "actividad-qr.png",
+      "width": 539,
+      "height": 554,
+      "bytes": 13442
+    },
+    {
+      "source": "actividad-remuneracion.puml",
+      "image": "actividad-remuneracion.png",
+      "width": 549,
+      "height": 775,
+      "bytes": 18570
+    },
+    {
+      "source": "actividad-reportes.puml",
+      "image": "actividad-reportes.png",
+      "width": 614,
+      "height": 554,
+      "bytes": 14178
+    },
+    {
+      "source": "actividad-salida.puml",
+      "image": "actividad-salida.png",
+      "width": 418,
+      "height": 609,
+      "bytes": 13369
+    },
+    {
+      "source": "actividad-transferencia.puml",
+      "image": "actividad-transferencia.png",
+      "width": 547,
+      "height": 720,
+      "bytes": 16313
+    },
+    {
+      "source": "actividad-venta.puml",
+      "image": "actividad-venta.png",
+      "width": 584,
+      "height": 775,
+      "bytes": 18266
+    },
+    {
+      "source": "clases-compras.puml",
+      "image": "clases-compras.png",
+      "width": 1065,
+      "height": 994,
+      "bytes": 62111
+    },
+    {
+      "source": "clases-configuracion.puml",
+      "image": "clases-configuracion.png",
+      "width": 1575,
+      "height": 424,
+      "bytes": 34044
+    },
+    {
+      "source": "clases-finanzas.puml",
+      "image": "clases-finanzas.png",
+      "width": 2719,
+      "height": 870,
+      "bytes": 116723
+    },
+    {
+      "source": "clases-identidad.puml",
+      "image": "clases-identidad.png",
+      "width": 843,
+      "height": 940,
+      "bytes": 40048
+    },
+    {
+      "source": "clases-inventario.puml",
+      "image": "clases-inventario.png",
+      "width": 1517,
+      "height": 1668,
+      "bytes": 117274
+    },
+    {
+      "source": "clases-rrhh.puml",
+      "image": "clases-rrhh.png",
+      "width": 2492,
+      "height": 1134,
+      "bytes": 140558
+    },
+    {
+      "source": "clases-servicios.puml",
+      "image": "clases-servicios.png",
+      "width": 958,
+      "height": 1134,
+      "bytes": 58511
+    },
+    {
+      "source": "clases-ubicacion.puml",
+      "image": "clases-ubicacion.png",
+      "width": 598,
+      "height": 600,
+      "bytes": 20808
+    },
+    {
+      "source": "clases-ventas.puml",
+      "image": "clases-ventas.png",
+      "width": 2379,
+      "height": 2307,
+      "bytes": 309274
+    },
+    {
+      "source": "clases-web.puml",
+      "image": "clases-web.png",
+      "width": 690,
+      "height": 1181,
+      "bytes": 45502
+    },
+    {
+      "source": "componentes.puml",
+      "image": "componentes.png",
+      "width": 403,
+      "height": 704,
+      "bytes": 12818
+    },
+    {
+      "source": "despliegue.puml",
+      "image": "despliegue.png",
+      "width": 797,
+      "height": 460,
+      "bytes": 18999
+    },
+    {
+      "source": "erd-compras.puml",
+      "image": "erd-compras.png",
+      "width": 1470,
+      "height": 972,
+      "bytes": 61914
+    },
+    {
+      "source": "erd-configuracion.puml",
+      "image": "erd-configuracion.png",
+      "width": 1789,
+      "height": 428,
+      "bytes": 32881
+    },
+    {
+      "source": "erd-finanzas.puml",
+      "image": "erd-finanzas.png",
+      "width": 2672,
+      "height": 884,
+      "bytes": 102544
+    },
+    {
+      "source": "erd-identidad.puml",
+      "image": "erd-identidad.png",
+      "width": 764,
+      "height": 972,
+      "bytes": 35652
+    },
+    {
+      "source": "erd-inventario.puml",
+      "image": "erd-inventario.png",
+      "width": 1943,
+      "height": 1692,
+      "bytes": 132091
+    },
+    {
+      "source": "erd-rrhh.puml",
+      "image": "erd-rrhh.png",
+      "width": 2908,
+      "height": 1148,
+      "bytes": 131969
+    },
+    {
+      "source": "erd-servicios.puml",
+      "image": "erd-servicios.png",
+      "width": 1318,
+      "height": 1148,
+      "bytes": 58190
+    },
+    {
+      "source": "erd-ubicacion.puml",
+      "image": "erd-ubicacion.png",
+      "width": 468,
+      "height": 621,
+      "bytes": 17452
+    },
+    {
+      "source": "erd-ventas.puml",
+      "image": "erd-ventas.png",
+      "width": 4316,
+      "height": 2323,
+      "bytes": 335447
+    },
+    {
+      "source": "erd-web.puml",
+      "image": "erd-web.png",
+      "width": 756,
+      "height": 1203,
+      "bytes": 44906
+    },
+    {
+      "source": "estados-caja.puml",
+      "image": "estados-caja.png",
+      "width": 229,
+      "height": 325,
+      "bytes": 3972
+    },
+    {
+      "source": "estados-compra.puml",
+      "image": "estados-compra.png",
+      "width": 528,
+      "height": 325,
+      "bytes": 9831
+    },
+    {
+      "source": "estados-nomina.puml",
+      "image": "estados-nomina.png",
+      "width": 356,
+      "height": 453,
+      "bytes": 8375
+    },
+    {
+      "source": "estados-producto.puml",
+      "image": "estados-producto.png",
+      "width": 451,
+      "height": 325,
+      "bytes": 8756
+    },
+    {
+      "source": "estados-venta.puml",
+      "image": "estados-venta.png",
+      "width": 360,
+      "height": 325,
+      "bytes": 4976
+    },
+    {
+      "source": "FLUJO_GENERAL_POLICALUM.puml",
+      "image": "FLUJO_GENERAL_POLICALUM.png",
+      "width": 2834,
+      "height": 1297,
+      "bytes": 223315
+    },
+    {
+      "source": "paquetes.puml",
+      "image": "paquetes.png",
+      "width": 655,
+      "height": 462,
+      "bytes": 12548
+    },
+    {
+      "source": "secuencia-asistencia-qr.puml",
+      "image": "secuencia-asistencia-qr.png",
+      "width": 1531,
+      "height": 688,
+      "bytes": 29932
+    },
+    {
+      "source": "secuencia-compra.puml",
+      "image": "secuencia-compra.png",
+      "width": 1407,
+      "height": 749,
+      "bytes": 32274
+    },
+    {
+      "source": "secuencia-jwt.puml",
+      "image": "secuencia-jwt.png",
+      "width": 1026,
+      "height": 531,
+      "bytes": 20600
+    },
+    {
+      "source": "secuencia-legajo.puml",
+      "image": "secuencia-legajo.png",
+      "width": 1136,
+      "height": 749,
+      "bytes": 31501
+    },
+    {
+      "source": "secuencia-login.puml",
+      "image": "secuencia-login.png",
+      "width": 1258,
+      "height": 749,
+      "bytes": 30390
+    },
+    {
+      "source": "secuencia-productos-consulta.puml",
+      "image": "secuencia-productos-consulta.png",
+      "width": 1171,
+      "height": 749,
+      "bytes": 31210
+    },
+    {
+      "source": "secuencia-productos-registro.puml",
+      "image": "secuencia-productos-registro.png",
+      "width": 1302,
+      "height": 749,
+      "bytes": 32120
+    },
+    {
+      "source": "secuencia-remuneraciones.puml",
+      "image": "secuencia-remuneraciones.png",
+      "width": 1380,
+      "height": 749,
+      "bytes": 32576
+    },
+    {
+      "source": "secuencia-stock-sede.puml",
+      "image": "secuencia-stock-sede.png",
+      "width": 1377,
+      "height": 749,
+      "bytes": 32962
+    },
+    {
+      "source": "secuencia-transferencia.puml",
+      "image": "secuencia-transferencia.png",
+      "width": 1520,
+      "height": 749,
+      "bytes": 32976
+    },
+    {
+      "source": "secuencia-venta.puml",
+      "image": "secuencia-venta.png",
+      "width": 1280,
+      "height": 749,
+      "bytes": 31875
+    },
+    {
+      "source": "uso-almacenes.puml",
+      "image": "uso-almacenes.png",
+      "width": 758,
+      "height": 784,
+      "bytes": 41066
+    },
+    {
+      "source": "uso-auditoria.puml",
+      "image": "uso-auditoria.png",
+      "width": 790,
+      "height": 623,
+      "bytes": 29604
+    },
+    {
+      "source": "uso-catalogo-fracciones.puml",
+      "image": "uso-catalogo-fracciones.png",
+      "width": 872,
+      "height": 859,
+      "bytes": 49245
+    },
+    {
+      "source": "uso-categorias.puml",
+      "image": "uso-categorias.png",
+      "width": 755,
+      "height": 962,
+      "bytes": 51925
+    },
+    {
+      "source": "uso-clientes.puml",
+      "image": "uso-clientes.png",
+      "width": 794,
+      "height": 1851,
+      "bytes": 110903
+    },
+    {
+      "source": "uso-compras.puml",
+      "image": "uso-compras.png",
+      "width": 778,
+      "height": 1553,
+      "bytes": 90919
+    },
+    {
+      "source": "uso-configuracion.puml",
+      "image": "uso-configuracion.png",
+      "width": 717,
+      "height": 1156,
+      "bytes": 57583
+    },
+    {
+      "source": "uso-cotizaciones.puml",
+      "image": "uso-cotizaciones.png",
+      "width": 740,
+      "height": 1616,
+      "bytes": 88766
+    },
+    {
+      "source": "uso-cuentas-por-pagar.puml",
+      "image": "uso-cuentas-por-pagar.png",
+      "width": 778,
+      "height": 741,
+      "bytes": 41056
+    },
+    {
+      "source": "uso-despachos.puml",
+      "image": "uso-despachos.png",
+      "width": 758,
+      "height": 994,
+      "bytes": 55566
+    },
+    {
+      "source": "uso-devoluciones.puml",
+      "image": "uso-devoluciones.png",
+      "width": 724,
+      "height": 700,
+      "bytes": 33905
+    },
+    {
+      "source": "uso-facturacion-electronica.puml",
+      "image": "uso-facturacion-electronica.png",
+      "width": 800,
+      "height": 373,
+      "bytes": 20067
+    },
+    {
+      "source": "uso-finanzas.puml",
+      "image": "uso-finanzas.png",
+      "width": 784,
+      "height": 2206,
+      "bytes": 114877
+    },
+    {
+      "source": "uso-general.puml",
+      "image": "uso-general.png",
+      "width": 403,
+      "height": 2276,
+      "bytes": 65499
+    },
+    {
+      "source": "uso-gestor-web.puml",
+      "image": "uso-gestor-web.png",
+      "width": 666,
+      "height": 365,
+      "bytes": 9794
+    },
+    {
+      "source": "uso-kardex.puml",
+      "image": "uso-kardex.png",
+      "width": 796,
+      "height": 1293,
+      "bytes": 70283
+    },
+    {
+      "source": "uso-mensajes-web.puml",
+      "image": "uso-mensajes-web.png",
+      "width": 738,
+      "height": 808,
+      "bytes": 43720
+    },
+    {
+      "source": "uso-movilidades.puml",
+      "image": "uso-movilidades.png",
+      "width": 766,
+      "height": 877,
+      "bytes": 43091
+    },
+    {
+      "source": "uso-notificaciones.puml",
+      "image": "uso-notificaciones.png",
+      "width": 711,
+      "height": 698,
+      "bytes": 36806
+    },
+    {
+      "source": "uso-portafolio-web.puml",
+      "image": "uso-portafolio-web.png",
+      "width": 671,
+      "height": 367,
+      "bytes": 9994
+    },
+    {
+      "source": "uso-preformas.puml",
+      "image": "uso-preformas.png",
+      "width": 709,
+      "height": 861,
+      "bytes": 44299
+    },
+    {
+      "source": "uso-productos.puml",
+      "image": "uso-productos.png",
+      "width": 872,
+      "height": 2570,
+      "bytes": 157440
+    },
+    {
+      "source": "uso-proveedores.puml",
+      "image": "uso-proveedores.png",
+      "width": 797,
+      "height": 1205,
+      "bytes": 67440
+    },
+    {
+      "source": "uso-publico.puml",
+      "image": "uso-publico.png",
+      "width": 726,
+      "height": 256,
+      "bytes": 8576
+    },
+    {
+      "source": "uso-reembolsos.puml",
+      "image": "uso-reembolsos.png",
+      "width": 713,
+      "height": 415,
+      "bytes": 20074
+    },
+    {
+      "source": "uso-reportes.puml",
+      "image": "uso-reportes.png",
+      "width": 790,
+      "height": 1421,
+      "bytes": 75695
+    },
+    {
+      "source": "uso-roles.puml",
+      "image": "uso-roles.png",
+      "width": 731,
+      "height": 595,
+      "bytes": 26711
+    },
+    {
+      "source": "uso-rrhh.puml",
+      "image": "uso-rrhh.png",
+      "width": 837,
+      "height": 5427,
+      "bytes": 335910
+    },
+    {
+      "source": "uso-sedes.puml",
+      "image": "uso-sedes.png",
+      "width": 709,
+      "height": 1026,
+      "bytes": 49300
+    },
+    {
+      "source": "uso-servicios.puml",
+      "image": "uso-servicios.png",
+      "width": 734,
+      "height": 955,
+      "bytes": 50411
+    },
+    {
+      "source": "uso-stock.puml",
+      "image": "uso-stock.png",
+      "width": 845,
+      "height": 1365,
+      "bytes": 80745
+    },
+    {
+      "source": "uso-turnos-caja.puml",
+      "image": "uso-turnos-caja.png",
+      "width": 722,
+      "height": 610,
+      "bytes": 32286
+    },
+    {
+      "source": "uso-users.puml",
+      "image": "uso-users.png",
+      "width": 759,
+      "height": 901,
+      "bytes": 42976
+    },
+    {
+      "source": "uso-ventas.puml",
+      "image": "uso-ventas.png",
+      "width": 724,
+      "height": 876,
+      "bytes": 44577
+    }
+  ]
+}

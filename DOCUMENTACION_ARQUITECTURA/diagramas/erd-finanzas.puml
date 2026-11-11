@@ -1,0 +1,129 @@
+@startuml
+title ERD JPA inferido - finanzas
+hide circle
+entity "finanzas_cuentas\nCuentaFinanciera" as CuentaFinanciera {
+  * id : UUID <<PK JPA>>
+  nombre : String
+  tipo : TipoCuentaFinanciera
+  entidad : String
+  ultimos_digitos : String
+  sede_id : Sede <<JOIN JPA>>
+  cuenta_id : SetMetodoPago <<JOIN JPA>>
+  activa : Boolean
+  creado_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+  updated_at : LocalDateTime
+}
+entity "finanzas_cuentas_por_pagar\nFinanzasCuentaPorPagar" as FinanzasCuentaPorPagar {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  proveedor_id : Proveedor <<JOIN JPA>>
+  compra_id : Compra <<JOIN JPA>>
+  referencia_id : UUID
+  tipo_referencia : TipoReferenciaCxP
+  descripcion : String
+  monto_total : BigDecimal
+  monto_pagado : BigDecimal
+  estado : EstadoCxP
+  fecha_vencimiento : LocalDate
+  fecha_pago : LocalDateTime
+  metodo_pago : String
+  pagado_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "finanzas_retiros_socio\nFinanzasRetiroSocio" as FinanzasRetiroSocio {
+  * id : UUID <<PK JPA>>
+  admin_id : User <<JOIN JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  turno_caja_id : TurnoCaja <<JOIN JPA>>
+  monto_retirado : BigDecimal
+  origen_fondos : OrigenFondos
+  descripcion : String
+  fecha_retiro : LocalDateTime
+  estado : EstadoRetiro
+  motivo_anulacion : String
+  anulado_por : User <<JOIN JPA>>
+  fecha_anulacion : LocalDateTime
+  impacto_caja_revertido : Boolean
+  created_at : LocalDateTime
+}
+entity "gastos_empresariales\nGastoEmpresarial" as GastoEmpresarial {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  tipo : TipoGastoEmpresarial
+  monto : BigDecimal
+  fecha : LocalDate
+  descripcion : String
+  anulado : boolean
+  user_id : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "movimientos_caja_chica\nMovimientoCajaChica" as MovimientoCajaChica {
+  * id : UUID <<PK JPA>>
+  turno_id : TurnoCaja <<JOIN JPA>>
+  tipo : TipoCajaChica
+  concepto : ConceptoCajaChica
+  monto : BigDecimal
+  detalle : String
+  user_id : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "finanzas_pagos_cxp\nPagoCuentaPorPagar" as PagoCuentaPorPagar {
+  * id : UUID <<PK JPA>>
+  cuenta_por_pagar_id : FinanzasCuentaPorPagar <<JOIN JPA>>
+  monto : BigDecimal
+  metodo_pago : MetodoPago
+  referencia : String
+  observaciones : String
+  fecha_pago : LocalDateTime
+  registrado_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "finanzas_saldos_cuenta\nSaldoCuentaFinanciera" as SaldoCuentaFinanciera {
+  * id : UUID <<PK JPA>>
+  cuenta_id : CuentaFinanciera <<JOIN JPA>>
+  saldo : BigDecimal
+  fecha_corte : LocalDateTime
+  observacion : String
+  registrado_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "turnos_caja\nTurnoCaja" as TurnoCaja {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  monto_inicial : BigDecimal
+  monto_final_declarado : BigDecimal
+  fecha_apertura : LocalDateTime
+  fecha_cierre : LocalDateTime
+  estado : EstadoTurno
+  observaciones : String
+  total_retiros_socios : BigDecimal
+  total_reembolsos : BigDecimal
+}
+entity "Sede (externa)" as Sede
+entity "User (externa)" as User
+entity "Proveedor (externa)" as Proveedor
+entity "Compra (externa)" as Compra
+CuentaFinanciera -- Sede : ManyToOne sede
+CuentaFinanciera -- User : ManyToOne creadoPor
+FinanzasCuentaPorPagar -- Sede : ManyToOne sede
+FinanzasCuentaPorPagar -- Proveedor : ManyToOne proveedor
+FinanzasCuentaPorPagar -- Compra : ManyToOne compra
+FinanzasCuentaPorPagar -- User : ManyToOne pagadoPor
+FinanzasRetiroSocio -- User : ManyToOne admin
+FinanzasRetiroSocio -- Sede : ManyToOne sede
+FinanzasRetiroSocio -- TurnoCaja : ManyToOne turnoCaja
+FinanzasRetiroSocio -- User : ManyToOne anuladoPor
+GastoEmpresarial -- Sede : ManyToOne sede
+GastoEmpresarial -- User : ManyToOne registradoPor
+MovimientoCajaChica -- TurnoCaja : ManyToOne turno
+MovimientoCajaChica -- User : ManyToOne user
+PagoCuentaPorPagar -- FinanzasCuentaPorPagar : ManyToOne cuentaPorPagar
+PagoCuentaPorPagar -- User : ManyToOne registradoPor
+SaldoCuentaFinanciera -- CuentaFinanciera : ManyToOne cuenta
+SaldoCuentaFinanciera -- User : ManyToOne registradoPor
+TurnoCaja -- Sede : ManyToOne sede
+TurnoCaja -- User : ManyToOne user
+
+@enduml

@@ -1,0 +1,77 @@
+@startuml
+title ERD JPA inferido - servicios
+hide circle
+entity "movilidades\nMovilidad" as Movilidad {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  placa : String
+  tipo : String
+  marca : String
+  modelo : String
+  conductor_id : User <<JOIN JPA>>
+  activo : Boolean
+  created_at : LocalDateTime
+}
+entity "ordenes_despacho\nOrdenDespacho" as OrdenDespacho {
+  * id : UUID <<PK JPA>>
+  venta_id : Venta <<JOIN JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  responsable_id : User <<JOIN JPA>>
+  movilidad_id : Movilidad <<JOIN JPA>>
+  direccion_entrega : String
+  referencia_entrega : String
+  estado : EstadoDespacho
+  fecha_programada : LocalDate
+  fecha_entrega : LocalDateTime
+  observaciones : String
+  url_evidencia_entrega : String
+  created_at : LocalDateTime
+  codigo_seguimiento : String
+  contacto_nombre : String
+  contacto_telefono : String
+  fecha_asignacion : LocalDateTime
+  fecha_salida : LocalDateTime
+  recibido_por_nombre : String
+  recibido_por_documento : String
+  latitud_entrega : BigDecimal
+  longitud_entrega : BigDecimal
+  evidencia_content_type : String
+  evidencia_nombre_original : String
+  motivo_fallo : String
+  intentos_fallidos : Integer
+  creado_por : User <<JOIN JPA>>
+  updated_at : LocalDateTime
+}
+entity "servicios\nServicio" as Servicio {
+  * id : UUID <<PK JPA>>
+  nombre : String
+  descripcion : String
+  precio : BigDecimal
+  activo : Boolean
+  created_at : LocalDateTime
+}
+entity "servicio_colaboradores\nServicioColaborador" as ServicioColaborador {
+  * id : UUID <<PK JPA>>
+  servicio_id : Servicio <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  tipo_colaborador : String
+  nombre_externo : String
+  costo : java.math.BigDecimal
+  estado_liquidacion : String
+  participacion : String
+}
+entity "Sede (externa)" as Sede
+entity "User (externa)" as User
+entity "Venta (externa)" as Venta
+Movilidad -- Sede : ManyToOne sede
+Movilidad -- User : ManyToOne conductor
+OrdenDespacho -- Venta : ManyToOne venta
+OrdenDespacho -- Sede : ManyToOne sede
+OrdenDespacho -- User : ManyToOne responsable
+OrdenDespacho -- Movilidad : ManyToOne movilidad
+OrdenDespacho -- User : ManyToOne creadoPor
+Servicio -- ServicioColaborador : OneToMany colaboradores
+ServicioColaborador -- Servicio : ManyToOne servicio
+ServicioColaborador -- User : ManyToOne usuario
+
+@enduml

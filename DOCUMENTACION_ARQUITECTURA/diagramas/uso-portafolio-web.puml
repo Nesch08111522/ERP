@@ -1,0 +1,11 @@
+@startuml
+title Casos de uso portafolio-web
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "portafolio-web" {
+usecase "Pantalla portafolio-web\nOperaciones por resolver" as Pendiente
+}
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

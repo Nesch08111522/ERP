@@ -1,0 +1,317 @@
+[
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/catalogo",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/catalogo/a776786f-ebbb-4dd6-9798-63a5b71f89f5",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/carrito",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/cotizar",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/servicios",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/portafolio",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/reclamaciones",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/nosotros",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/blog",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/privacidad",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/terminos",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/envios",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/garantia",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/faq",
+    "width": 320
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/catalogo",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/catalogo/a776786f-ebbb-4dd6-9798-63a5b71f89f5",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/carrito",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/cotizar",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/servicios",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/portafolio",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/reclamaciones",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/nosotros",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/blog",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/privacidad",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/terminos",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/envios",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/garantia",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/faq",
+    "width": 768
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/catalogo",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/catalogo/a776786f-ebbb-4dd6-9798-63a5b71f89f5",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/carrito",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/cotizar",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/servicios",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/portafolio",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/reclamaciones",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/nosotros",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/blog",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/privacidad",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/terminos",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/envios",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/garantia",
+    "width": 1440
+  },
+  {
+    "footerCentered": true,
+    "h1": 1,
+    "overflow": false,
+    "path": "/faq",
+    "width": 1440
+  }
+]

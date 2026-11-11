@@ -1,0 +1,85 @@
+@startuml
+title ERD JPA inferido - compras
+hide circle
+entity "compras\nCompra" as Compra {
+  * id : UUID <<PK JPA>>
+  numero_orden_compra : String
+  fecha_emision : LocalDate
+  fecha_vencimiento_pago : LocalDate
+  moneda : Moneda
+  estado_compra : EstadoCompra
+  anulado_por : User <<JOIN JPA>>
+  fecha_anulacion : LocalDateTime
+  motivo_anulacion : String
+  proveedor_id : Proveedor <<JOIN JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  numero_factura_proveedor : String
+  subtotal_neto : BigDecimal
+  total_igv : BigDecimal
+  total : BigDecimal
+  estado_recepcion : EstadoRecepcion
+  estado_pago : EstadoPago
+  observaciones : String
+  created_at : LocalDateTime
+  updated_at : LocalDateTime
+}
+entity "compra_adjuntos\nCompraAdjunto" as CompraAdjunto {
+  * id : UUID <<PK JPA>>
+  compra_id : Compra <<JOIN JPA>>
+  tipo : String
+  nombre_original : String
+  url_archivo : String
+  content_type : String
+  tamano_bytes : Long
+  subido_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "detalle_compra\nDetalleCompra" as DetalleCompra {
+  * id : UUID <<PK JPA>>
+  compra_id : Compra <<JOIN JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  fraccion_id : CatalogoFraccion <<JOIN JPA>>
+  almacen_id : Almacen <<JOIN JPA>>
+  cantidad : BigDecimal
+  precio_unitario_con_igv : BigDecimal
+  valor_unitario_neto : BigDecimal
+  igv_linea : BigDecimal
+  porcentaje_igv : BigDecimal
+  subtotal : BigDecimal
+  cantidad_recibida : BigDecimal
+}
+entity "proveedores\nProveedor" as Proveedor {
+  * id : UUID <<PK JPA>>
+  nombre_razon : String
+  tipo_documento : String
+  numero_documento : String
+  celular : String
+  email : String
+  direccion : String
+  condiciones_pago : String
+  dias_credito : Integer
+  banco : String
+  cuenta_bancaria : String
+  activo : Boolean
+  created_at : LocalDateTime
+}
+entity "User (externa)" as User
+entity "Sede (externa)" as Sede
+entity "Producto (externa)" as Producto
+entity "CatalogoFraccion (externa)" as CatalogoFraccion
+entity "Almacen (externa)" as Almacen
+Compra -- User : ManyToOne anuladoPor
+Compra -- DetalleCompra : OneToMany detalles
+Compra -- CompraAdjunto : OneToMany adjuntos
+Compra -- Proveedor : ManyToOne proveedor
+Compra -- Sede : ManyToOne sede
+Compra -- User : ManyToOne user
+CompraAdjunto -- Compra : ManyToOne compra
+CompraAdjunto -- User : ManyToOne subidoPor
+DetalleCompra -- Compra : ManyToOne compra
+DetalleCompra -- Producto : ManyToOne producto
+DetalleCompra -- CatalogoFraccion : ManyToOne fraccion
+DetalleCompra -- Almacen : ManyToOne almacen
+
+@enduml

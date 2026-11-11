@@ -1,0 +1,45 @@
+@startuml
+title Casos de uso kardex
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "kardex" {
+usecase "registrarMovimiento\nPOST /api/v1/kardex/movimientos" as U0
+usecase "registrarTransferencia\nPOST /api/v1/kardex/transferencias" as U1
+usecase "searchMovimientos\nGET /api/v1/kardex" as U2
+usecase "buscarMovimientos\nGET /api/v1/kardex/movimientos" as U3
+usecase "obtenerMovimiento\nGET /api/v1/kardex/movimientos/{id}" as U4
+usecase "saldos\nGET /api/v1/kardex/saldos" as U5
+usecase "saldosPorProducto\nGET /api/v1/kardex/saldos/producto/{productoId}" as U6
+usecase "saldosPorAlmacen\nGET /api/v1/kardex/saldos/almacen/{almacenId}" as U7
+usecase "valorizacion\nGET /api/v1/kardex/valorizacion" as U8
+usecase "valorizacionAlmacen\nGET /api/v1/kardex/valorizacion/almacen/{almacenId}" as U9
+usecase "mermas\nGET /api/v1/kardex/mermas" as U10
+usecase "historialProducto\nGET /api/v1/kardex/producto/{productoId}/historial" as U11
+usecase "exportar\nGET /api/v1/kardex/exportar" as U12
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+ADMIN -- U9
+ADMIN -- U10
+ADMIN -- U11
+MULTIFUNCIONAL -- U11
+ADMIN -- U12
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

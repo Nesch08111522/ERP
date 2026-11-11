@@ -1,0 +1,76 @@
+@startuml
+title Casos de uso general
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+actor Visitante
+rectangle "Policalum ERP y portal" {
+usecase "notificaciones" as U0
+usecase "ventas" as U1
+usecase "preformas" as U2
+usecase "cotizaciones" as U3
+usecase "devoluciones" as U4
+usecase "reembolsos" as U5
+usecase "turnos-caja" as U6
+usecase "clientes" as U7
+usecase "mensajes-web" as U8
+usecase "portafolio-web" as U9
+usecase "gestor-web" as U10
+usecase "productos" as U11
+usecase "servicios" as U12
+usecase "categorias" as U13
+usecase "catalogo-fracciones" as U14
+usecase "almacenes" as U15
+usecase "stock" as U16
+usecase "kardex" as U17
+usecase "despachos" as U18
+usecase "movilidades" as U19
+usecase "compras" as U20
+usecase "proveedores" as U21
+usecase "finanzas" as U22
+usecase "cuentas-por-pagar" as U23
+usecase "facturacion-electronica" as U24
+usecase "rrhh" as U25
+usecase "reportes" as U26
+usecase "auditoria" as U27
+usecase "configuracion" as U28
+usecase "sedes" as U29
+usecase "users" as U30
+usecase "roles" as U31
+usecase "Consultar catalogo publico" as Publico
+}
+Visitante -- Publico
+ADMIN -- U0
+ADMIN -- U1
+ADMIN -- U2
+ADMIN -- U3
+ADMIN -- U4
+ADMIN -- U5
+ADMIN -- U6
+ADMIN -- U7
+ADMIN -- U8
+ADMIN -- U9
+ADMIN -- U10
+ADMIN -- U11
+ADMIN -- U12
+ADMIN -- U13
+ADMIN -- U14
+ADMIN -- U15
+ADMIN -- U16
+ADMIN -- U17
+ADMIN -- U18
+ADMIN -- U19
+ADMIN -- U20
+ADMIN -- U21
+ADMIN -- U22
+ADMIN -- U23
+ADMIN -- U24
+ADMIN -- U25
+ADMIN -- U26
+ADMIN -- U27
+ADMIN -- U28
+ADMIN -- U29
+ADMIN -- U30
+ADMIN -- U31
+
+@enduml

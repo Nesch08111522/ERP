@@ -1,12 +1,12 @@
-<section class="section">
+<section class="section page-intro">
   <p class="kicker">Carrito</p>
-  <h1>Pedido para ventas</h1>
-  <p class="lead">No hay pago en línea. Al comprar por WhatsApp, ventas recibe esta lista en el ERP. Si hace falta RUC, pide la cotización.</p>
+  <h1>Tu proyecto empieza aquí.</h1>
+  <p class="lead">Reúne tus materiales, revisa las cantidades y coordina tu pedido con nuestro equipo. Sin pagos en línea.</p>
 </section>
 
 @if (carrito.lineas | async; as lineas) {
   @if (!lineas.length) {
-    <p class="muted">El carrito está vacío. <a routerLink="/catalogo">Revisar el catálogo</a></p>
+    <div class="empty-state"><p class="kicker">El siguiente paso</p><h2>Hagamos espacio para tus ideas.</h2><p>Tu carrito está vacío. Encuentra planchas, perfiles y accesorios para comenzar.</p><a class="btn btn-primary" routerLink="/catalogo">Explorar materiales ↗</a></div>
   } @else {
     <div class="lines">
       @for (linea of lineas; track $index) {
@@ -19,7 +19,7 @@
           <div>
             <strong>{{ linea.nombre }}</strong>
             <p class="muted">{{ linea.fraccionNombre || linea.unidad }} · {{ pen(linea.precio) }}</p>
-            <input class="input qty" type="number" min="0.0001" step="0.0001" [value]="linea.cantidad" (change)="carrito.cambiarCantidad($index, +$any($event.target).value)" />
+            <input class="input qty" [attr.aria-label]="'Cantidad de ' + linea.nombre" type="number" min="0.0001" step="0.0001" [value]="linea.cantidad" (change)="carrito.cambiarCantidad($index, +$any($event.target).value)" />
           </div>
           <div>
             <strong>{{ pen(linea.precio * linea.cantidad) }}</strong>

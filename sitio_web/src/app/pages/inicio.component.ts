@@ -34,7 +34,7 @@ export class InicioComponent implements OnInit, OnDestroy {
   readonly obras = signal<ProyectoPublico[]>([]);
   readonly obrasCargando = signal(true);
   readonly obrasError = signal('');
-  readonly cine = signal(typeof matchMedia !== 'function' || !matchMedia('(prefers-reduced-motion: reduce)').matches);
+  readonly cine = signal(false);
   readonly breve = cortePalabras;
   readonly ritmo = ritmoObra;
   readonly clips = [

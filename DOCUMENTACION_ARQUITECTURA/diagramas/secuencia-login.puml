@@ -1,0 +1,30 @@
+@startuml
+title Login
+actor Usuario
+participant "AuthService (Angular)" as F
+participant HttpClient as H
+participant "SecurityFilterChain / PreAuthorize" as S
+participant AuthController as C
+participant AuthService as A
+participant UserRepository as R
+Usuario -> F : Solicitar operacion
+F -> H : construir peticion
+H -> S : HTTP sin login previo
+alt autenticacion o autorizacion rechazada
+S --> H : 401 / 403
+else acceso permitido
+S -> C : peticion autorizada
+C -> A : login(...)
+note right of A : Buscar email; validar activo y BCrypt; guardar ultimoLogin; emitir JWT y refresh hash
+A -> R : consultas/persistencia resumidas
+R --> A : entidades/proyecciones
+alt excepcion del servicio
+A --> C : excepcion
+C --> H : respuesta via GlobalExceptionHandler
+else operacion valida
+A --> C : DTO
+C --> H : respuesta HTTP
+H --> F : Observable
+end
+end
+@enduml

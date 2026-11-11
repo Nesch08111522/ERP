@@ -1,11 +1,11 @@
-<section class="section">
+<section class="section page-intro">
   <p class="kicker">Cotización formal</p>
-  <h1>Documento para tu empresa</h1>
-  <p class="lead">Elige el distrito de entrega. El ERP aplica la utilidad, la movilidad y los cargos publicados, y te muestra el total antes de enviarlo.</p>
+  <h1>Demos forma a tu proyecto.</h1>
+  <p class="lead">Elige el distrito de entrega. Revisa los materiales, el envío y el total antes de enviar tu solicitud.</p>
 </section>
 
 @if (!lineas().length && !creada()) {
-  <p class="muted">Agrega productos antes de cotizar. <a routerLink="/catalogo">Ir al catálogo</a></p>
+  <div class="empty-state"><p class="kicker">Tu selección, a tu medida</p><h2>Primero, elige tus materiales.</h2><p>Agrega los productos a tu carrito y vuelve aquí para preparar tu cotización.</p><a class="btn btn-primary" routerLink="/catalogo">Elegir materiales ↗</a></div>
 } @else if (creada(); as oficial) {
   <div class="okbox">Cotización registrada. En el ERP, Ventas ya puede abrirla: alguien quiere comprar y el pedido quedó listado.</div>
   <article class="sheet" style="margin-top:1rem">

@@ -1,0 +1,92 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam ArrowColor #43566B
+skinparam packageStyle rectangle
+skinparam nodesep 45
+skinparam ranksep 45
+title POLICALUM | Flujo empresarial y arquitectura real\nLectura estatica focal del codigo; no certificacion operativa
+
+package "01 | Canal publico y comercial" #E8F2FB {
+ rectangle "Visitante" as visitante
+ rectangle "Sitio web Angular\nCatalogo / cotizar" as web
+ rectangle "API publica\nPortalRecepcionController" as publico
+ rectangle "Cotizacion WEB o ERP\nRevision / aceptacion" as cotizacion
+ rectangle "Cliente\nOpcional en venta; RUC para factura" as cliente
+ rectangle "Venta COMPLETADA\nProducto O servicio por linea\nPrecios e IGV del servidor" as venta
+ rectangle "Pagos de venta\nSuma = total" as pagos
+ visitante --> web
+ web --> publico : HTTP
+ publico --> cotizacion : crearDesdeWeb
+ cliente --> venta : venta directa
+ cotizacion --> venta : ACEPTADA / convertir\nVentaService.registrar
+ venta --> pagos : misma transaccion
+}
+
+package "02 | Caja y finanzas" #EAF5EE {
+ rectangle "Turno propio ABIERTO\nUsuario + sede" as turno
+ rectangle "Caja chica\nIngresos / egresos\nRetiros / reembolsos" as chica
+ rectangle "Resumen y cierre de caja\nEsperado vs declarado" as cierre
+ rectangle "Cuentas por pagar\nDeuda de compra PENDIENTE" as cxp
+ rectangle "Cuentas financieras / gastos\nModulo independiente\nConciliacion integral no verificada" as cuentas
+ turno --> venta : requisito de registro
+ pagos --> cierre : efectivo agregado por turno
+ chica --> cierre : entradas y salidas
+ turno --> cierre : monto inicial
+}
+
+package "03 | Abastecimiento e inventario" #FFF3DF {
+ rectangle "Proveedor activo" as proveedor
+ rectangle "Compra\nCrear + ingresar\nMisma transaccion" as compra
+ rectangle "Kardex\nENTRADA / SALIDA" as kardex
+ rectangle "Stock por almacen\nAlmacen pertenece a sede" as stock
+ rectangle "Costo promedio\nProducto / stock global" as costo
+ rectangle "Ajustes y transferencias\nSalida origen / entrada destino" as transferencia
+ proveedor --> compra
+ compra --> kardex : entrada automatica
+ compra --> cxp : genera deuda
+ compra --> costo : actualiza al ingresar
+ venta --> kardex : salida SOLO productos
+ kardex --> stock : actualiza saldo
+ transferencia --> kardex : movimientos
+}
+
+package "04 | Servicios y RRHH (ramas propias)" #F2ECF9 {
+ rectangle "Catalogo de servicios" as servicio
+ rectangle "Colaboradores\nUsuario registrado o externo\nCosto / liquidacion declarados" as colaboradores
+ rectangle "Usuario trabajador\nIncluye ADMIN con legajo" as trabajador
+ rectangle "Legajo / regimen\nPolitica remuneracion" as legajo
+ rectangle "Asistencia QR / manual\nSin enlace salarial demostrado" as asistencia
+ rectangle "Comision aprobada" as comision
+ rectangle "Nomina snapshot\nPENDIENTE > APROBADA > PAGADA\nPago registra estado y referencia" as nomina
+ servicio --> colaboradores : asignacion al catalogo
+ servicio --> venta : linea servicio; no mueve stock
+ trabajador --> legajo
+ trabajador --> asistencia
+ legajo --> nomina : sueldo / pension / regimen
+ comision --> nomina : importe segun regimen
+}
+
+package "05 | Consultas y soporte tecnico" #EEF1F4 {
+ rectangle "Reportes\nVentas / pagos / compras\nArqueos / rentabilidad productos" as reportes
+ rectangle "ERP Angular\nHTTP + JWT" as erp
+ rectangle "Spring Security > Controllers\nApplication services > JPA repositories\nPostgreSQL configurado (no observado)" as arquitectura
+ venta --> reportes : consulta agregada
+ compra --> reportes : compras por proveedor
+ cierre --> reportes : reporte arqueos
+ erp --> arquitectura : recorrido tecnico compartido\nno secuencia empresarial
+}
+
+legend bottom
+ Flechas: llamadas, requisitos o lecturas verificadas; etiquetas distinguen su sentido.
+ No se dibujan enlaces inexistentes: nomina > caja, asistencia > descuento salarial,
+ colaborador > pago financiero, reposicion automatica ni emision SUNAT operativa.
+ Reportes consultan datos; no son un paso transaccional posterior al cierre.
+ Cuentas financieras permanecen separadas: no se presume conciliacion con todas las ramas.
+ Evidencias y limitaciones: catalogo.md, VERIFICACIONES.md y secciones/07.md.
+endlegend
+@enduml

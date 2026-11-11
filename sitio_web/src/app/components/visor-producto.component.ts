@@ -1,17 +1,19 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, signal } from '@angular/core';
 
 @Component({
   selector: 'app-visor',
   styles: `
     :host { display: block; width: 100%; height: 100%; }
-    img, .visor { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .visor * { stroke: none; }
+    img, .visor { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .sin-foto { position:relative; width:100%; height:100%; min-height:140px; }
+    .sin-foto small { position:absolute; bottom:10px; left:8px; right:8px; text-align:center; color:#b8cdd6; font-size:10px; letter-spacing:.03em; }
   `,
   template: `
-    @if (src) {
-      <img [src]="src" [alt]="alt" />
+    @if (src && fallida() !== src) {
+      <img [src]="src" [alt]="alt" loading="lazy" decoding="async" (error)="fallida.set(src)" />
     } @else {
-      <svg class="visor" viewBox="0 0 320 240" role="img" [attr.aria-label]="alt">
+      <div class="sin-foto">
+      <svg class="visor" viewBox="0 0 320 240" aria-hidden="true">
         @switch (tipo) {
           @case ('perfil') {
             <rect width="320" height="240" fill="#163044" />
@@ -28,11 +30,12 @@ import { Component, Input } from '@angular/core';
           }
           @default {
             <rect width="320" height="240" fill="#142838" />
-            <circle cx="160" cy="120" r="46" fill="none" stroke="#9adff0" stroke-width="14" />
-            <circle cx="160" cy="120" r="18" fill="#e8f7fb" />
+            <path d="M160 55 222 88v64l-62 34-62-34V88Z M98 88l62 34 62-34 M160 122v64" fill="#193746" stroke="#7b9dad" stroke-width="2" />
           }
         }
       </svg>
+      <small>{{ tipo === 'accesorio' ? 'Foto pendiente' : 'Ilustración referencial · foto pendiente' }}</small>
+      </div>
     }
   `,
 })
@@ -40,6 +43,7 @@ export class VisorProductoComponent {
   @Input() src: string | null = null;
   @Input() alt = 'Producto';
   @Input() nombre = '';
+  readonly fallida = signal<string | null>(null);
 
   get tipo(): 'placa' | 'perfil' | 'accesorio' {
     const texto = `${this.nombre} ${this.alt}`.toLowerCase();

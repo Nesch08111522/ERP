@@ -1,0 +1,39 @@
+@startuml
+title Casos de uso servicios
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "servicios" {
+usecase "servicios\nGET /api/v1/public/servicios" as U0
+usecase "create\nPOST /api/v1/servicios" as U1
+usecase "update\nPUT /api/v1/servicios/{id}" as U2
+usecase "findById\nGET /api/v1/servicios/{id}" as U3
+usecase "search\nGET /api/v1/servicios" as U4
+usecase "delete\nDELETE /api/v1/servicios/{id}" as U5
+usecase "isNombreDisponible\nGET /api/v1/servicios/check-nombre" as U6
+usecase "getDashboardStatistics\nGET /api/v1/servicios/dashboard/statistics" as U7
+usecase "plantilla\nGET /api/v1/servicios/importar/plantilla" as U8
+usecase "importar\nPOST /api/v1/servicios/importar" as U9
+}
+ADMIN -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+MULTIFUNCIONAL -- U8
+ADMIN -- U9
+MULTIFUNCIONAL -- U9
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

@@ -1,4 +1,4 @@
-@if (error()) { <p class="alert">{{ error() }}</p> }
+@if (error()) { <section class="empty-state" role="alert"><p class="kicker">Catálogo</p><h1>No pudimos cargar este material.</h1><p>{{ error() }}</p><a class="btn btn-primary" routerLink="/catalogo">Volver al catálogo</a></section> }
 @if (producto(); as item) {
   <article class="product section">
     <div class="product-photo">
@@ -7,7 +7,7 @@
     <div>
       <p class="kicker">{{ item.categoriaNombre || 'Catálogo' }}</p>
       <h1>{{ item.nombre }}</h1>
-      <p class="lead">{{ item.descripcion || 'Precio público con IGV, calculado desde el ERP.' }}</p>
+      <p class="lead">{{ item.descripcion || 'Consulta las medidas y el acabado que necesita tu proyecto.' }}</p>
       <p class="price">@if (precioAnterior(item)) { <span class="precio-antes">{{ precioAnterior(item) }}</span> }{{ precioVisible(item) }} <span class="muted">/ {{ item.unidad || 'unidad' }}</span></p>
       <p class="tile-meta">
         @if (item.codigoSku) { <span>SKU {{ item.codigoSku }}</span> }

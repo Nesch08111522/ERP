@@ -1,0 +1,21 @@
+@startuml
+title Venta de productos
+start
+partition "Operacion documentada" {
+:Resolver usuario sede almacen y turno;
+:Exigir turno propio ABIERTO;
+:Validar comprobante y RUC;
+:Bloquear serie y asignar numero;
+:Guardar venta COMPLETADA;
+:Calcular lineas precios e IGV servidor;
+:Registrar salidas Kardex para productos;
+:Comprobar suma pagos igual total;
+:Guardar pagos y totales;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Turno invalido stock insuficiente pagos distintos causan rollback;
+endif
+}
+stop
+@enduml

@@ -1,0 +1,17 @@
+@startuml
+title Registro manual de asistencia
+start
+partition "ADMIN" {
+:ADMIN envia DTO validado;
+:PreAuthorize exige ADMIN y permiso marcar;
+:Confirmar rol usuario;
+:Delegar procesarMarcacionManual;
+:Devolver marcacion 201;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Validaciones temporales exactas pendientes de revision semantica;
+endif
+}
+stop
+@enduml

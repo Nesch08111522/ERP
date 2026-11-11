@@ -8,7 +8,25 @@ Fecha de esta tanda: 2026-11-10 (actualización; la anterior fue 2026-11-08)
 Stack: backend Spring Boot (JDK 17, PostgreSQL 17 como servicio de Windows) + frontend
 Angular 22 (`frontend/`) + sitio web público Angular 22 (`sitio_web/`).
 
-## Revision visual vigente (2026-11-10)
+## Auditoria ITIL 4 (2026-11-11)
+
+- Entregable autorizado: AUDITORIA_ITIL4.md en raiz, 34 practicas (14/17/3), evidencia I/T/P/NE, CIA/RBAC/ADMIN preservado, decisiones MFA/SOD, capacidad/SLA/RPO/RTO propuestos, DRP, blue-green/expand-contract/rollback y KEDB compactos.
+- Busqueda oficial PeopleCert ejecutada; anuncio/FAQ fetch 403. Lista y propositos triangulados con ITSM.tools; catalogo oficial tambien devuelve Version 5. No certificacion, ultima-version ITIL4 ni cumplimiento total afirmados.
+- Cambio seguro minimo: RateLimitFilter Retry-After redondea espera fraccional hacia arriba; dos tests nuevos, sin capacidades/roles/DB/infra/deps alterados. Health/metrics y proxy/timeout quedan propuestas hasta validar despliegue/contratos.
+- Maven offline: primer comando incluyendo *PermissionControllerTest timeout 120 s en compilacion, sin resultados; repeticion seguridad 11/0/0/0 BUILD SUCCESS; ampliacion seguridad + *ServiceImplTest 794/0/0/0 BUILD SUCCESS (incluye los 11, no sumar). Comandos exactos en auditoria; git diff --check sin errores, warnings LF/CRLF.
+- No contexto completo: ErpApplicationTests tiene default DB real; se excluyo. Sin DB activa/restore/carga/pentest/servidores/reinicios 8080/4200/4201/commits. Cambios previos sitio/end/.work y este reporte conservados.
+- Riesgos P1: XFF no confiable, backups/restauracion no acreditados (scripts no encontrados), migraciones/CI aislada, contratos push y telemetria. SLA 99.5%, RPO24h/RTO4h solo para aprobacion y simulacro; instancia unica no acredita failover.
+- APROBADO CON OBSERVACIONES para parche en fuente con tests seleccionados; NO APROBADO para preparacion integral continuidad/seguridad o SLA vigente. No modifica aceptacion visual pendiente del sitio.
+
+## Continuacion vigente (2026-11-11)
+
+- Diff/status iniciales limpios. Geometria extraida en mismo archivo a buildConceptualRoof para probar la topologia usada por renderer (cuatro vanos/ocho pieles/76 paredes, H/U/apoyos/15 fijaciones). Sin cambios comerciales, DB/ERP/backend, dependencias, commits ni procesos detenidos.
+- setSize(width,height,false) evita estilos intrinsecos que puedan realimentar layout; mitigacion, no demostracion de causa ni continuidad desktop aprobada. Luz CMS/neutral conservada. Aviso diagnostico en fallback WebGL.
+- Suite inicial9 archivos25 tests OK6.88s; ajuste numerico y regresion footer forward/reverse posteriores compilan pero dos suites finales timeout al iniciar threads sin tests. Build final OK23.187s inicial269.87kB; TLS heredado sin alterar.
+- CDP disponible pero ensayo fallo: #producto ausente en localhost4201 tras navegacion. Sin responsive/LAN/capturas nuevas validas; roof-evidence.json actual incompleto. No afirmar clon ni cierre visual. Detalle/limites en nueva entrada end.md.
+- NO APROBADO integral: pendientes suite final, diagnostico contenido4201, bandas/reverso con CMS estable, fallback/iluminacion visual y rendimiento.
+
+## Revision visual vigente (2026-11-10, historial)
 
 **NO APROBADO para cierre integral.** Capturas del usuario contradicen aprobacion previa: alas/H parecian satelite y footer interferido. Historia anterior no es aceptacion vigente.
 

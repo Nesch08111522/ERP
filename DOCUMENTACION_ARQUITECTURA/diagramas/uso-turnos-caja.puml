@@ -1,0 +1,28 @@
+@startuml
+title Casos de uso turnos-caja
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "turnos-caja" {
+usecase "abierto\nGET /api/v1/turnos-caja/abierto" as U0
+usecase "listarCajaChica\nGET /api/v1/turnos-caja/{id}/caja-chica" as U1
+usecase "registrarCajaChica\nPOST /api/v1/turnos-caja/{id}/caja-chica" as U2
+usecase "abrir\nPOST /api/v1/turnos-caja" as U3
+usecase "resumen\nGET /api/v1/turnos-caja/{id}/resumen" as U4
+usecase "cerrar\nPOST /api/v1/turnos-caja/{id}/cierre" as U5
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

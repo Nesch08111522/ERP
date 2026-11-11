@@ -1,10 +1,38 @@
 import { describe, expect, it, vi } from 'vitest';
+import * as T from 'three';
 import { Group, Mesh, PerspectiveCamera, PointLight } from 'three';
+import { buildConceptualRoof } from './hero-cinematic.component';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CINEMATIC_POSES, CINEMATIC_STAGES, createCinematicSequence, stageProgress, cinematicPose } from './cinematic-sequence';
 
 describe('persistent cinematic sequence', () => {
+  it('builds four hollow bays, three H joints, perimeter U channels and supported fixings', () => {
+    const releases: Array<() => void> = [];
+    const metal = new T.MeshStandardMaterial();
+    const glass = new T.MeshPhysicalMaterial();
+    const rib = new T.MeshStandardMaterial();
+    const [supports, joints, edges, sheets] = buildConceptualRoof(T, metal, glass, rib, releases);
+    expect(supports.children).toHaveLength(13);
+    expect(joints.children).toHaveLength(10);
+    expect(edges.children).toHaveLength(12);
+    const skins = sheets.children.filter(child => child instanceof Mesh && !(child instanceof T.InstancedMesh)) as Mesh<T.BoxGeometry>[];
+    expect(skins).toHaveLength(8);
+    [...new Set(skins.map(skin => skin.position.x))].forEach((x, index) => expect(x).toBeCloseTo(-1.8 + index * 1.2));
+    expect(skins.every(skin => skin.geometry.parameters.height === .012)).toBe(true);
+    const walls = sheets.children.find(child => child instanceof T.InstancedMesh) as T.InstancedMesh<T.BoxGeometry>;
+    expect(walls.count).toBe(76);
+    const matrix = new T.Matrix4();
+    for (let i = 0; i < walls.count; i++) {
+      walls.getMatrixAt(i, matrix);
+      const x = new T.Vector3().setFromMatrixPosition(matrix).x;
+      const bay = skins[Math.floor(i / 19) * 2];
+      expect(Math.abs(x - bay.position.x) + walls.geometry.parameters.width / 2).toBeLessThan(.59);
+    }
+    expect((joints.children.at(-1) as T.InstancedMesh).count).toBe(15);
+    releases.forEach(release => release());
+    metal.dispose(); glass.dispose(); rib.dispose();
+  });
   it('maps native scroll reversibly and clamps bounds', () => {
     const stops = [100, 400, 1000];
     expect(stageProgress(0, stops)).toBe(0);
@@ -46,12 +74,27 @@ describe('persistent cinematic sequence', () => {
     const triggerKill = vi.fn();
     vi.spyOn(ScrollTrigger, 'create').mockReturnValue({ kill: triggerKill, refresh: vi.fn() } as unknown as ScrollTrigger);
     const root = document.createElement('div');
-    root.innerHTML = '<section id="producto"></section><footer id="footer"></footer>';
+    root.innerHTML = '<section id="producto"></section><div class="cinema-surface"></div><footer id="footer"></footer>';
+    let footerTop = innerHeight + 200;
+    vi.spyOn(root.querySelector('#footer')!, 'getBoundingClientRect').mockImplementation(() => ({ top: footerTop }) as DOMRect);
     const sheets = new Group();
     sheets.add(new Group(), new Group());
     const upper = new Mesh();
     const lower = new Mesh();
-    const cleanup = createCinematicSequence(gsap, ScrollTrigger, root, new Group(), [new Mesh(), upper, lower, sheets], new PerspectiveCamera(), new PointLight());
+    const assembly = new Group();
+    const cleanup = createCinematicSequence(gsap, ScrollTrigger, root, assembly, [new Mesh(), upper, lower, sheets], new PerspectiveCamera(), new PointLight());
+    const update = vi.mocked(ScrollTrigger.create).mock.calls[0][0]!.onUpdate!;
+    const surface = root.querySelector<HTMLElement>('.cinema-surface')!;
+    const before = surface.style.opacity;
+    footerTop = innerHeight;
+    update({} as ScrollTrigger);
+    expect(assembly.visible).toBe(false);
+    expect(surface.style.visibility).toBe('hidden');
+    expect(surface.style.opacity).toBe('0');
+    footerTop = innerHeight + 200;
+    update({} as ScrollTrigger);
+    expect(assembly.visible).toBe(true);
+    expect(surface.style.opacity).toBe(before);
     expect(upper.position.y).toBe(0);
     expect(lower.position.y).toBe(0);
     expect(sheets.position.y).toBe(0);

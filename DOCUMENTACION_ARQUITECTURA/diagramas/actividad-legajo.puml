@@ -1,0 +1,17 @@
+@startuml
+title Administracion de legajos
+start
+partition "Operacion documentada" {
+:ADMIN solicita crear o actualizar legajo;
+:Verificar usuario activo y unicidad;
+:Validar condiciones laborales pension e ingreso;
+:Guardar legajo;
+:Registrar historial salarial y auditoria;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Legajo existente o condiciones invalidas;
+endif
+}
+stop
+@enduml

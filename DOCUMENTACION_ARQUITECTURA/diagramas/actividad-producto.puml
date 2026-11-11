@@ -1,0 +1,18 @@
+@startuml
+title Registro de productos
+start
+partition "Operacion documentada" {
+:Validar disponibilidad SKU;
+:Mapear DTO y resolver categoria proveedor;
+:Normalizar producto y preparar fracciones;
+:Guardar producto;
+:Registrar stock inicial si hay almacen;
+:Registrar apertura Kardex si cantidad positiva;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:SKU duplicado o referencias invalidas;
+endif
+}
+stop
+@enduml

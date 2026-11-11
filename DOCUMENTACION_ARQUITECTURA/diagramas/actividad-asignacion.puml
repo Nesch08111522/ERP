@@ -1,0 +1,16 @@
+@startuml
+title Asignacion producto almacen sede
+start
+partition "Operacion documentada" {
+:Comprobar almacenId;
+:Resolver almacen y sede derivada;
+:Registrar fila de stock inicial;
+:Con cantidad cero no registrar Kardex;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Stock inicial negativo o ubicacion invalida;
+endif
+}
+stop
+@enduml

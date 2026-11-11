@@ -1,0 +1,22 @@
+@startuml
+title Paquetes backend
+package "infrastructure.controller" as C
+package "infrastructure.security" as S
+package "application.service" as A
+package "application.dto" as T
+package "application.mapper" as M
+package "domain.model / enums" as D
+package "infrastructure.repository" as R
+package exception as X
+package util as U
+C ..> A
+C ..> T
+C ..> S
+A ..> R
+A ..> D
+A ..> M
+A ..> X
+A ..> U
+R ..> D
+S ..> R
+@enduml

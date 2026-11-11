@@ -1,7 +1,13 @@
 <app-hero-cinematic id="producto" />
-<nav class="cinema-route" aria-label="Recorrido de materiales">
-  <a href="#marca">Marca</a><a href="#ensamblaje">Materiales</a><a href="#catalogo">Catálogo</a><a href="#aplicaciones">Aplicaciones</a><a href="#sedes">Sedes</a><a href="#contacto">Contacto</a>
-</nav>
+<section class="material-collection" aria-labelledby="material-collection-title">
+  <div class="section-head"><div><p class="kicker">Materia prima. Nuevas posibilidades.</p><h2 id="material-collection-title">Un material para cada idea.</h2></div><a routerLink="/catalogo" class="collection-link">Explorar el catálogo ↗</a></div>
+  <div class="material-families">
+    <a routerLink="/catalogo" [queryParams]="{q: 'policarbonato'}" class="family-card"><div class="family-art sheets" aria-hidden="true"><i></i><i></i><i></i></div><span class="family-number">01 / LUZ</span><h3>Policarbonato alveolar</h3><p>Transparencia, color y ligereza para tus cubiertas.</p><span class="collection-link">Explorar planchas ↗</span></a>
+    <a routerLink="/catalogo" [queryParams]="{q: 'perfil'}" class="family-card"><div class="family-art profiles" aria-hidden="true"><i></i><i></i><i></i></div><span class="family-number">02 / ESTRUCTURA</span><h3>Aluminios y perfiles</h3><p>Líneas precisas y acabados para dar forma a tu proyecto.</p><span class="collection-link">Explorar perfiles ↗</span></a>
+    <a routerLink="/catalogo" [queryParams]="{q: 'conector'}" class="family-card"><div class="family-art connectors" aria-hidden="true"><i></i><i></i><i></i></div><span class="family-number">03 / UNIÓN</span><h3>Conectores y accesorios</h3><p>Conectores H y perfiles U para completar la instalación.</p><span class="collection-link">Explorar accesorios ↗</span></a>
+    <a routerLink="/catalogo" [queryParams]="{q: 'ducha'}" class="family-card"><div class="family-art shower" aria-hidden="true"><i></i><i></i></div><span class="family-number">04 / ESPACIOS</span><h3>Puertas para ducha</h3><p>Cerramientos y tonos que acompañan tu ambiente.</p><span class="collection-link">Explorar puertas ↗</span></a>
+  </div><p class="material-disclaimer">Ilustraciones de materiales. Consulta las fotos, medidas y disponibilidad en cada producto.</p>
+</section>
 <!-- Copy CMS y carrusel recuperados como marca, no como segundo hero. -->
 <section class="hero-grid" id="marca" aria-labelledby="titulo-marca">
   <div class="hero-copy">
@@ -24,7 +30,7 @@
           @if (cine()) {
             <video autoplay muted loop playsinline disablepictureinpicture [poster]="clip.poster" [src]="clip.src" [attr.aria-label]="clip.titulo" (loadedmetadata)="silenciar($event)" (play)="silenciar($event)" (error)="cine.set(false)"></video>
           } @else {
-            <img [src]="clip.poster" [alt]="clip.titulo" />
+            <div class="banner-material" [class.banner-colores]="clip.id === 'colores'" [class.banner-conectores]="clip.id === 'conectores'" role="img" [attr.aria-label]="'Ilustración conceptual: ' + clip.titulo"><div class="material-stack" aria-hidden="true"><span></span><span></span><span></span><i></i><i></i></div></div>
           }
         }
       }
@@ -67,7 +73,7 @@
   <div class="section-head">
     <div>
       <p class="kicker">Promociones</p>
-      <h2 id="titulo-ofertas">Ofertas publicadas por el ERP</h2>
+      <h2 id="titulo-ofertas">Oportunidades para tu proyecto</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/catalogo" [queryParams]="{ vista: 'ofertas' }">Ver ofertas</a>
   </div>
@@ -78,7 +84,7 @@
       }
     </div>
   } @else {
-    <p class="muted">Cuando un producto quede en oferta en el ERP, aparece aquí.</p>
+    <p class="muted">Estamos preparando nuevas ofertas. Explora nuestro catálogo y consulta con un asesor.</p>
   }
 </section>
 
@@ -103,7 +109,7 @@
   <div class="section-head">
     <div>
       <p class="kicker">Novedades</p>
-      <h2 id="titulo-novedades">Recién publicados en el catálogo</h2>
+      <h2 id="titulo-novedades">Descubre nuestros materiales</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/catalogo">Abrir tienda</a>
   </div>
@@ -147,7 +153,7 @@
   <div class="section-head">
     <div>
       <p class="kicker">Servicios</p>
-      <h2 id="titulo-servicios">Lo que el equipo instala o corta</h2>
+      <h2 id="titulo-servicios">De la idea a la instalación</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/servicios">Ver servicios</a>
   </div>
@@ -162,7 +168,7 @@
       }
     </div>
   } @else {
-    <p class="muted">Los servicios activos del ERP se listan en esta portada.</p>
+    <p class="muted">Consulta con nosotros el corte y la instalación que necesita tu proyecto.</p>
   }
 </section>
 
@@ -173,7 +179,7 @@
   </article>
   <article>
     <strong>Corte a medida</strong>
-    <p>Planchas y perfiles según la obra. El servicio publicado está en el ERP.</p>
+    <p>Planchas y perfiles según la obra. Consulta las opciones disponibles con nuestro equipo.</p>
   </article>
   <article>
     <strong>Industria, obra y comercio</strong>
@@ -194,8 +200,8 @@
 <section class="cta-comercial" id="contacto" aria-labelledby="titulo-contacto">
   <div>
     <p class="kicker">Siguiente paso</p>
-    <h2 id="titulo-contacto">La visita se convierte en cotización.</h2>
-    <p>El precio sale del almacén. Ventas confirma el documento con RUC, sin pago en línea.</p>
+    <h2 id="titulo-contacto">Tu próximo espacio empieza aquí.</h2>
+    <p>Cuéntanos tu idea. Te ayudamos a elegir materiales y preparar una cotización para tu obra.</p>
   </div>
   <div class="hero-actions">
     <a class="btn btn-primary" routerLink="/cotizar">Cotizar proyecto</a>

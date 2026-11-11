@@ -1,0 +1,22 @@
+@startuml
+title Casos de uso roles
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "roles" {
+usecase "getAll\nGET /api/v1/roles" as U0
+usecase "createRol\nPOST /api/v1/roles" as U1
+usecase "getRol\nGET /api/v1/roles/{id}" as U2
+usecase "updateRol\nPUT /api/v1/roles/{id}" as U3
+usecase "deleteRol\nDELETE /api/v1/roles/{id}" as U4
+usecase "actualizarPermisos\nPATCH /api/v1/roles/{id}/permisos/{grupo}" as U5
+}
+ADMIN -- U0
+ADMIN -- U1
+ADMIN -- U2
+ADMIN -- U3
+ADMIN -- U4
+ADMIN -- U5
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

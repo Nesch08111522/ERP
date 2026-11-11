@@ -1,0 +1,20 @@
+@startuml
+title Transferencia entre almacenes
+start
+partition "Operacion documentada" {
+:Resolver producto origen y destino;
+:Rechazar almacenes iguales;
+:Exigir sede de origen y destino;
+:Bloquear stock en orden UUID;
+:Comprobar saldo suficiente;
+:Guardar transferencia;
+:Delegar salida y entrada a Kardex;
+:Vincular movimientos y auditar;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Misma ubicacion, stock insuficiente o sede no autorizada;
+endif
+}
+stop
+@enduml

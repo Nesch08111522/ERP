@@ -1,0 +1,34 @@
+@startuml
+title Casos de uso almacenes
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "almacenes" {
+usecase "create\nPOST /api/v1/almacenes" as U0
+usecase "update\nPUT /api/v1/almacenes/{id}" as U1
+usecase "findById\nGET /api/v1/almacenes/{id}" as U2
+usecase "search\nGET /api/v1/almacenes" as U3
+usecase "findBySede\nGET /api/v1/almacenes/sede/{sedeId}" as U4
+usecase "delete\nDELETE /api/v1/almacenes/{id}" as U5
+usecase "validateName\nGET /api/v1/almacenes/validar-nombre" as U6
+usecase "dashboard\nGET /api/v1/almacenes/estadisticas/dashboard" as U7
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

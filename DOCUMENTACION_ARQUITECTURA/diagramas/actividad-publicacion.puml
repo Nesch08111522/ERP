@@ -1,0 +1,18 @@
+@startuml
+title Publicacion de productos sitio web
+start
+partition "Operacion documentada" {
+:ERP guarda producto activo y atributos comerciales;
+:Visitante consulta catalogo publico;
+:Repositorio filtra catalogoPublico;
+:Agregar saldo por productos;
+:Construir DTO sin costo ni proveedor;
+:Sitio presenta precio disponibilidad y saldo exacto;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:No existe estado editorial unico del producto demostrado; stock publico intencional;
+endif
+}
+stop
+@enduml

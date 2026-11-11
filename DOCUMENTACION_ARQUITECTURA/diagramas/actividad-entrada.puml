@@ -1,0 +1,18 @@
+@startuml
+title Entrada de inventario
+start
+partition "Operacion documentada" {
+:Obtener usuario y producto almacen;
+:Exigir acceso sede;
+:Bloquear stock y validar ajuste positivo;
+:Exigir motivo y justificacion configurable;
+:Registrar ajuste y entrada Kardex;
+:Auditar y devolver DTO;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Ajuste cero o justificacion insuficiente;
+endif
+}
+stop
+@enduml

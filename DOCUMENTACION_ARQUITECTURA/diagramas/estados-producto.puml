@@ -1,0 +1,10 @@
+@startuml
+title Estados producto
+[*] --> Activo : alta segun DTO
+Activo --> Inactivo : delete [tiene historial]
+Activo --> [*] : delete [sin historial]
+note right of Activo
+activo es boolean; update depende DTO.
+No se infiere estado editorial.
+end note
+@enduml

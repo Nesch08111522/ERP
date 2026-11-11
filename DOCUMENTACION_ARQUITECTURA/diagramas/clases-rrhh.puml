@@ -1,0 +1,156 @@
+@startuml
+title Clases rrhh
+hide empty methods
+class User <<referencia externa>>
+class Sede <<referencia externa>>
+class RrhhAsistencia <<Entity>> {
+  id : UUID
+  empleado : User
+  fechaHora : LocalDateTime
+  tipoMarcacion : TipoMarcacion
+  estado : EstadoAsistencia
+  dispositivoInfo : String
+  turnoCajaId : UUID
+  createdAt : LocalDateTime
+  fecha : LocalDate
+  horaEntrada : LocalTime
+  horaSalida : LocalTime
+  horasTrabajadas : BigDecimal
+  turnoTrabajoId : UUID
+}
+class RrhhComision <<Entity>> {
+  id : UUID
+  user : User
+  sede : Sede
+  periodo : String
+  totalVentasNetas : BigDecimal
+  cantidadVentas : Long
+  porcentajeComision : BigDecimal
+  montoComision : BigDecimal
+  estado : EstadoComision
+  aprobadoPor : User
+  fechaAprobacion : LocalDateTime
+  createdAt : LocalDateTime
+  updatedAt : LocalDateTime
+}
+class RrhhHistorialSalarial <<Entity>> {
+  id : UUID
+  legajo : RrhhLegajoDigital
+  vigenciaDesde : LocalDate
+  tipoContratoAnterior : String
+  tipoContratoNuevo : String
+  sueldoAnterior : BigDecimal
+  sueldoNuevo : BigDecimal
+  comisionAnterior : BigDecimal
+  comisionNuevo : BigDecimal
+  diaCobroAnterior : Integer
+  diaCobroNuevo : Integer
+  motivo : String
+  registradoPor : User
+  createdAt : LocalDateTime
+}
+class RrhhLegajoDigital <<Entity>> {
+  id : UUID
+  user : User
+  tipoContrato : String
+  fechaIngreso : LocalDate
+  sueldoBase : BigDecimal
+  diaCobro : Integer
+  porcentajeComision : BigDecimal
+  documentosJson : MapString, Object
+  activo : Boolean
+  createdAt : LocalDateTime
+  sistemaPension : SistemaPension
+  tasaPension : BigDecimal
+  politicaDivision : PoliticaDivisionSueldo
+  diasLaborables : ListString
+  tratamientoAusencias : TratamientoAusencias
+}
+class RrhhLegajoDocumento <<Entity>> {
+  id : UUID
+  legajo : RrhhLegajoDigital
+  tipo : TipoDocumentoLegajo
+  nombreOriginal : String
+  rutaArchivo : String
+  contentType : String
+  tamanoBytes : Long
+  descripcion : String
+  subidoPor : User
+  createdAt : LocalDateTime
+}
+class RrhhNomina <<Entity>> {
+  id : UUID
+  user : User
+  periodo : String
+  sueldoBaseCalculado : BigDecimal
+  totalComisiones : BigDecimal
+  descuentos : BigDecimal
+  totalNeto : BigDecimal
+  estado : EstadoNomina
+  aprobadoPor : User
+  fechaAprobacion : LocalDateTime
+  createdAt : LocalDateTime
+  sede : Sede
+  comision : RrhhComision
+  tipoContrato : String
+  diasComputados : Integer
+  divisorRemuneracion : Integer
+  politicaDivision : PoliticaDivisionSueldo
+  ventasBaseComision : BigDecimal
+  porcentajeComision : BigDecimal
+  sistemaPension : SistemaPension
+  tasaPension : BigDecimal
+  descuentoPension : BigDecimal
+  otrosDescuentos : BigDecimal
+  generadoPor : User
+  pagadoPor : User
+  fechaPago : LocalDateTime
+  metodoPago : MetodoPago
+  referenciaPago : String
+  observaciones : String
+}
+class RrhhRegimenRemuneracion <<Entity>> {
+  id : UUID
+  user : User
+  sueldoHabilitado : Boolean
+  comisionHabilitada : Boolean
+  repartoHabilitado : Boolean
+  porcentajeReparto : BigDecimal
+  baseReparto : BaseRepartoUtilidad
+  topeRepartoMensual : BigDecimal
+  createdAt : LocalDateTime
+  updatedAt : LocalDateTime
+}
+class RrhhTurnoTrabajo <<Entity>> {
+  id : UUID
+  user : User
+  sede : Sede
+  nombreTurno : String
+  horaInicio : LocalTime
+  horaFin : LocalTime
+  diasSemana : ListString
+  activo : Boolean
+  createdAt : LocalDateTime
+  toleranciaMinutos : Integer
+}
+note right of RrhhTurnoTrabajo : Metodos: getToleranciaSegura
+RrhhAsistencia "0..*" -- "1" User : empleado
+RrhhComision "0..*" -- "1" User : user
+RrhhComision "0..*" -- "1" Sede : sede
+RrhhComision "0..*" -- "0..1" User : aprobadoPor
+RrhhHistorialSalarial "0..*" -- "1" RrhhLegajoDigital : legajo
+RrhhHistorialSalarial "0..*" -- "0..1" User : registradoPor
+RrhhLegajoDigital "0..1" -- "1" User : user
+RrhhLegajoDocumento "0..*" -- "1" RrhhLegajoDigital : legajo
+RrhhLegajoDocumento "0..*" -- "1" User : subidoPor
+RrhhNomina "0..*" -- "1" User : user
+RrhhNomina "0..*" -- "0..1" User : aprobadoPor
+RrhhNomina "0..*" -- "0..1" Sede : sede
+RrhhNomina "0..*" -- "0..1" RrhhComision : comision
+RrhhNomina "0..*" -- "0..1" User : generadoPor
+RrhhNomina "0..*" -- "0..1" User : pagadoPor
+RrhhRegimenRemuneracion "0..1" -- "1" User : user
+RrhhTurnoTrabajo "0..*" -- "1" User : user
+RrhhTurnoTrabajo "0..*" -- "1" Sede : sede
+
+@enduml

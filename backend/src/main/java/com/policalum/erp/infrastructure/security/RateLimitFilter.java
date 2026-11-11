@@ -52,7 +52,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     static void escribirDemasiadasPeticiones(HttpServletResponse response, ConsumptionProbe probe) throws IOException {
-        long retryAfterSeconds = Math.max(1, probe.getNanosToWaitForRefill() / 1_000_000_000L);
+        long waitNanos = probe.getNanosToWaitForRefill();
+        long retryAfterSeconds = Math.max(1, waitNanos / 1_000_000_000L
+                + (waitNanos % 1_000_000_000L == 0 ? 0 : 1));
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

@@ -1,0 +1,18 @@
+@startuml
+title Asignacion colaboradores a servicios
+start
+partition "Operacion documentada" {
+:Recibir lista de colaboradores;
+:Limpiar equipo si lista no nula;
+:Registrado: exigir userId existente no repetido;
+:Externo: exigir nombre;
+:Validar participacion INSTALO o AYUDO;
+:Guardar costo liquidacion y relacion al servicio;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Participacion invalida usuario repetido o externo sin nombre;
+endif
+}
+stop
+@enduml

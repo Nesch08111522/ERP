@@ -1,0 +1,81 @@
+@startuml
+title ERD JPA inferido - identidad
+hide circle
+entity "audit_log\nAuditLog" as AuditLog {
+  * id : UUID <<PK JPA>>
+  user_id : User <<JOIN JPA>>
+  tabla : String
+  registro_id : UUID
+  accion : AccionAudit
+  datos_json : MapString, Object
+  user_agent : String
+  created_at : LocalDateTime
+}
+entity "notificaciones\nNotificacion" as Notificacion {
+  * id : UUID <<PK JPA>>
+  clave : String
+  tipo : String
+  titulo : String
+  detalle : String
+  ruta : String
+  leida : boolean
+  eliminada : boolean
+  created_at : LocalDateTime
+  leida_at : LocalDateTime
+}
+entity "suscripciones_push\nPushSuscripcion" as PushSuscripcion {
+  * id : UUID <<PK JPA>>
+  usuario_id : UUID
+  endpoint : String
+  p256dh : String
+  auth : String
+  dispositivo : String
+  created_at : LocalDateTime
+}
+entity "refresh_tokens\nRefreshToken" as RefreshToken {
+  * id : UUID <<PK JPA>>
+  user_id : UUID
+  token_hash : String
+  sesion_version : int
+  expires_at : LocalDateTime
+  revocado : boolean
+  created_at : LocalDateTime
+}
+entity "roles\nRol" as Rol {
+  * id : UUID <<PK JPA>>
+  nombre : RolNombre
+  permisos_json : MapString, Object
+  created_at : LocalDateTime
+}
+entity "users\nUser" as User {
+  * id : UUID <<PK JPA>>
+  role_id : Rol <<JOIN JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  nombre_usuario : String
+  nombre : String
+  apellido : String
+  email : String
+  password_hash : String
+  celular : String
+  documento : String
+  biografia : String
+  foto : String
+  ultimo_ip : String
+  sesion_version : Integer
+  activo : Boolean
+  totp_secret : String
+  totp_enabled : Boolean
+  ultimo_login : LocalDateTime
+  created_at : LocalDateTime
+}
+entity "vapid_claves\nVapidClave" as VapidClave {
+  * id : Short <<PK JPA>>
+  publica : String
+  privada : String
+}
+entity "Sede (externa)" as Sede
+AuditLog -- User : ManyToOne user
+User -- Rol : ManyToOne rol
+User -- Sede : ManyToOne sede
+
+@enduml

@@ -1,0 +1,5 @@
+@startuml
+title Estados venta
+[*] --> COMPLETADA : registrar
+COMPLETADA --> ANULADA : anular [sin devoluciones vigentes y salida Kardex]
+@enduml

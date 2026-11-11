@@ -1,0 +1,18 @@
+@startuml
+title Componentes
+component "ERP Angular" as E
+component "Sitio Angular" as W
+component "Spring Security" as S
+component "Controllers" as C
+component "Application services" as A
+component "JPA repositories" as R
+database "PostgreSQL configurado\nno observado" as D
+component "Almacenamiento archivos" as F
+E --> S : HTTP / JWT
+W --> S : API publica / SSE
+S --> C
+C --> A
+A --> R
+A --> F
+R --> D : JPA / driver PostgreSQL
+@enduml
