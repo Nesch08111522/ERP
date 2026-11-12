@@ -27,13 +27,13 @@
 }
 [data-tema="noche"] {
   color-scheme: dark;
-  --bg: #070d14;
-  --paper: #101820;
+  --bg: #0b071b;
+  --paper: #171229;
   --ink: #f3f7fb;
   --muted: #b7c6d3;
   --line: #243444;
-  --accent: #90caf9;
-  --accent-ink: #04141c;
+  --accent: #bba5ff;
+  --accent-ink: #140d2d;
   --promo: #ff8a80;
   --promo-ink: #3b0a0a;
   --soft: #162433;
@@ -657,7 +657,15 @@ dialog.visor-reel::backdrop { background: transparent; }
     transition: none !important;
   }
 }
+.roof-fallback { position: absolute; left: 57%; top: 28%; width: 38%; height: 34%; display: flex; transform: perspective(800px) rotateX(48deg) rotateZ(-12deg); border: 5px solid var(--muted); }
+.roof-fallback span { flex: 1; border-inline: 2px solid var(--muted); background: repeating-linear-gradient(90deg, transparent 0 10px, color-mix(in srgb, var(--accent) 28%, transparent) 10px 12px), color-mix(in srgb, var(--paper) 35%, transparent); }
+.roof-fallback i { position: absolute; width: 5px; height: 110px; top: 100%; background: var(--muted); transform: skewX(12deg); }
+.roof-fallback i:nth-last-child(1), .roof-fallback i:nth-last-child(3) { right: 0; }
+.roof-fallback i:nth-last-child(3), .roof-fallback i:nth-last-child(4) { top: 0; }
+@media (max-width: 700px) { .roof-fallback { left: 12%; width: 76%; top: 25%; } }
 @media print {
   .mast, .trust, .dock, .flotantes, .browse, .no-print, .visor-reel, .visor-obra { display: none !important; }
   .stage { width: auto; }
 }
+
+@import './architectural.css';

@@ -95,8 +95,10 @@ public class KardexController {
             @RequestParam(required = false) TipoReferencia tipoReferencia,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) UUID sedeId,
+            @RequestParam(required = false) String busqueda,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(kardexService.buscarMovimientos(productoId, almacenId, tipoReferencia, desde, hasta, pageable));
+        return ResponseEntity.ok(kardexService.buscarMovimientos(productoId, almacenId, tipoReferencia, desde, hasta, sedeId, busqueda, pageable));
     }
 
     /** Detalle de un movimiento. */

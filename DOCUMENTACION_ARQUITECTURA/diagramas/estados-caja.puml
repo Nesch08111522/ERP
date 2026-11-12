@@ -1,0 +1,5 @@
+@startuml
+title Estados turno caja
+[*] --> ABIERTO : abrir
+ABIERTO --> CERRADO : cerrar [responsable y abierto]
+@enduml

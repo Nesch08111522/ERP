@@ -11,6 +11,8 @@ import com.policalum.erp.application.dto.response.NominaResponseDTO;
 import com.policalum.erp.application.mapper.NominaMapper;
 import com.policalum.erp.application.service.AuditService;
 import com.policalum.erp.application.service.NominaService;
+import com.policalum.erp.application.service.PoliticaRemuneracionService;
+import com.policalum.erp.application.service.RegimenRemuneracionService;
 import com.policalum.erp.domain.enums.AccionAudit;
 import com.policalum.erp.domain.enums.EstadoComision;
 import com.policalum.erp.domain.enums.EstadoNomina;
@@ -58,8 +60,11 @@ public class NominaServiceImpl implements NominaService {
     private static final String RECIBO_HONORARIOS = "RECIBO_HONORARIOS";
     /** Tasa ONP vigente (13%) usada si el legajo no define una. */
     static final BigDecimal TASA_ONP_DEFAULT = new BigDecimal("13.00");
-    /** Mes laboral estándar (Perú) para prorratear ingresos a mitad de mes. */
-    static final int DIAS_MES = 30;
+    /**
+     * Divisor de las nóminas generadas antes de la política configurable (§8.1). Se usa solo
+     * para leer snapshots antiguos, donde divisor_remuneracion quedó null.
+     */
+    static final int DIVISOR_HISTORICO = 30;
     private static final BigDecimal CIEN = new BigDecimal("100");
 
     private final RrhhNominaRepository nominaRepository;
@@ -69,6 +74,8 @@ public class NominaServiceImpl implements NominaService {
     private final UserRepository userRepository;
     private final NominaMapper mapper;
     private final AuditService auditService;
+    private final RegimenRemuneracionService regimenService;
+    private final PoliticaRemuneracionService politicaRemuneracion;
 
     @Override
     public GeneracionNominaResponseDTO generar(GenerarNominaRequestDTO request) {
@@ -214,8 +221,12 @@ public class NominaServiceImpl implements NominaService {
 
         List<BoletaConceptoDTO> ingresos = new ArrayList<>();
         Integer dias = n.getDiasComputados();
-        ingresos.add(new BoletaConceptoDTO(dias != null && dias < DIAS_MES
-                ? "Remuneración básica (" + dias + " días)" : "Remuneración básica", cero(n.getSueldoBaseCalculado())));
+        // El divisor se lee del snapshot de la nómina, no de la política de hoy: una boleta
+        // emitida bajo otra política debe seguir mostrando los días con los que se pagó.
+        int divisor = n.getDivisorRemuneracion() != null ? n.getDivisorRemuneracion() : DIVISOR_HISTORICO;
+        ingresos.add(new BoletaConceptoDTO(dias != null && dias < divisor
+                ? "Remuneración básica (" + dias + " de " + divisor + " días)" : "Remuneración básica",
+                cero(n.getSueldoBaseCalculado())));
         if (cero(n.getTotalComisiones()).signum() > 0) {
             ingresos.add(new BoletaConceptoDTO("Comisión " + porcentaje(n.getPorcentajeComision())
                     + " s/ ventas S/ " + cero(n.getVentasBaseComision()).toPlainString(), n.getTotalComisiones()));
@@ -233,7 +244,8 @@ public class NominaServiceImpl implements NominaService {
         BigDecimal totalIngresos = cero(n.getSueldoBaseCalculado()).add(cero(n.getTotalComisiones()));
         return new BoletaPagoDTO(n.getId(), n.getPeriodo(), n.getUser().getId(), nombre(n.getUser()),
                 n.getUser().getEmail(), n.getSede() != null ? n.getSede().getNombre() : null,
-                n.getTipoContrato(), fechaIngreso, dias, ingresos, totalIngresos, descuentos,
+                n.getTipoContrato(), fechaIngreso, dias, n.getDivisorRemuneracion(), n.getPoliticaDivision(),
+                ingresos, totalIngresos, descuentos,
                 cero(n.getDescuentos()), n.getTotalNeto(), n.getEstado(), n.getFechaPago());
     }
 
@@ -284,14 +296,29 @@ public class NominaServiceImpl implements NominaService {
      * Arma la nómina (sin guardar) a partir del legajo y la comisión aprobada.
      * - Sueldo: prorrateado por días si ingresó dentro del periodo (mes de 30 días).
      * - Pensión: sobre (sueldo + comisión), solo si no es RECIBO_HONORARIOS.
+     * - Régimen del admin: si desactivó sueldo o comisión, ese componente se liquida en 0
+     *   y queda anotado en observaciones (no se borra el importe del legajo).
      */
     RrhhNomina calcular(RrhhLegajoDigital legajo, YearMonth mes, RrhhComision comision, List<String> notas) {
-        int dias = diasComputados(legajo.getFechaIngreso(), mes);
-        BigDecimal sueldoBase = cero(legajo.getSueldoBase());
-        BigDecimal sueldo = dias >= DIAS_MES ? dinero(sueldoBase)
-                : dinero(sueldoBase.multiply(BigDecimal.valueOf(dias)).divide(BigDecimal.valueOf(DIAS_MES), 4, RoundingMode.HALF_UP));
+        PoliticaRemuneracionService.LiquidacionSueldo liquidacion = politicaRemuneracion.liquidar(legajo, mes);
+        int dias = liquidacion.diasComputados();
+        BigDecimal sueldo = liquidacion.sueldo();
 
         BigDecimal montoComision = comision != null ? dinero(comision.getMontoComision()) : BigDecimal.ZERO.setScale(2);
+
+        UUID userId = legajo.getUser() != null ? legajo.getUser().getId() : null;
+        if (!regimenService.componenteActivo(userId, RegimenRemuneracionService.Componente.SUELDO)) {
+            notas.add("Régimen personal: sueldo base desactivado (importe del legajo: " + dinero(cero(legajo.getSueldoBase())) + ")");
+            sueldo = BigDecimal.ZERO.setScale(2);
+        }
+        if (!regimenService.componenteActivo(userId, RegimenRemuneracionService.Componente.COMISION)) {
+            if (montoComision.signum() > 0) {
+                notas.add("Régimen personal: comisión desactivada (calculada: " + montoComision + ")");
+            }
+            // Se liquida en 0 pero se conserva el vínculo a la comisión calculada, para que la
+            // boleta muestre la base de ventas real y el motivo del recorte.
+            montoComision = BigDecimal.ZERO.setScale(2);
+        }
 
         SistemaPension sistema = legajo.getSistemaPension();
         BigDecimal tasa = BigDecimal.ZERO;
@@ -318,6 +345,8 @@ public class NominaServiceImpl implements NominaService {
                 .periodo(mes.toString())
                 .tipoContrato(legajo.getTipoContrato())
                 .diasComputados(dias)
+                .divisorRemuneracion(liquidacion.divisor())
+                .politicaDivision(liquidacion.politica())
                 .sueldoBaseCalculado(sueldo)
                 .comision(comision)
                 .ventasBaseComision(comision != null ? comision.getTotalVentasNetas() : null)
@@ -331,13 +360,6 @@ public class NominaServiceImpl implements NominaService {
                 .totalNeto(bruto.subtract(descuentos))
                 .estado(EstadoNomina.PENDIENTE)
                 .build();
-    }
-
-    /** 30 si trabajó todo el mes; si ingresó en el periodo, 30 - (día de ingreso - 1), mínimo 1. */
-    static int diasComputados(LocalDate fechaIngreso, YearMonth mes) {
-        if (fechaIngreso == null || fechaIngreso.isBefore(mes.atDay(1))) return DIAS_MES;
-        if (fechaIngreso.isAfter(mes.atEndOfMonth())) return 0;
-        return Math.max(1, Math.min(DIAS_MES, DIAS_MES - fechaIngreso.getDayOfMonth() + 1));
     }
 
     // ============ HELPERS ============

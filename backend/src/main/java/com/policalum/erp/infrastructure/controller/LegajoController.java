@@ -7,6 +7,10 @@ import com.policalum.erp.application.dto.response.LegajoDashboardDTO;
 import com.policalum.erp.application.dto.response.LegajoDocumentoResponseDTO;
 import com.policalum.erp.application.dto.response.LegajoListadoDTO;
 import com.policalum.erp.application.dto.response.LegajoResponseDTO;
+import com.policalum.erp.application.dto.response.HistorialSalarialResponseDTO;
+import com.policalum.erp.application.dto.response.PoliticaRemuneracionDTO;
+import com.policalum.erp.application.service.HistorialSalarialService;
+import com.policalum.erp.application.service.PoliticaRemuneracionService;
 import com.policalum.erp.application.service.LegajoService;
 import com.policalum.erp.domain.enums.SistemaPension;
 import jakarta.validation.Valid;
@@ -53,6 +57,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class LegajoController {
 
     private final LegajoService legajoService;
+    private final HistorialSalarialService historialSalarialService;
+    private final PoliticaRemuneracionService politicaRemuneracion;
 
     /** Crea el legajo de un empleado. 201 + Location /legajos/{empleadoId}. */
     @PostMapping
@@ -107,6 +113,45 @@ public class LegajoController {
     public ResponseEntity<LegajoResponseDTO> actualizar(@PathVariable UUID empleadoId,
                                                         @Valid @RequestBody LegajoRequestDTO request) {
         return ResponseEntity.ok(legajoService.actualizar(empleadoId, request));
+    }
+
+    // ============ HISTORIAL SALARIAL (§2.4) ============
+
+    /**
+     * Historial de cambios salariales de un empleado (id de usuario). Solo ADMIN.
+     * Del cambio más reciente al más antiguo; la primera fila es el sueldo con el que entró.
+     */
+    @GetMapping("/{empleadoId}/historial-salarial")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'ver_legajos')")
+    public ResponseEntity<List<HistorialSalarialResponseDTO>> historialDeEmpleado(@PathVariable UUID empleadoId) {
+        return ResponseEntity.ok(historialSalarialService.listarPorEmpleado(empleadoId));
+    }
+
+    /**
+     * Historial salarial del usuario autenticado. Igual que /me, NO exige ver_legajos:
+     * el multifuncional ve su propio sueldo y sus propios cambios, y nada más.
+     */
+    @GetMapping("/me/historial-salarial")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL')")
+    public ResponseEntity<List<HistorialSalarialResponseDTO>> miHistorialSalarial() {
+        return ResponseEntity.ok(historialSalarialService.listarMio());
+    }
+
+    /**
+     * Política de remuneración efectiva de un empleado: qué nivel de la cadena ganó y entre
+     * cuántos días se divide el mes corriente. Solo ADMIN.
+     */
+    @GetMapping("/{empleadoId}/politica-remuneracion")
+    @PreAuthorize("hasRole('ADMIN') and @rolePermissionGuard.permite(authentication, 'rrhh', 'ver_legajos')")
+    public ResponseEntity<PoliticaRemuneracionDTO> politicaDeEmpleado(@PathVariable UUID empleadoId) {
+        return ResponseEntity.ok(politicaRemuneracion.deEmpleado(empleadoId));
+    }
+
+    /** Política efectiva propia. Igual que /me, no exige ver_legajos. */
+    @GetMapping("/me/politica-remuneracion")
+    @PreAuthorize("hasAnyRole('ADMIN','MULTIFUNCIONAL')")
+    public ResponseEntity<PoliticaRemuneracionDTO> miPolitica() {
+        return ResponseEntity.ok(politicaRemuneracion.mia());
     }
 
     // ============ DOCUMENTOS (id = id del legajo) ============

@@ -1,0 +1,264 @@
+@startuml
+title Clases ventas
+hide empty methods
+class Sede <<referencia externa>>
+class User <<referencia externa>>
+class Producto <<referencia externa>>
+class CatalogoFraccion <<referencia externa>>
+class Servicio <<referencia externa>>
+class Almacen <<referencia externa>>
+class TurnoCaja <<referencia externa>>
+class Cliente <<Entity>> {
+  id : UUID
+  ventas : ListVenta
+  tipoDocumento : String
+  numeroDocumento : String
+  nombre : String
+  email : String
+  celular : String
+  direccion : String
+  activo : Boolean
+  createdAt : LocalDateTime
+}
+class ConceptoCotizacion <<Entity>> {
+  id : UUID
+  nombre : String
+  tipo : TipoCargoCotizacion
+  valor : BigDecimal
+  activo : Boolean
+  orden : Integer
+}
+class Cotizacion <<Entity>> {
+  id : UUID
+  sede : Sede
+  user : User
+  cliente : Cliente
+  estado : EstadoCotizacion
+  canal : CanalCotizacion
+  contactoRuc : String
+  contactoRazonSocial : String
+  contactoCorreo : String
+  contactoTelefono : String
+  distrito : String
+  cantidadPiezas : BigDecimal
+  subtotalMateriales : BigDecimal
+  utilidadPorcentaje : BigDecimal
+  utilidadMonto : BigDecimal
+  movilidadMonto : BigDecimal
+  otrosMonto : BigDecimal
+  otrosDetalle : String
+  modificada : Boolean
+  notaCambio : String
+  total : BigDecimal
+  fechaVigencia : LocalDate
+  observaciones : String
+  venta : Venta
+  createdAt : LocalDateTime
+}
+class DetalleCotizacion <<Entity>> {
+  id : UUID
+  cotizacion : Cotizacion
+  producto : Producto
+  fraccion : CatalogoFraccion
+  servicio : Servicio
+  cantidad : BigDecimal
+  precioUnitarioConIgv : BigDecimal
+  valorUnitarioNeto : BigDecimal
+  igvLinea : BigDecimal
+  porcentajeIgv : BigDecimal
+  subtotal : BigDecimal
+}
+class DetalleDevolucion <<Entity>> {
+  id : UUID
+  devolucion : Devolucion
+  detalleVenta : DetalleVenta
+  producto : Producto
+  fraccion : CatalogoFraccion
+  cantidadDevuelta : BigDecimal
+  precioUnitarioRef : BigDecimal
+  estadoProducto : EstadoProducto
+  observacion : String
+  subtotal : BigDecimal
+  cantidadStock : BigDecimal
+  almacen : Almacen
+}
+class DetallePreforma <<Entity>> {
+  id : UUID
+  preforma : PreformaVenta
+  producto : Producto
+  fraccion : CatalogoFraccion
+  servicio : Servicio
+  cantidad : BigDecimal
+  precioUnitarioConIgv : BigDecimal
+  valorUnitarioNeto : BigDecimal
+  igvLinea : BigDecimal
+  porcentajeIgv : BigDecimal
+  subtotal : BigDecimal
+  notaCambio : String
+}
+class DetalleVenta <<Entity>> {
+  id : UUID
+  venta : Venta
+  producto : Producto
+  fraccion : CatalogoFraccion
+  servicio : Servicio
+  cantidad : BigDecimal
+  precioUnitarioConIgv : BigDecimal
+  valorUnitarioNeto : BigDecimal
+  igvLinea : BigDecimal
+  porcentajeIgv : BigDecimal
+  subtotal : BigDecimal
+}
+class Devolucion <<Entity>> {
+  id : UUID
+  venta : Venta
+  sede : Sede
+  solicitadoPor : User
+  aprobadoPor : User
+  cliente : Cliente
+  motivo : String
+  estado : EstadoDevolucion
+  fechaSolicitud : LocalDateTime
+  fechaResolucion : LocalDateTime
+  observacionAdmin : String
+  createdAt : LocalDateTime
+  codigo : String
+  montoTotal : BigDecimal
+}
+class PagoVenta <<Entity>> {
+  id : UUID
+  venta : Venta
+  metodoPago : MetodoPago
+  monto : BigDecimal
+  referencia : String
+  createdAt : LocalDateTime
+}
+class ParametroCotizacion <<Entity>> {
+  id : Long
+  utilidadPorcentaje : BigDecimal
+}
+class PreformaVenta <<Entity>> {
+  id : UUID
+  sede : Sede
+  user : User
+  cliente : Cliente
+  cotizacion : Cotizacion
+  turnoCaja : TurnoCaja
+  subtotalNetoEstimado : BigDecimal
+  totalIgvEstimado : BigDecimal
+  totalEstimado : BigDecimal
+  estado : EstadoPreforma
+  fechaExpiracion : LocalDateTime
+  observaciones : String
+  venta : Venta
+  createdAt : LocalDateTime
+  codigo : String
+  confirmadoPor : User
+  fechaConfirmacion : LocalDateTime
+  canceladoPor : User
+  fechaCancelacion : LocalDateTime
+  motivoCancelacion : String
+  updatedAt : LocalDateTime
+}
+note right of PreformaVenta : Metodos: estaVencida
+class Reembolso <<Entity>> {
+  id : UUID
+  devolucion : Devolucion
+  venta : Venta
+  cliente : Cliente
+  montoTotalReembolso : BigDecimal
+  metodoReembolso : MetodoReembolso
+  referencia : String
+  procesadoPor : User
+  estado : EstadoReembolso
+  fechaProcesado : LocalDateTime
+  observaciones : String
+  createdAt : LocalDateTime
+  creadoPor : User
+  montoMaximo : BigDecimal
+  motivoAjuste : String
+  turnoCaja : TurnoCaja
+}
+class SerieComprobante <<Entity>> {
+  id : UUID
+  sede : Sede
+  tipoComprobante : TipoComprobante
+  serie : String
+  ultimoCorrelativo : Integer
+  activa : Boolean
+  actualizadoPor : User
+  createdAt : LocalDateTime
+  updatedAt : LocalDateTime
+}
+class Venta <<Entity>> {
+  id : UUID
+  sede : Sede
+  user : User
+  cliente : Cliente
+  cotizacionId : UUID
+  preformaId : UUID
+  turnoCaja : TurnoCaja
+  tipoComprobante : TipoComprobante
+  serieCorrelativo : String
+  ticketRegistro : String
+  estado : EstadoVenta
+  subtotalNeto : BigDecimal
+  totalIgv : BigDecimal
+  total : BigDecimal
+  canalVenta : CanalVenta
+  estadoSunat : EstadoSunat
+  hashCpe : String
+  mensajeSunat : String
+  referenciaPedidoOnline : String
+  createdAt : LocalDateTime
+}
+Cliente "0..1" -- "0..*" Venta : ventas
+Cotizacion "0..*" -- "1" Sede : sede
+Cotizacion "0..*" -- "1" User : user
+Cotizacion "0..*" -- "0..1" Cliente : cliente
+Cotizacion "0..*" -- "0..1" Venta : venta
+DetalleCotizacion "0..*" -- "1" Cotizacion : cotizacion
+DetalleCotizacion "0..*" -- "0..1" Producto : producto
+DetalleCotizacion "0..*" -- "0..1" CatalogoFraccion : fraccion
+DetalleCotizacion "0..*" -- "0..1" Servicio : servicio
+DetalleDevolucion "0..*" -- "1" Devolucion : devolucion
+DetalleDevolucion "0..*" -- "1" DetalleVenta : detalleVenta
+DetalleDevolucion "0..*" -- "0..1" Producto : producto
+DetalleDevolucion "0..*" -- "0..1" CatalogoFraccion : fraccion
+DetalleDevolucion "0..*" -- "0..1" Almacen : almacen
+DetallePreforma "0..*" -- "1" PreformaVenta : preforma
+DetallePreforma "0..*" -- "0..1" Producto : producto
+DetallePreforma "0..*" -- "0..1" CatalogoFraccion : fraccion
+DetallePreforma "0..*" -- "0..1" Servicio : servicio
+DetalleVenta "0..*" -- "1" Venta : venta
+DetalleVenta "0..*" -- "0..1" Producto : producto
+DetalleVenta "0..*" -- "0..1" CatalogoFraccion : fraccion
+DetalleVenta "0..*" -- "0..1" Servicio : servicio
+Devolucion "0..*" -- "1" Venta : venta
+Devolucion "0..*" -- "1" Sede : sede
+Devolucion "0..*" -- "1" User : solicitadoPor
+Devolucion "0..*" -- "0..1" User : aprobadoPor
+Devolucion "0..*" -- "0..1" Cliente : cliente
+PagoVenta "0..*" -- "1" Venta : venta
+PreformaVenta "0..*" -- "1" Sede : sede
+PreformaVenta "0..*" -- "1" User : user
+PreformaVenta "0..*" -- "0..1" Cliente : cliente
+PreformaVenta "0..*" -- "0..1" Cotizacion : cotizacion
+PreformaVenta "0..*" -- "0..1" TurnoCaja : turnoCaja
+PreformaVenta "0..*" -- "0..1" Venta : venta
+PreformaVenta "0..*" -- "0..1" User : confirmadoPor
+PreformaVenta "0..*" -- "0..1" User : canceladoPor
+Reembolso "0..*" -- "1" Devolucion : devolucion
+Reembolso "0..*" -- "1" Venta : venta
+Reembolso "0..*" -- "0..1" Cliente : cliente
+Reembolso "0..*" -- "0..1" User : procesadoPor
+Reembolso "0..*" -- "0..1" User : creadoPor
+Reembolso "0..*" -- "0..1" TurnoCaja : turnoCaja
+SerieComprobante "0..*" -- "1" Sede : sede
+SerieComprobante "0..*" -- "0..1" User : actualizadoPor
+Venta "0..*" -- "1" Sede : sede
+Venta "0..*" -- "1" User : user
+Venta "0..*" -- "0..1" Cliente : cliente
+Venta "0..*" -- "0..1" TurnoCaja : turnoCaja
+
+@enduml

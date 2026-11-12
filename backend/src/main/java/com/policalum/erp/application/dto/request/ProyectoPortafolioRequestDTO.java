@@ -21,5 +21,17 @@ public record ProyectoPortafolioRequestDTO(
         @Size(max = 60) String servicio,
         @Size(max = 160) String referencia,
         @Size(max = 6) List<@Size(max = 24) String> etiquetas,
-        @Size(max = 6) List<@Size(max = 500) String> imagenes
-) {}
+        @Size(max = 6) List<@Size(max = 500) String> imagenes,
+        @Size(max = 500) String videoUrl,
+        @Size(max = 500) String hlsUrl,
+        @Size(max = 500) String dashUrl
+) {
+    /** Constructor legado: permite a clientes ERP existentes omitir media adaptativa. */
+    public ProyectoPortafolioRequestDTO(
+            String titulo, String descripcion, String imagenUrl, Integer orden, Boolean publicado,
+            String cliente, String lugar, String anio, String servicio, String referencia,
+            List<String> etiquetas, List<String> imagenes) {
+        this(titulo, descripcion, imagenUrl, orden, publicado, cliente, lugar, anio, servicio,
+                referencia, etiquetas, imagenes, null, null, null);
+    }
+}

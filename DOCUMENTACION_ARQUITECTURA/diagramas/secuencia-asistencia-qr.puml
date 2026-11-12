@@ -1,0 +1,27 @@
+@startuml
+title Registro asistencia QR
+actor Usuario
+participant "BackendApiService (Angular)" as F
+participant HttpClient as H
+participant "SecurityFilterChain / PreAuthorize" as S
+participant RrhhAsistenciaController as C
+participant RrhhAsistenciaService as A
+Usuario -> F : Solicitar operacion
+F -> H : construir peticion
+H -> S : HTTP Bearer
+alt autenticacion o autorizacion rechazada
+S --> H : 401 / 403
+else acceso permitido
+S -> C : peticion autorizada
+C -> A : marcarPorQrEscaneado(...)
+note right of A : ADMIN escanea; delegacion confirmada. Repositorio interno y validaciones pendientes de lectura semantica
+alt excepcion del servicio
+A --> C : excepcion
+C --> H : respuesta via GlobalExceptionHandler
+else operacion valida
+A --> C : DTO
+C --> H : respuesta HTTP
+H --> F : Observable
+end
+end
+@enduml

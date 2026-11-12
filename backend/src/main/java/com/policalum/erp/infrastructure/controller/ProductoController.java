@@ -196,8 +196,10 @@ public class ProductoController {
             @RequestParam(required = false) UUID categoriaId,
             @RequestParam(required = false) TipoProducto tipo,
             @RequestParam(required = false) Boolean activo,
-            @RequestParam(required = false) Boolean esFraccionable) {
-        return ResponseEntity.ok(productoImportacionService.exportar(searchTerm, categoriaId, tipo, activo, esFraccionable));
+            @RequestParam(required = false) Boolean esFraccionable,
+            @RequestParam(required = false) UUID sedeId,
+            @RequestParam(required = false) UUID almacenId) {
+        return ResponseEntity.ok(productoImportacionService.exportar(searchTerm, categoriaId, tipo, activo, esFraccionable, sedeId, almacenId));
     }
 
     @PostMapping(value = "/imagenes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

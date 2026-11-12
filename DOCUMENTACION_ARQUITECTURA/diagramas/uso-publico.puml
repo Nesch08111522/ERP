@@ -1,0 +1,12 @@
+@startuml
+title Casos de uso portal
+actor Visitante
+rectangle "Portal publico" {
+usecase "Consultar catalogo" as C
+usecase "Consultar proyectos publicados" as P
+usecase "Consultar identidad y colores CMS" as M
+}
+Visitante -- C
+Visitante -- P
+Visitante -- M
+@enduml

@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, HostListener, OnDestroy, ViewChild, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AvisoService } from './core/aviso.service';
@@ -10,6 +10,7 @@ import { CategoriaPublica, ProductoPublico, SedePublica } from './core/models';
 import { PortalApi, media, pen } from './core/portal.api';
 import { TemaService } from './core/tema.service';
 import { AsistenteComponent } from './components/asistente.component';
+import { SeoService } from './core/seo.service';
 
 interface FraseVoz { transcript: string; }
 interface ResultadoVoz extends ArrayLike<FraseVoz> { isFinal: boolean; }
@@ -34,10 +35,12 @@ export class App implements OnDestroy {
   readonly carrito = inject(CarritoService);
   readonly marca = inject(EmpresaStore);
   readonly cms = inject(CmsStore);
+  readonly bannerVisible = computed(() => (this.cms.paquete()?.banner ?? '').split('·').map(texto => texto.trim()).filter(texto => !['Stock publicado desde el almacén', 'Cotización formal con RUC', 'Atención B2B desde Trujillo'].includes(texto)).join(' · '));
   readonly avisos = inject(AvisoService);
   readonly tema = inject(TemaService);
   private readonly api = inject(PortalApi);
   private readonly router = inject(Router);
+  private readonly seo = inject(SeoService);
   private readonly navegacion: Subscription;
 
   readonly media = media;
@@ -66,6 +69,9 @@ export class App implements OnDestroy {
       filter((evento): evento is NavigationEnd => evento instanceof NavigationEnd),
     ).subscribe((evento) => {
       this.ruta.set(evento.urlAfterRedirects);
+      let snapshot = this.router.routerState.snapshot.root;
+      while (snapshot.firstChild) snapshot = snapshot.firstChild;
+      this.seo.route(evento.urlAfterRedirects, String(snapshot.title || 'POLICALUM'));
       if (this.angosto()) {
         this.menu.set(false);
         this.bloquearFondo();

@@ -1,0 +1,83 @@
+@startuml
+title Casos de uso productos
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "productos" {
+usecase "findAvailableByProducto\nGET /api/v1/catalogo-fracciones/producto/{productoId}/disponibles" as U0
+usecase "marcarOferta\nPUT /api/v1/cms/productos/{id}/oferta" as U1
+usecase "saldosPorProducto\nGET /api/v1/kardex/saldos/producto/{productoId}" as U2
+usecase "historialProducto\nGET /api/v1/kardex/producto/{productoId}/historial" as U3
+usecase "productos\nGET /api/v1/public/catalogo/productos" as U4
+usecase "catalogoPdf\nGET /api/v1/public/catalogo/productos/pdf" as U5
+usecase "producto\nGET /api/v1/public/catalogo/productos/{id}" as U6
+usecase "create\nPOST /api/v1/productos" as U7
+usecase "update\nPUT /api/v1/productos/{id}" as U8
+usecase "updateConImagen\nPUT /api/v1/productos/{id}" as U9
+usecase "findById\nGET /api/v1/productos/{id}" as U10
+usecase "findStockByProducto\nGET /api/v1/productos/{id}/stock" as U11
+usecase "search\nGET /api/v1/productos" as U12
+usecase "delete\nDELETE /api/v1/productos/{id}" as U13
+usecase "isSkuDisponible\nGET /api/v1/productos/check-sku" as U14
+usecase "getDashboardStatistics\nGET /api/v1/productos/dashboard/statistics" as U15
+usecase "importar\nPOST /api/v1/productos/importacion-masiva" as U16
+usecase "exportar\nGET /api/v1/productos/exportacion" as U17
+usecase "subirImagen\nPOST /api/v1/productos/imagenes" as U18
+usecase "verImagen\nGET /api/v1/productos/imagenes" as U19
+usecase "rentabilidad\nGET /api/v1/reportes/productos/rentabilidad" as U20
+usecase "exportarRentabilidad\nGET /api/v1/reportes/productos/rentabilidad/exportar" as U21
+usecase "productosEstrella\nGET /api/v1/reportes/productos/estrella" as U22
+usecase "getStockByAlmacenAndProducto\nGET /api/v1/stock/almacen/{almacenId}/producto/{productoId}" as U23
+usecase "getStockByProducto\nGET /api/v1/stock/producto/{productoId}" as U24
+usecase "getResumenByProducto\nGET /api/v1/stock/producto/{productoId}/resumen" as U25
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+ADMIN -- U5
+ADMIN -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+MULTIFUNCIONAL -- U8
+ADMIN -- U9
+MULTIFUNCIONAL -- U9
+ADMIN -- U10
+MULTIFUNCIONAL -- U10
+ADMIN -- U11
+MULTIFUNCIONAL -- U11
+ADMIN -- U12
+MULTIFUNCIONAL -- U12
+ADMIN -- U13
+MULTIFUNCIONAL -- U13
+ADMIN -- U14
+MULTIFUNCIONAL -- U14
+ADMIN -- U15
+MULTIFUNCIONAL -- U15
+ADMIN -- U16
+MULTIFUNCIONAL -- U16
+ADMIN -- U17
+MULTIFUNCIONAL -- U17
+ADMIN -- U18
+MULTIFUNCIONAL -- U18
+ADMIN -- U19
+MULTIFUNCIONAL -- U19
+ADMIN -- U20
+MULTIFUNCIONAL -- U20
+ADMIN -- U21
+ADMIN -- U22
+MULTIFUNCIONAL -- U22
+ADMIN -- U23
+MULTIFUNCIONAL -- U23
+ADMIN -- U24
+MULTIFUNCIONAL -- U24
+ADMIN -- U25
+MULTIFUNCIONAL -- U25
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

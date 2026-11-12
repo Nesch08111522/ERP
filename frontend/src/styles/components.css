@@ -2434,3 +2434,45 @@ button .icon {
     transition: none !important;
   }
 }
+
+
+/* ===================== 15. TABLAS RESPONSIVE CARD-BASED ===================== */
+.table-wrap { min-width: 0; max-width: 100%; }
+.table-scroll { overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
+.table-scroll table { width: 100%; min-width: 680px; }
+.table-scroll th { position: sticky; top: 0; z-index: 1; background: var(--color-surface-raised); }
+.table-scroll tbody tr { transition: background var(--transition-fast); }
+.table-scroll tbody tr:hover { background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+.mobile-table { display: none; gap: .7rem; }
+.mobile-record { overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-sm); }
+.mobile-record-header { display: flex; align-items: center; justify-content: space-between; gap: .7rem; width: 100%; min-height: 4.1rem; padding: .75rem .85rem; border: 0; background: transparent; color: var(--color-text); text-align: left; }
+.mobile-record-header:hover { background: var(--color-primary-soft); }
+.mobile-record-heading { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+.mobile-record-index { display: grid; place-items: center; width: 2rem; height: 2rem; flex: 0 0 2rem; border-radius: var(--radius-full); background: var(--color-primary-soft); color: var(--color-primary); font-size: .75rem; font-weight: 750; }
+.mobile-record-main { display: grid; gap: .18rem; min-width: 0; }
+.mobile-record-title, .mobile-record-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mobile-record-title { font-size: .92rem; }
+.mobile-record-subtitle { color: var(--color-text-muted); font-size: .78rem; }
+.mobile-record-chevron { flex: 0 0 auto; color: var(--color-text-muted); transition: transform var(--transition-fast); }
+.mobile-record-chevron.rotated { transform: rotate(180deg); }
+.mobile-record-details { padding: 0 .85rem .85rem; border-top: 1px solid var(--color-border); animation: policalum-rise 180ms both; }
+.mobile-record-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; padding-top: .8rem; }
+.mobile-record-field { display: grid; gap: .25rem; min-width: 0; padding: .55rem; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--color-bg-subtle) 70%, transparent); }
+.mobile-field-label { color: var(--color-text-muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.mobile-field-value { min-width: 0; overflow-wrap: anywhere; font-size: .86rem; }
+.mobile-record-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; margin-top: .8rem; padding-top: .75rem; border-top: 1px solid var(--color-border); }
+.mobile-actions-label { width: 100%; color: var(--color-text-muted); font-size: .72rem; }
+.mobile-record-view { width: 100%; min-height: 2.75rem; margin-top: .75rem; border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-primary-soft); color: var(--color-text); font-weight: 650; }
+@media (max-width: 720px) {
+  .desktop-table { display: none !important; }
+  .mobile-table { display: grid; }
+}
+@media (min-width: 721px) {
+  .mobile-table { display: none !important; }
+}
+@media (max-width: 420px) {
+  .mobile-record-fields { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-record-details, .mobile-record-chevron { animation: none; transition: none; }
+}

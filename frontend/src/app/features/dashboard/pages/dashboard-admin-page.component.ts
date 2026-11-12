@@ -16,6 +16,7 @@ import { ComprasApiService } from '../../compras/data-access/compras.api';
 import { CotizacionesApiService } from '../../cotizaciones/data-access/cotizaciones.api';
 import { CuentasPorPagarApiService } from '../../cuentas-por-pagar/data-access/cuentas-por-pagar.api';
 import { FinanzasApiService } from '../../finanzas/data-access/finanzas.api';
+import { GananciaPersonalResponseDTO, MiRegimenApiService } from '../../rrhh/data-access/mi-regimen.api';
 import { ReportesApiService } from '../../reportes/data-access/reportes.api';
 import { StockApiService } from '../../stock/data-access/stock.api';
 import { VentasApiService } from '../../ventas/data-access/ventas.api';
@@ -53,6 +54,11 @@ export class DashboardAdminPageComponent implements OnDestroy {
   cotizaciones = 0;
   estrella: Api.RentabilidadItemDTO[] = [];
   vendedores: Array<{ vendedor: string; ventas: number; total: number }> = [];
+  /**
+   * Ganancia personal del admin vs ganancia de la empresa. Solo ADMIN: el endpoint
+   * /rrhh/mi-regimen/resumen rechaza a cualquier otro rol.
+   */
+  ganancia: GananciaPersonalResponseDTO | null = null;
   private readonly destroy$ = new Subject<void>();
   private carga = 0;
 
@@ -68,6 +74,7 @@ export class DashboardAdminPageComponent implements OnDestroy {
     private readonly clientesApi: ClientesApiService,
     private readonly cotizacionesApi: CotizacionesApiService,
     private readonly sedeFiltro: SedeFiltroService,
+    private readonly regimenApi: MiRegimenApiService,
     readonly caja: CajaSessionService,
     private readonly http: HttpClient,
   ) {
@@ -152,6 +159,7 @@ export class DashboardAdminPageComponent implements OnDestroy {
       evolucion: this.esAdmin ? this.finanzas.GetApiV1FinanzasDashboardEvolucionMensual({ ...sede, meses: 7 }).pipe(catchError(() => of(null))) : of(null),
       estrella: this.reportes.GetApiV1ReportesProductosEstrella({ ...rango, top: 5, criterio: 'CANTIDAD' }).pipe(catchError(() => of(null))),
       vendedores: this.http.get<Array<{ vendedor: string; ventas: number; total: number }>>(`${environment.apiUrl}/api/v1/reportes/ventas/vendedores`, { params: { desde: iso(desde), hasta: hoy, top: 5 } }).pipe(catchError(() => of([]))),
+      ganancia: this.esAdmin ? this.regimenApi.resumen().pipe(catchError(() => of(null))) : of(null),
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (data) => {
       if (ticket !== this.carga) return;
@@ -182,6 +190,7 @@ export class DashboardAdminPageComponent implements OnDestroy {
       this.cotizaciones = data.cotizaciones?.totalElements ?? 0;
       this.estrella = (data.estrella?.items ?? []).filter((item) => !!item).slice(0, 5);
       this.vendedores = data.vendedores ?? [];
+      this.ganancia = data.ganancia;
       const vacio = !data.hoy && !data.stock && !data.cxp && !data.ventas && !data.compras;
       this.error = vacio ? 'No hay conexión con el servidor. Reintenta cuando el backend esté disponible.' : null;
       this.cargando = false;

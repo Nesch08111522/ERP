@@ -1,0 +1,82 @@
+@startuml
+title Clases identidad
+hide empty methods
+class Sede <<referencia externa>>
+class AuditLog <<Entity>> {
+  id : UUID
+  user : User
+  tabla : String
+  registroId : UUID
+  accion : AccionAudit
+  datosJson : MapString, Object
+  userAgent : String
+  createdAt : LocalDateTime
+}
+class Notificacion <<Entity>> {
+  id : UUID
+  clave : String
+  tipo : String
+  titulo : String
+  detalle : String
+  ruta : String
+  leida : boolean
+  eliminada : boolean
+  createdAt : LocalDateTime
+  leidaAt : LocalDateTime
+}
+class PushSuscripcion <<Entity>> {
+  id : UUID
+  usuarioId : UUID
+  endpoint : String
+  p256dh : String
+  auth : String
+  dispositivo : String
+  createdAt : LocalDateTime
+}
+class RefreshToken <<Entity>> {
+  id : UUID
+  userId : UUID
+  tokenHash : String
+  sesionVersion : int
+  expiresAt : LocalDateTime
+  revocado : boolean
+  createdAt : LocalDateTime
+}
+class Rol <<Entity>> {
+  id : UUID
+  nombre : RolNombre
+  permisosJson : MapString, Object
+  createdAt : LocalDateTime
+}
+note right of Rol : Metodos: prePersist
+class User <<Entity>> {
+  id : UUID
+  rol : Rol
+  sede : Sede
+  nombreUsuario : String
+  nombre : String
+  apellido : String
+  email : String
+  passwordHash : String
+  celular : String
+  documento : String
+  biografia : String
+  foto : String
+  ultimoIp : String
+  sesionVersion : Integer
+  activo : Boolean
+  totpSecret : String
+  totpEnabled : Boolean
+  ultimoLogin : LocalDateTime
+  createdAt : LocalDateTime
+}
+class VapidClave <<Entity>> {
+  id : Short
+  publica : String
+  privada : String
+}
+AuditLog "0..*" -- "0..1" User : user
+User "0..*" -- "1" Rol : rol
+User "0..*" -- "1" Sede : sede
+
+@enduml

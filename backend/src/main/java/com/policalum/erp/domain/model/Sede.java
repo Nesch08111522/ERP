@@ -2,9 +2,15 @@ package com.policalum.erp.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
+
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
+import com.policalum.erp.domain.enums.TratamientoAusencias;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -47,6 +53,23 @@ public class Sede {
     /** Ruta relativa en el almacén de archivos o una URL. */
     @Column(length = 500)
     private String imagen;
+
+    // ============ POLÍTICA DE REMUNERACIÓN (§8.1, nivel SEDE) ============
+    // Los tres campos son opcionales: null = "hereda de la empresa". La herencia se resuelve
+    // campo por campo en PoliticaRemuneracionService, no como bloque completo.
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "politica_division", length = 20)
+    private PoliticaDivisionSueldo politicaDivision;
+
+    /** Máscara de días laborables, mismo formato que RrhhTurnoTrabajo.diasSemana. */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "dias_laborables", columnDefinition = "jsonb")
+    private List<String> diasLaborables;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tratamiento_ausencias", length = 30)
+    private TratamientoAusencias tratamientoAusencias;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -1,0 +1,155 @@
+@startuml
+title ERD JPA inferido - rrhh
+hide circle
+entity "rrhh_asistencia\nRrhhAsistencia" as RrhhAsistencia {
+  * id : UUID <<PK JPA>>
+  user_id : User <<JOIN JPA>>
+  fecha_hora : LocalDateTime
+  tipo_marcacion : TipoMarcacion
+  estado : EstadoAsistencia
+  dispositivo_info : String
+  turno_caja_id : UUID
+  created_at : LocalDateTime
+  fecha : LocalDate
+  hora_entrada : LocalTime
+  hora_salida : LocalTime
+  horas_trabajadas : BigDecimal
+  turno_trabajo_id : UUID
+}
+entity "rrhh_comisiones\nRrhhComision" as RrhhComision {
+  * id : UUID <<PK JPA>>
+  user_id : User <<JOIN JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  periodo : String
+  total_ventas_netas : BigDecimal
+  cantidad_ventas : Long
+  porcentaje_comision : BigDecimal
+  monto_comision : BigDecimal
+  estado : EstadoComision
+  aprobado_por : User <<JOIN JPA>>
+  fecha_aprobacion : LocalDateTime
+  created_at : LocalDateTime
+  updated_at : LocalDateTime
+}
+entity "rrhh_historial_salarial\nRrhhHistorialSalarial" as RrhhHistorialSalarial {
+  * id : UUID <<PK JPA>>
+  legajo_id : RrhhLegajoDigital <<JOIN JPA>>
+  vigencia_desde : LocalDate
+  tipo_contrato_anterior : String
+  tipo_contrato_nuevo : String
+  sueldo_anterior : BigDecimal
+  sueldo_nuevo : BigDecimal
+  comision_anterior : BigDecimal
+  comision_nuevo : BigDecimal
+  dia_cobro_anterior : Integer
+  dia_cobro_nuevo : Integer
+  motivo : String
+  registrado_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "rrhh_legajo_digital\nRrhhLegajoDigital" as RrhhLegajoDigital {
+  * id : UUID <<PK JPA>>
+  user_id : User <<JOIN JPA>>
+  tipo_contrato : String
+  fecha_ingreso : LocalDate
+  sueldo_base : BigDecimal
+  dia_cobro : Integer
+  porcentaje_comision : BigDecimal
+  documentos_json : MapString, Object
+  activo : Boolean
+  created_at : LocalDateTime
+  sistema_pension : SistemaPension
+  tasa_pension : BigDecimal
+  politica_division : PoliticaDivisionSueldo
+  dias_laborables : ListString
+  tratamiento_ausencias : TratamientoAusencias
+}
+entity "rrhh_legajo_documentos\nRrhhLegajoDocumento" as RrhhLegajoDocumento {
+  * id : UUID <<PK JPA>>
+  legajo_id : RrhhLegajoDigital <<JOIN JPA>>
+  tipo : TipoDocumentoLegajo
+  nombre_original : String
+  ruta_archivo : String
+  content_type : String
+  tamano_bytes : Long
+  descripcion : String
+  subido_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "rrhh_nominas\nRrhhNomina" as RrhhNomina {
+  * id : UUID <<PK JPA>>
+  user_id : User <<JOIN JPA>>
+  periodo : String
+  sueldo_base_calculado : BigDecimal
+  total_comisiones : BigDecimal
+  descuentos : BigDecimal
+  total_neto : BigDecimal
+  estado : EstadoNomina
+  aprobado_por : User <<JOIN JPA>>
+  fecha_aprobacion : LocalDateTime
+  created_at : LocalDateTime
+  sede_id : Sede <<JOIN JPA>>
+  comision_id : RrhhComision <<JOIN JPA>>
+  tipo_contrato : String
+  dias_computados : Integer
+  divisor_remuneracion : Integer
+  politica_division : PoliticaDivisionSueldo
+  ventas_base_comision : BigDecimal
+  porcentaje_comision : BigDecimal
+  sistema_pension : SistemaPension
+  tasa_pension : BigDecimal
+  descuento_pension : BigDecimal
+  otros_descuentos : BigDecimal
+  generado_por : User <<JOIN JPA>>
+  pagado_por : User <<JOIN JPA>>
+  fecha_pago : LocalDateTime
+  metodo_pago : MetodoPago
+  referencia_pago : String
+  observaciones : String
+}
+entity "rrhh_regimen_remuneracion\nRrhhRegimenRemuneracion" as RrhhRegimenRemuneracion {
+  * id : UUID <<PK JPA>>
+  user_id : User <<JOIN JPA>>
+  sueldo_habilitado : Boolean
+  comision_habilitada : Boolean
+  reparto_habilitado : Boolean
+  porcentaje_reparto : BigDecimal
+  base_reparto : BaseRepartoUtilidad
+  tope_reparto_mensual : BigDecimal
+  created_at : LocalDateTime
+  updated_at : LocalDateTime
+}
+entity "rrhh_turnos_trabajo\nRrhhTurnoTrabajo" as RrhhTurnoTrabajo {
+  * id : UUID <<PK JPA>>
+  user_id : User <<JOIN JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  nombre_turno : String
+  hora_inicio : LocalTime
+  hora_fin : LocalTime
+  dias_semana : ListString
+  activo : Boolean
+  created_at : LocalDateTime
+  tolerancia_minutos : Integer
+}
+entity "User (externa)" as User
+entity "Sede (externa)" as Sede
+RrhhAsistencia -- User : ManyToOne empleado
+RrhhComision -- User : ManyToOne user
+RrhhComision -- Sede : ManyToOne sede
+RrhhComision -- User : ManyToOne aprobadoPor
+RrhhHistorialSalarial -- RrhhLegajoDigital : ManyToOne legajo
+RrhhHistorialSalarial -- User : ManyToOne registradoPor
+RrhhLegajoDigital -- User : OneToOne user
+RrhhLegajoDocumento -- RrhhLegajoDigital : ManyToOne legajo
+RrhhLegajoDocumento -- User : ManyToOne subidoPor
+RrhhNomina -- User : ManyToOne user
+RrhhNomina -- User : ManyToOne aprobadoPor
+RrhhNomina -- Sede : ManyToOne sede
+RrhhNomina -- RrhhComision : ManyToOne comision
+RrhhNomina -- User : ManyToOne generadoPor
+RrhhNomina -- User : ManyToOne pagadoPor
+RrhhRegimenRemuneracion -- User : OneToOne user
+RrhhTurnoTrabajo -- User : ManyToOne user
+RrhhTurnoTrabajo -- Sede : ManyToOne sede
+
+@enduml

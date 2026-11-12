@@ -1,0 +1,36 @@
+@startuml
+title Casos de uso preformas
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "preformas" {
+usecase "crear\nPOST /api/v1/preformas" as U0
+usecase "abiertas\nGET /api/v1/preformas/abiertas" as U1
+usecase "vencidas\nGET /api/v1/preformas/vencidas" as U2
+usecase "dashboard\nGET /api/v1/preformas/dashboard" as U3
+usecase "obtener\nGET /api/v1/preformas/{id}" as U4
+usecase "actualizar\nPUT /api/v1/preformas/{id}" as U5
+usecase "eliminar\nDELETE /api/v1/preformas/{id}" as U6
+usecase "confirmar\nPOST /api/v1/preformas/{id}/confirmar" as U7
+usecase "cancelar\nPOST /api/v1/preformas/{id}/cancelar" as U8
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+MULTIFUNCIONAL -- U8
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

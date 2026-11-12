@@ -2,14 +2,20 @@
 package com.policalum.erp.application.service;
 
 import com.policalum.erp.application.dto.request.AsistenciaQrDTO;
+import com.policalum.erp.application.dto.request.MarcarLoteRequestDTO;
 import com.policalum.erp.application.dto.request.RrhhAsistenciaRequestDTO;
 import com.policalum.erp.application.dto.response.AsistenciaEstadoDTO;
+import com.policalum.erp.application.dto.response.AsistenciaRosterDTO;
 import com.policalum.erp.application.dto.response.DashboardAsistenciaDTO;
+import com.policalum.erp.application.dto.response.MarcarLoteResponseDTO;
+import com.policalum.erp.application.dto.response.QrPersonalDTO;
 import com.policalum.erp.application.dto.response.RrhhAsistenciaResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface RrhhAsistenciaService {
@@ -68,4 +74,31 @@ public interface RrhhAsistenciaService {
      * Obtener el estado del día de un empleado (entrada/salida)
      */
     AsistenciaEstadoDTO obtenerEstadoDelDia(UUID empleadoId);
+
+    // ============================================
+    // MÓDULO 10: QR PERSONAL, ESCANEO DEL ADMIN Y ROSTER
+    // ============================================
+
+    /**
+     * QR dinámico del usuario autenticado, para que el administrador lo escanee.
+     * Provisiona el secreto TOTP personal en la primera llamada.
+     */
+    QrPersonalDTO qrPersonal();
+
+    /**
+     * El administrador escanea el QR personal de un empleado y le registra la marcación
+     * que corresponda (entrada o salida según su estado del día).
+     */
+    RrhhAsistenciaResponseDTO marcarPorQrEscaneado(String payload);
+
+    /**
+     * "Quiénes asistieron el día de hoy": una fila por empleado activo, marque o no.
+     *
+     * @param fecha  null = hoy
+     * @param sedeId null = todas las sedes
+     */
+    List<AsistenciaRosterDTO> roster(LocalDate fecha, UUID sedeId);
+
+    /** Marca en lote desde el roster. Los que ya tienen la marcación se omiten. */
+    MarcarLoteResponseDTO marcarLote(MarcarLoteRequestDTO request);
 }

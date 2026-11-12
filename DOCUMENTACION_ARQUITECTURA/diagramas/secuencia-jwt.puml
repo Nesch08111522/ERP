@@ -1,0 +1,26 @@
+@startuml
+title Validacion JWT
+participant HttpClient
+participant JwtAuthenticationFilter as F
+participant JwtUtil as J
+participant TokenDenylist as D
+participant SesionUsuarioCache as K
+participant SecurityContextHolder as C
+participant FilterChain as H
+HttpClient -> F : peticion
+F -> J : getClaims(token)
+alt expirado o invalido
+F --> HttpClient : 401
+else claims validos
+F -> D : revocado(token)
+F -> J : getEmailFromToken / getRolFromToken
+F -> K : consultar(email)
+F -> J : getSesionVersion(token)
+alt revocado inactivo inexistente o version distinta
+F --> HttpClient : 401
+else sesion valida
+F -> C : setAuthentication(rol normalizado)
+F -> H : doFilter
+end
+end
+@enduml

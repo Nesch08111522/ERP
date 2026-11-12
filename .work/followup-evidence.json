@@ -1,0 +1,355 @@
+[
+  {
+    "label": "origin",
+    "value": {
+      "origin": "http://localhost:4201",
+      "hash": "16d7ee598b4208afbb5c50c0d1597e165d44b1006421baf706d5d31a5a5d8f52"
+    }
+  },
+  {
+    "label": "origin",
+    "value": {
+      "origin": "http://192.168.100.11:4201",
+      "hash": "16d7ee598b4208afbb5c50c0d1597e165d44b1006421baf706d5d31a5a5d8f52"
+    }
+  },
+  {
+    "label": "contentExact",
+    "value": true
+  },
+  {
+    "label": "theme",
+    "value": {
+      "mode": "dia",
+      "accent": "#0D47A1",
+      "uniforms": [
+        [
+          0.09659320839616553,
+          1.5122404234953764,
+          8.553603459249063
+        ],
+        [
+          3,
+          3,
+          3
+        ],
+        [
+          2.68880806011587,
+          2.7647455688266014,
+          2.8940587436809837
+        ],
+        [
+          0.09659320839616553,
+          1.5122404234953764,
+          8.553603459249063
+        ],
+        [
+          3,
+          3,
+          3
+        ],
+        [
+          2.68880806011587,
+          2.7647455688266014,
+          2.8940587436809837
+        ],
+        [
+          0.09659320839616553,
+          1.5122404234953764,
+          8.553603459249063
+        ],
+        [
+          3,
+          3,
+          3
+        ],
+        [
+          2.68880806011587,
+          2.7647455688266014,
+          2.8940587436809837
+        ],
+        [
+          0.9651408650955777,
+          0.9672053506175974,
+          0.9774740050447382
+        ],
+        [
+          0.09659320839616553,
+          1.5122404234953764,
+          8.553603459249063
+        ],
+        [
+          3,
+          3,
+          3
+        ],
+        [
+          2.68880806011587,
+          2.7647455688266014,
+          2.8940587436809837
+        ],
+        [
+          0.9651408650955777,
+          0.9672053506175974,
+          0.9774740050447382
+        ],
+        [
+          0.004024717016506897,
+          0.06301001764564068,
+          0.35640014413537763
+        ]
+      ],
+      "draws": 2385
+    }
+  },
+  {
+    "label": "theme",
+    "value": {
+      "mode": "noche",
+      "accent": "#90CAF9",
+      "uniforms": [
+        [
+          6.693462323183919,
+          14.174852181872115,
+          22.73535688156816
+        ],
+        [
+          0.015544550100184979,
+          0.02740217609747339,
+          0.0433315307766884
+        ],
+        [
+          0.006374066654117647,
+          0.012074151049520691,
+          0.02098623055379518
+        ],
+        [
+          6.693462323183919,
+          14.174852181872115,
+          22.73535688156816
+        ],
+        [
+          0.015544550100184979,
+          0.02740217609747339,
+          0.0433315307766884
+        ],
+        [
+          0.006374066654117647,
+          0.012074151049520691,
+          0.02098623055379518
+        ],
+        [
+          6.693462323183919,
+          14.174852181872115,
+          22.73535688156816
+        ],
+        [
+          0.015544550100184979,
+          0.02740217609747339,
+          0.0433315307766884
+        ],
+        [
+          0.006374066654117647,
+          0.012074151049520691,
+          0.02098623055379518
+        ],
+        [
+          0.9747612992213098,
+          0.9856716594318968,
+          0.9981557287856202
+        ],
+        [
+          6.693462323183919,
+          14.174852181872115,
+          22.73535688156816
+        ],
+        [
+          0.015544550100184979,
+          0.02740217609747339,
+          0.0433315307766884
+        ],
+        [
+          0.006374066654117647,
+          0.012074151049520691,
+          0.02098623055379518
+        ],
+        [
+          0.9747612992213098,
+          0.9856716594318968,
+          0.9981557287856202
+        ],
+        [
+          0.2788942634659966,
+          0.5906188409113381,
+          0.9473065367320066
+        ]
+      ],
+      "draws": 2544
+    }
+  },
+  {
+    "label": "capture",
+    "value": "producto"
+  },
+  {
+    "label": "capture",
+    "value": "ensamblaje"
+  },
+  {
+    "label": "capture",
+    "value": "catalogo"
+  },
+  {
+    "label": "capture",
+    "value": "contacto"
+  },
+  {
+    "label": "performance",
+    "value": {
+      "samples": 109,
+      "median": 56.700000047683716,
+      "p95": 210.09999990463257,
+      "navigation": [
+        {
+          "domContentLoaded": 631,
+          "load": 682.7000000476837
+        }
+      ],
+      "heap": 40570562
+    }
+  },
+  {
+    "label": "disposal",
+    "value": {
+      "before": {
+        "draws": 5618,
+        "deletes": 0
+      },
+      "disposed": {
+        "draws": 5671,
+        "deletes": 204,
+        "canvas": 0
+      },
+      "after": {
+        "draws": 5671,
+        "deletes": 204,
+        "canvas": 0
+      }
+    }
+  },
+  {
+    "label": "catalogControls",
+    "value": {
+      "cards": 18,
+      "selects": [
+        "<select aria-label=\"Ordenar\"><option value=\"reciente\">Recientes</option><option value=\"precio\">Precio</option><option value=\"nombre\">Nombre</option></select>",
+        "<select><option value=\"795587fb-e73a-47ff-878b-c03a3a996838\">1 · S/&nbsp;179.00</option><option value=\"094b7e47-7a1b-4448-acfe-75de8e534680\">3/4 · S/&nbsp;134.25</option><option value=\"13f0f1ed-b08c-4c11-884e-0ef608a615c3\">1/2 · S/&nbsp;89.50</option><option value=\"213aa853-0cc8-41ac-9a2f-b4dc4c18427d\">1/4 · S/&nbsp;44.75</option><!--container--></select>",
+        "<select><option value=\"537d1875-db8d-422c-a554-122b78c15c9d\">1 · S/&nbsp;89.00</option><option value=\"a7cfe035-619f-40ab-80e2-12bdaa63c0cb\">3/4 · S/&nbsp;66.75</option><option value=\"16c94cd9-d55e-42d1-bf1f-94a42e0bf8d5\">1/2 · S/&nbsp;44.50</option><option value=\"de5e4f00-4076-401a-9d2b-cb0623dc25be\">1/4 · S/&nbsp;22.25</option><!--container--></select>",
+        "<select><option value=\"71210264-8635-42e4-a7da-6623cfd1bb50\">1 · S/&nbsp;120.00</option><option value=\"01282208-35cb-4bce-a84a-a097c61e9f13\">3/4 · S/&nbsp;90.00</option><option value=\"5cf4d804-c78c-441f-b769-67bf54e4b288\">1/2 · S/&nbsp;60.00</option><option value=\"797a2415-f657-4ba8-949b-8d9ec94ab6d8\">1/4 · S/&nbsp;30.00</option><!--container--></select>",
+        "<select><option value=\"af5d9273-8442-446d-b712-34a869076d99\">1 · S/&nbsp;149.00</option><option value=\"86ae2492-7f3a-48e5-ace3-292a8dc42d49\">3/4 · S/&nbsp;111.75</option><option value=\"b70bc9b8-b763-4906-aa4f-314d571e0fd9\">1/2 · S/&nbsp;74.50</option><option value=\"4915a51c-bc68-4731-9498-1df3231001ad\">1/4 · S/&nbsp;37.25</option><!--container--></select>",
+        "<select><option value=\"278342e0-c4a2-4246-b5a6-ee03bf24e3e1\">1 · S/&nbsp;110.00</option><option value=\"aed36b59-6e14-41e4-88d3-7219482e3e27\">3/4 · S/&nbsp;82.50</option><option value=\"7ea45783-af7f-4c04-add4-7c3ea51f8ef6\">1/2 · S/&nbsp;55.00</option><option value=\"f268d114-c8ff-4a1d-b390-a5943d9100b5\">1/4 · S/&nbsp;27.50</option><!--container--></select>",
+        "<select><option value=\"29706ec6-0c83-4435-9dda-7ae971e5fded\">1 · S/&nbsp;135.00</option><option value=\"f8e82e5f-40f9-40c6-a17f-d574583a8102\">3/4 · S/&nbsp;101.25</option><option value=\"37b0349b-a17d-4b39-90b2-2ec392273cdb\">1/2 · S/&nbsp;67.50</option><option value=\"497643bf-740f-4443-b214-72b573f2ab0b\">1/4 · S/&nbsp;33.75</option><!--container--></select>",
+        "<select><option value=\"a627d0cb-6c52-4f3d-b122-05200ea21be1\">1 · S/&nbsp;168.00</option><option value=\"5f01b331-96a4-460d-9ed6-d756f938698e\">3/4 · S/&nbsp;126.00</option><option value=\"01be9c39-5577-4266-af72-414622f01160\">1/2 · S/&nbsp;84.00</option><option value=\"6d246d14-d7fd-45c7-a17f-4dc8c4e677a0\">1/4 · S/&nbsp;42.00</option><!--container--></select>"
+      ],
+      "checks": [
+        "Ofertas",
+        "Se vende por corte",
+        "Solo con stock",
+        "Últimas unidades"
+      ]
+    }
+  },
+  {
+    "label": "sorted",
+    "value": [
+      "Arandela de neopreno",
+      "Cinta de aluminio",
+      "Clip de fijación",
+      "Escuadra de aluminio",
+      "Perfil angular",
+      "Perfil de remate",
+      "Perfil H de unión",
+      "Perfil U de cierre",
+      "Policarbonato alveolar 10 mm",
+      "Policarbonato alveolar 4 mm",
+      "Policarbonato alveolar 6 mm",
+      "Policarbonato alveolar 8 mm",
+      "Policarbonato sólido 2 mm",
+      "Policarbonato sólido 3 mm",
+      "Policarbonato sólido 4 mm",
+      "Silicona neutra",
+      "Tapa de policarbonato",
+      "Tornillo autoperforante"
+    ]
+  },
+  {
+    "label": "stockFilter",
+    "value": {
+      "cards": 18,
+      "text": [
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nArandela de neopreno\nVer descripción\n\nStock 500\nAC-ARAN\n\nS/ 0.25\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nCinta de aluminio\nVer descripción\n\nStock 20\nAC-CINT\n\nS/ 36.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nClip de fijación\nVer descripción\n\nStock 100\nPF-CLIP\n\nS/ 3.50\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nEscuadra de aluminio\nVer descripción\n\nStock 33.5\nAC-ESC\n\nS/ 8.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil angular\nVer descripción\n\nStock 20\nPF-ANG\n\nS/ 18.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil de remate\nVer descripción\n\nStock 30\nPF-R\n\nS/ 13.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil H de unión\nVer descripción\n\nStock 40\nPF-H\n\nS/ 16.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil U de cierre\nVer descripción\n\nStock 40\nPF-U\n\nS/ 14.00\n\nAgregar",
+        "3D\n\nPOLICARBONATOS\n\nPolicarbonato alveolar 10 mm\nVer descripción\n\nStock 10\nPC-10\n\nCorte publicado\n1 · S/ 179.00\n3/4 · S/ 134.25\n1/2 · S/ 89.50\n1/4 · S/ 44.75\n\nS/ 179.00\n\nAgregar",
+        "3D\n\nPOLICARBONATOS\n\nPolicarbonato alveolar 4 mm\nVer descripción\n\nStock 24\nPC-4\n\nCorte publicado\n1 · S/ 89.00\n3/4 · S/ 66.75\n1/2 · S/ 44.50\n1/4 · S/ 22.25\n\nS/ 89.00\n\nAgregar",
+        "3D\n\nPOLICARBONATOS\n\nPolicarbonato alveolar 6 mm\nVer descripción\n\nStock 18\nPC-6\n\nCorte publicado\n1 · S/ 120.00\n3/4 · S/ 90.00\n1/2 · S/ 60.00\n1/4 · S/ 30.00\n\nS/ 120.00\n\nAgregar",
+        "3D\n\nPOLICARBONATOS\n\nPolicarbonato alveolar 8 mm\nVer descripción\n\nStock 12\nPC-8\n\nCorte publicado\n1 · S/ 149.00\n3/4 · S/ 111.75\n1/2 · S/ 74.50\n1/4 · S/ 37.25\n\nS/ 149.00\n\nAgregar",
+        "ÚLTIMAS UNIDADES\n3D\n\nPOLICARBONATOS\n\nPolicarbonato sólido 2 mm\nVer descripción\n\nStock 8\nPCS-2\n\nCorte publicado\n1 · S/ 110.00\n3/4 · S/ 82.50\n1/2 · S/ 55.00\n1/4 · S/ 27.50\n\nS/ 110.00\n\nAgregar",
+        "ÚLTIMAS UNIDADES\n3D\n\nPOLICARBONATOS\n\nPolicarbonato sólido 3 mm\nVer descripción\n\nStock 8\nPCS-3\n\nCorte publicado\n1 · S/ 135.00\n3/4 · S/ 101.25\n1/2 · S/ 67.50\n1/4 · S/ 33.75\n\nS/ 135.00\n\nAgregar",
+        "ÚLTIMAS UNIDADES\n3D\n\nPOLICARBONATOS\n\nPolicarbonato sólido 4 mm\nVer descripción\n\nStock 6\nPCS-4\n\nCorte publicado\n1 · S/ 168.00\n3/4 · S/ 126.00\n1/2 · S/ 84.00\n1/4 · S/ 42.00\n\nS/ 168.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nSilicona neutra\nVer descripción\n\nStock 36\nAC-SIL\n\nS/ 24.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nTapa de policarbonato\nVer descripción\n\nStock 48\nAC-TAPA\n\nS/ 9.00\n\nAgregar",
+        "OFERTA\n3D\n\nPOLICARBONATOS\n\nTornillo autoperforante\nVer descripción\n\nStock 500\nAC-TOR\n\nS/ 0.40\n\nAgregar"
+      ]
+    }
+  },
+  {
+    "label": "offersFilter",
+    "value": {
+      "path": "?vista=ofertas",
+      "cards": 11,
+      "allOffer": true
+    }
+  },
+  {
+    "label": "product",
+    "value": {
+      "path": "/catalogo/a776786f-ebbb-4dd6-9798-63a5b71f89f5",
+      "title": "Arandela de neopreno | POLICALUM",
+      "h1": "Arandela de neopreno",
+      "text": "POLICARBONATOS\n\nArandela de neopreno\n\nArandela selladora para fijaciones.\n\nS/ 0.25 / UNID\n\nSKU AC-ARAN\nStock 500\n\nOFERTA\n\nCantidad\nAgregar al carrito\nProductos relacionados\nOFERTA\n3D\n\nPOLICARBONATOS\n\nCinta de aluminio\nVer descripción\n\nStock 20\nAC-CINT\n\nS/ 36.00\n\nAgregar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nClip de fijación\nVer descripción\n\nStock 100\nPF-CLIP\n\nS/ 3.50\n\nAgregar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nEscuadra de aluminio\nVer descripción\n\nStock 33.5\nAC-ESC\n\nS/ 8.00\n\nAgregar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil angular\nVer descripción\n\nStock 20\nPF-ANG\n\nS/ 18.00\n\nAgregar\nTambién te puede interesar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil de remate\nVer descripción\n\nStock 30\nPF-R\n\nS/ 13.00\n\nAgregar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil H de unión\nVer descripción\n\nStock 40\nPF-H\n\nS/ 16.00\n\nAgregar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nPerfil U de cierre\nVer descripción\n\nStock 40\nPF-U\n\nS/ 14.00\n\nAgregar\n3D\n\nPOLICARBONATOS\n\nPolicarbonato alveolar 10 mm\nVer descripción\n\nStock 10\nPC-10\n\nCorte publicado\n1 · S/ 179.00\n3/4 · S/ 134.25\n1/2 · S/ 89.50\n1/4 · S/ 44.75\n\nS/ 179.00\n\nAgregar\nRecién llegados\nOFERTA\n3D\n\nPOLICARBONATOS\n\nTapa de policarbonato\nVer descripción\n\nStock 48\nAC-TAPA\n\nS/ 9.00\n\nAgregar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nSilicona neutra\nVer descripción\n\nStock 36\nAC-SIL\n\nS/ 24.00\n\nAgregar\nOFERTA\n3D\n\nPOLICARBONATOS\n\nTornillo autoperforante\nVer descripción\n\nStock 500\nAC-TOR\n\nS/ 0.40\n\nAgregar\nÚLTIMAS UNIDADES\n3D\n\nPOLICARBONATOS\n\nPolicarbonato sólido 4 mm\nVer descripción\n\nStock 6\nPCS-4\n\nCorte publicado\n1 · S/ 168.00\n3/4 · S/ 126.00\n1/2 · S/ 84.00\n1/4 · S/ 42.00\n\nS/ 168.00\n\nAgregar"
+    }
+  },
+  {
+    "label": "noWebGL",
+    "value": {
+      "canvas": 0,
+      "fallback": true,
+      "h1": 1
+    }
+  },
+  {
+    "label": "errors",
+    "value": [
+      {
+        "entry": {
+          "source": "network",
+          "level": "error",
+          "text": "Failed to load resource: net::ERR_CACHE_OPERATION_NOT_SUPPORTED",
+          "timestamp": 1794319117795.962,
+          "url": "http://192.168.100.11:4201/videos/ubicanos.mp4",
+          "networkRequestId": "53992.85"
+        }
+      }
+    ]
+  },
+  {
+    "label": "writes",
+    "value": []
+  }
+]

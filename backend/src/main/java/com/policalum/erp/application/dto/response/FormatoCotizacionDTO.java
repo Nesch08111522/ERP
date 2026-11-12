@@ -10,6 +10,11 @@ public record FormatoCotizacionDTO(
         List<DistritoTarifaDTO> distritos,
         List<ConceptoCargoDTO> conceptos
 ) {
+    /** Formato sin el porcentaje de utilidad, para el portal público. */
+    public FormatoCotizacionDTO sinMargen() {
+        return new FormatoCotizacionDTO(null, distritos, conceptos);
+    }
+
     public record DistritoTarifaDTO(
             UUID id,
             String distrito,

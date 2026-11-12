@@ -1,0 +1,30 @@
+@startuml
+title Consulta stock por sede
+actor Usuario
+participant "BackendApiService (Angular)" as F
+participant HttpClient as H
+participant "SecurityFilterChain / PreAuthorize" as S
+participant StockOperacionController as C
+participant StockOperacionServiceImpl as A
+participant StockRepository as R
+Usuario -> F : Solicitar operacion
+F -> H : construir peticion
+H -> S : HTTP Bearer
+alt autenticacion o autorizacion rechazada
+S --> H : 401 / 403
+else acceso permitido
+S -> C : peticion autorizada
+C -> A : consolidado(...)
+note right of A : sedePermitida: ADMIN todas; MULTIFUNCIONAL propia; consultar consolidado
+A -> R : consultas/persistencia resumidas
+R --> A : entidades/proyecciones
+alt excepcion del servicio
+A --> C : excepcion
+C --> H : respuesta via GlobalExceptionHandler
+else operacion valida
+A --> C : DTO
+C --> H : respuesta HTTP
+H --> F : Observable
+end
+end
+@enduml

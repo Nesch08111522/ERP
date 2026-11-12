@@ -1,0 +1,262 @@
+@startuml
+title ERD JPA inferido - ventas
+hide circle
+entity "clientes\nCliente" as Cliente {
+  * id : UUID <<PK JPA>>
+  tipo_documento : String
+  numero_documento : String
+  nombre : String
+  email : String
+  celular : String
+  direccion : String
+  activo : Boolean
+  created_at : LocalDateTime
+}
+entity "concepto_cotizacion\nConceptoCotizacion" as ConceptoCotizacion {
+  * id : UUID <<PK JPA>>
+  nombre : String
+  tipo : TipoCargoCotizacion
+  valor : BigDecimal
+  activo : Boolean
+  orden : Integer
+}
+entity "cotizaciones\nCotizacion" as Cotizacion {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  cliente_id : Cliente <<JOIN JPA>>
+  estado : EstadoCotizacion
+  canal : CanalCotizacion
+  contacto_ruc : String
+  contacto_razon_social : String
+  contacto_correo : String
+  contacto_telefono : String
+  distrito : String
+  cantidad_piezas : BigDecimal
+  subtotal_materiales : BigDecimal
+  utilidad_porcentaje : BigDecimal
+  utilidad_monto : BigDecimal
+  movilidad_monto : BigDecimal
+  otros_monto : BigDecimal
+  otros_detalle : String
+  modificada : Boolean
+  nota_cambio : String
+  total : BigDecimal
+  fecha_vigencia : LocalDate
+  observaciones : String
+  venta_id : Venta <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "detalle_cotizacion\nDetalleCotizacion" as DetalleCotizacion {
+  * id : UUID <<PK JPA>>
+  cotizacion_id : Cotizacion <<JOIN JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  fraccion_id : CatalogoFraccion <<JOIN JPA>>
+  servicio_id : Servicio <<JOIN JPA>>
+  cantidad : BigDecimal
+  precio_unitario_con_igv : BigDecimal
+  valor_unitario_neto : BigDecimal
+  igv_linea : BigDecimal
+  porcentaje_igv : BigDecimal
+  subtotal : BigDecimal
+}
+entity "detalle_devolucion\nDetalleDevolucion" as DetalleDevolucion {
+  * id : UUID <<PK JPA>>
+  devolucion_id : Devolucion <<JOIN JPA>>
+  detalle_venta_id : DetalleVenta <<JOIN JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  fraccion_id : CatalogoFraccion <<JOIN JPA>>
+  cantidad_devuelta : BigDecimal
+  precio_unitario_ref : BigDecimal
+  estado_producto : EstadoProducto
+  observacion : String
+  subtotal : BigDecimal
+  cantidad_stock : BigDecimal
+  almacen_id : Almacen <<JOIN JPA>>
+}
+entity "detalle_preforma\nDetallePreforma" as DetallePreforma {
+  * id : UUID <<PK JPA>>
+  preforma_id : PreformaVenta <<JOIN JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  fraccion_id : CatalogoFraccion <<JOIN JPA>>
+  servicio_id : Servicio <<JOIN JPA>>
+  cantidad : BigDecimal
+  precio_unitario_con_igv : BigDecimal
+  valor_unitario_neto : BigDecimal
+  igv_linea : BigDecimal
+  porcentaje_igv : BigDecimal
+  subtotal : BigDecimal
+  nota_cambio : String
+}
+entity "detalle_venta\nDetalleVenta" as DetalleVenta {
+  * id : UUID <<PK JPA>>
+  venta_id : Venta <<JOIN JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  fraccion_id : CatalogoFraccion <<JOIN JPA>>
+  servicio_id : Servicio <<JOIN JPA>>
+  cantidad : BigDecimal
+  precio_unitario_con_igv : BigDecimal
+  valor_unitario_neto : BigDecimal
+  igv_linea : BigDecimal
+  porcentaje_igv : BigDecimal
+  subtotal : BigDecimal
+}
+entity "devoluciones\nDevolucion" as Devolucion {
+  * id : UUID <<PK JPA>>
+  venta_id : Venta <<JOIN JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  solicitado_por : User <<JOIN JPA>>
+  aprobado_por : User <<JOIN JPA>>
+  cliente_id : Cliente <<JOIN JPA>>
+  motivo : String
+  estado : EstadoDevolucion
+  fecha_solicitud : LocalDateTime
+  fecha_resolucion : LocalDateTime
+  observacion_admin : String
+  created_at : LocalDateTime
+  codigo : String
+  monto_total : BigDecimal
+}
+entity "pagos_venta\nPagoVenta" as PagoVenta {
+  * id : UUID <<PK JPA>>
+  venta_id : Venta <<JOIN JPA>>
+  metodo_pago : MetodoPago
+  monto : BigDecimal
+  referencia : String
+  created_at : LocalDateTime
+}
+entity "parametro_cotizacion\nParametroCotizacion" as ParametroCotizacion {
+  * id : Long <<PK JPA>>
+  utilidad_porcentaje : BigDecimal
+}
+entity "preformas_venta\nPreformaVenta" as PreformaVenta {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  cliente_id : Cliente <<JOIN JPA>>
+  cotizacion_id : Cotizacion <<JOIN JPA>>
+  turno_caja_id : TurnoCaja <<JOIN JPA>>
+  subtotal_neto_estimado : BigDecimal
+  total_igv_estimado : BigDecimal
+  total_estimado : BigDecimal
+  estado : EstadoPreforma
+  fecha_expiracion : LocalDateTime
+  observaciones : String
+  venta_id : Venta <<JOIN JPA>>
+  created_at : LocalDateTime
+  codigo : String
+  confirmado_por : User <<JOIN JPA>>
+  fecha_confirmacion : LocalDateTime
+  cancelado_por : User <<JOIN JPA>>
+  fecha_cancelacion : LocalDateTime
+  motivo_cancelacion : String
+  updated_at : LocalDateTime
+}
+entity "reembolsos\nReembolso" as Reembolso {
+  * id : UUID <<PK JPA>>
+  devolucion_id : Devolucion <<JOIN JPA>>
+  venta_id : Venta <<JOIN JPA>>
+  cliente_id : Cliente <<JOIN JPA>>
+  monto_total_reembolso : BigDecimal
+  metodo_reembolso : MetodoReembolso
+  referencia : String
+  procesado_por : User <<JOIN JPA>>
+  estado : EstadoReembolso
+  fecha_procesado : LocalDateTime
+  observaciones : String
+  created_at : LocalDateTime
+  creado_por : User <<JOIN JPA>>
+  monto_maximo : BigDecimal
+  motivo_ajuste : String
+  turno_caja_id : TurnoCaja <<JOIN JPA>>
+}
+entity "series_comprobante\nSerieComprobante" as SerieComprobante {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  tipo_comprobante : TipoComprobante
+  serie : String
+  ultimo_correlativo : Integer
+  activa : Boolean
+  actualizado_por : User <<JOIN JPA>>
+  created_at : LocalDateTime
+  updated_at : LocalDateTime
+}
+entity "ventas\nVenta" as Venta {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  cliente_id : Cliente <<JOIN JPA>>
+  cotizacion_id : UUID
+  preforma_id : UUID
+  turno_caja_id : TurnoCaja <<JOIN JPA>>
+  tipo_comprobante : TipoComprobante
+  serie_correlativo : String
+  ticket_registro : String
+  estado : EstadoVenta
+  subtotal_neto : BigDecimal
+  total_igv : BigDecimal
+  total : BigDecimal
+  canal_venta : CanalVenta
+  estado_sunat : EstadoSunat
+  hash_cpe : String
+  mensaje_sunat : String
+  referencia_pedido_online : String
+  created_at : LocalDateTime
+}
+entity "Sede (externa)" as Sede
+entity "User (externa)" as User
+entity "Producto (externa)" as Producto
+entity "CatalogoFraccion (externa)" as CatalogoFraccion
+entity "Servicio (externa)" as Servicio
+entity "Almacen (externa)" as Almacen
+entity "TurnoCaja (externa)" as TurnoCaja
+Cliente -- Venta : OneToMany ventas
+Cotizacion -- Sede : ManyToOne sede
+Cotizacion -- User : ManyToOne user
+Cotizacion -- Cliente : ManyToOne cliente
+Cotizacion -- Venta : ManyToOne venta
+DetalleCotizacion -- Cotizacion : ManyToOne cotizacion
+DetalleCotizacion -- Producto : ManyToOne producto
+DetalleCotizacion -- CatalogoFraccion : ManyToOne fraccion
+DetalleCotizacion -- Servicio : ManyToOne servicio
+DetalleDevolucion -- Devolucion : ManyToOne devolucion
+DetalleDevolucion -- DetalleVenta : ManyToOne detalleVenta
+DetalleDevolucion -- Producto : ManyToOne producto
+DetalleDevolucion -- CatalogoFraccion : ManyToOne fraccion
+DetalleDevolucion -- Almacen : ManyToOne almacen
+DetallePreforma -- PreformaVenta : ManyToOne preforma
+DetallePreforma -- Producto : ManyToOne producto
+DetallePreforma -- CatalogoFraccion : ManyToOne fraccion
+DetallePreforma -- Servicio : ManyToOne servicio
+DetalleVenta -- Venta : ManyToOne venta
+DetalleVenta -- Producto : ManyToOne producto
+DetalleVenta -- CatalogoFraccion : ManyToOne fraccion
+DetalleVenta -- Servicio : ManyToOne servicio
+Devolucion -- Venta : ManyToOne venta
+Devolucion -- Sede : ManyToOne sede
+Devolucion -- User : ManyToOne solicitadoPor
+Devolucion -- User : ManyToOne aprobadoPor
+Devolucion -- Cliente : ManyToOne cliente
+PagoVenta -- Venta : ManyToOne venta
+PreformaVenta -- Sede : ManyToOne sede
+PreformaVenta -- User : ManyToOne user
+PreformaVenta -- Cliente : ManyToOne cliente
+PreformaVenta -- Cotizacion : ManyToOne cotizacion
+PreformaVenta -- TurnoCaja : ManyToOne turnoCaja
+PreformaVenta -- Venta : ManyToOne venta
+PreformaVenta -- User : ManyToOne confirmadoPor
+PreformaVenta -- User : ManyToOne canceladoPor
+Reembolso -- Devolucion : ManyToOne devolucion
+Reembolso -- Venta : ManyToOne venta
+Reembolso -- Cliente : ManyToOne cliente
+Reembolso -- User : ManyToOne procesadoPor
+Reembolso -- User : ManyToOne creadoPor
+Reembolso -- TurnoCaja : ManyToOne turnoCaja
+SerieComprobante -- Sede : ManyToOne sede
+SerieComprobante -- User : ManyToOne actualizadoPor
+Venta -- Sede : ManyToOne sede
+Venta -- User : ManyToOne user
+Venta -- Cliente : ManyToOne cliente
+Venta -- TurnoCaja : ManyToOne turnoCaja
+
+@enduml

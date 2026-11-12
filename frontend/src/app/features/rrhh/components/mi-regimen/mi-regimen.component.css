@@ -1,0 +1,127 @@
+:host { display: block; min-width: 0; }
+
+.mi-regimen { display: grid; gap: 1rem; }
+
+.encabezado {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.encabezado h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+.encabezado p { margin: 0; font-size: 0.84rem; max-width: 78ch; }
+.campo-periodo { display: grid; gap: 0.25rem; font-size: 0.8rem; color: var(--color-text-muted, #5b6b7f); }
+
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 900px) { .columnas { grid-template-columns: 1fr; } }
+
+/* ── Panel de configuración ── */
+.panel-config {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--color-line, #d7e1ec);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-paper, #fff);
+}
+.panel-config h3 { margin: 0; font-size: 0.95rem; }
+
+.componentes { display: grid; gap: 0.6rem; }
+.componente {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-line, #d7e1ec);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-bg-subtle, #f3f6fb);
+  cursor: pointer;
+}
+.componente.apagado { opacity: 0.62; background: transparent; }
+.componente-head { display: flex; align-items: center; gap: 0.5rem; }
+.componente-head strong { font-size: 0.9rem; }
+.componente-valor { font-size: 0.95rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.componente-nota { font-size: 0.76rem; line-height: 1.35; }
+
+.reparto-detalle { display: grid; gap: 0.5rem; margin-top: 0.5rem; padding-top: 0.6rem; border-top: 1px dashed var(--color-line, #d7e1ec); }
+.campo { display: grid; gap: 0.2rem; font-size: 0.78rem; color: var(--color-text-muted, #5b6b7f); }
+
+.nota-legal { margin: 0; font-size: 0.78rem; line-height: 1.45; }
+.acciones { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ── Los dos bolsillos ── */
+.panel-bolsillos { display: grid; gap: 0.8rem; }
+
+.bolsillo, .cruce {
+  padding: 1rem;
+  border: 1px solid var(--color-line, #d7e1ec);
+  border-radius: var(--radius-md, 10px);
+  background: var(--color-paper, #fff);
+}
+.bolsillo h4, .cruce h4 { margin: 0 0 0.3rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-muted, #5b6b7f); }
+.bolsillo-total, .cruce-total {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.bolsillo-sub { margin: 0 0 0.7rem; font-size: 0.78rem; }
+
+.bolsillo.empresa { border-left: 4px solid var(--color-primary, #2563eb); }
+.bolsillo.empresa .bolsillo-total { color: var(--color-primary, #2563eb); }
+.bolsillo.personal { border-left: 4px solid var(--color-success, #15803d); }
+.bolsillo.personal .bolsillo-total { color: var(--color-success, #15803d); }
+
+.desglose { display: grid; gap: 0.35rem; margin: 0; }
+.desglose > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dashed var(--color-line, #d7e1ec);
+}
+.desglose > div:last-child { border-bottom: 0; }
+.desglose dt { font-size: 0.82rem; color: var(--color-text-muted, #5b6b7f); }
+.desglose dd { margin: 0; font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.desglose small { grid-column: 1 / -1; font-size: 0.74rem; text-align: right; }
+.desglose .resta { color: var(--color-danger, #b91c1c); }
+.desglose .no-cobra dd { text-decoration: line-through; opacity: 0.55; }
+.desglose .pagado dd { color: var(--color-text-muted, #5b6b7f); font-weight: 500; }
+
+.cruce { border-left: 4px solid var(--color-warning, #b45309); }
+.cruce.negativo { border-left-color: var(--color-danger, #b91c1c); }
+.cruce.negativo .cruce-total { color: var(--color-danger, #b91c1c); }
+.cruce p { margin: 0.35rem 0 0; font-size: 0.8rem; }
+
+.dia-paga { margin: 0; font-size: 0.82rem; }
+
+/* ── Historial salarial propio ── */
+.mi-historial {
+  display: grid;
+  gap: 0.4rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--color-line, #d7e1ec);
+}
+.mi-historial h4 { margin: 0; font-size: 0.85rem; }
+.mi-historial ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.3rem; max-height: 260px; overflow-y: auto; }
+.mi-historial li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dashed var(--color-line, #d7e1ec);
+}
+.mi-historial li:last-child { border-bottom: 0; }
+.hi-fecha { color: var(--color-text-muted, #5b6b7f); font-variant-numeric: tabular-nums; }
+.hi-monto { font-variant-numeric: tabular-nums; text-align: right; }
+.hi-nota { font-size: 0.72rem; }
+.hi-pie { margin: 0; font-size: 0.72rem; }

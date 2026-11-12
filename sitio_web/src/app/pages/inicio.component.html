@@ -1,7 +1,18 @@
-<section class="hero-grid">
+<app-hero-cinematic id="producto" />
+<section class="material-collection" aria-labelledby="material-collection-title">
+  <div class="section-head"><div><p class="kicker">Materia prima. Nuevas posibilidades.</p><h2 id="material-collection-title">Un material para cada idea.</h2></div><a routerLink="/catalogo" class="collection-link">Explorar el catálogo ↗</a></div>
+  <div class="material-families">
+    <a routerLink="/catalogo" [queryParams]="{q: 'policarbonato'}" class="family-card"><div class="family-art sheets" aria-hidden="true"><i></i><i></i><i></i></div><span class="family-number">01 / LUZ</span><h3>Policarbonato alveolar</h3><p>Transparencia, color y ligereza para tus cubiertas.</p><span class="collection-link">Explorar planchas ↗</span></a>
+    <a routerLink="/catalogo" [queryParams]="{q: 'perfil'}" class="family-card"><div class="family-art profiles" aria-hidden="true"><i></i><i></i><i></i></div><span class="family-number">02 / ESTRUCTURA</span><h3>Aluminios y perfiles</h3><p>Líneas precisas y acabados para dar forma a tu proyecto.</p><span class="collection-link">Explorar perfiles ↗</span></a>
+    <a routerLink="/catalogo" [queryParams]="{q: 'conector'}" class="family-card"><div class="family-art connectors" aria-hidden="true"><i></i><i></i><i></i></div><span class="family-number">03 / UNIÓN</span><h3>Conectores y accesorios</h3><p>Conectores H y perfiles U para completar la instalación.</p><span class="collection-link">Explorar accesorios ↗</span></a>
+    <a routerLink="/catalogo" [queryParams]="{q: 'ducha'}" class="family-card"><div class="family-art shower" aria-hidden="true"><i></i><i></i></div><span class="family-number">04 / ESPACIOS</span><h3>Puertas para ducha</h3><p>Cerramientos y tonos que acompañan tu ambiente.</p><span class="collection-link">Explorar puertas ↗</span></a>
+  </div><p class="material-disclaimer">Ilustraciones de materiales. Consulta las fotos, medidas y disponibilidad en cada producto.</p>
+</section>
+<!-- Copy CMS y carrusel recuperados como marca, no como segundo hero. -->
+<section class="hero-grid" id="marca" aria-labelledby="titulo-marca">
   <div class="hero-copy">
     <p class="kicker">{{ cms.paquete()?.heroKicker || 'Suministro B2B' }}</p>
-    <h1>{{ cms.paquete()?.heroTitulo || 'Policarbonato y cubiertas para obras que necesitan certeza.' }}</h1>
+    <h2 id="titulo-marca">{{ cms.paquete()?.heroTitulo || 'Policarbonato y cubiertas para obras que necesitan certeza.' }}</h2>
     <p class="lead">{{ cms.paquete()?.heroTexto || 'El precio y el stock salen del almacén. Coordinas por WhatsApp o dejas una cotización con RUC, sin pago en línea.' }}</p>
     <div class="hero-actions">
       <a class="btn btn-primary" routerLink="/catalogo">Ver catálogo</a>
@@ -17,9 +28,9 @@
       @for (clip of clips; track clip.id; let i = $index) {
         @if (banner() === i) {
           @if (cine()) {
-            <video autoplay muted loop playsinline disablepictureinpicture [poster]="clip.poster" [src]="clip.src" [attr.aria-label]="clip.titulo" (loadedmetadata)="silenciar($event)" (play)="silenciar($event)"></video>
+            <video autoplay muted loop playsinline disablepictureinpicture [poster]="clip.poster" [src]="clip.src" [attr.aria-label]="clip.titulo" (loadedmetadata)="silenciar($event)" (play)="silenciar($event)" (error)="cine.set(false)"></video>
           } @else {
-            <img [src]="clip.poster" [alt]="clip.titulo" />
+            <div class="banner-material" [class.banner-colores]="clip.id === 'colores'" [class.banner-conectores]="clip.id === 'conectores'" role="img" [attr.aria-label]="'Ilustración conceptual: ' + clip.titulo"><div class="material-stack" aria-hidden="true"><span></span><span></span><span></span><i></i><i></i></div></div>
           }
         }
       }
@@ -35,27 +46,10 @@
   </div>
 </section>
 
-<section class="band" aria-label="Por qué POLICALUM">
-  <article>
-    <strong>Distribución desde Trujillo</strong>
-    <p>{{ marca.empresa().direccion || 'Sede principal para despacho y recojo.' }}</p>
-  </article>
-  <article>
-    <strong>Corte a medida</strong>
-    <p>Planchas y perfiles según la obra. El servicio publicado está en el ERP.</p>
-  </article>
-  <article>
-    <strong>Industria, obra y comercio</strong>
-    <p>El mismo catálogo sirve para naves, viviendas y reventa.</p>
-  </article>
-  <article>
-    <strong>Cotización con RUC</strong>
-    <p>Dejas los datos de tu empresa y ventas recibe el documento pendiente.</p>
-  </article>
-</section>
+<app-galeria-materiales id="ensamblaje" />
 
 @if (categorias().length) {
-  <section class="section" aria-label="Categorías">
+  <section class="section" id="categorias" aria-label="Categorías">
     <div class="section-head">
       <div>
         <p class="kicker">Líneas</p>
@@ -71,13 +65,15 @@
   </section>
 }
 
-<app-galeria-materiales />
-
-<section class="section">
+<section id="catalogo" aria-label="Catálogo publicado">
+@if (cargaPendiente()) { <p role="status" class="muted">Cargando información publicada por el ERP…</p> }
+@for (error of erroresCarga(); track error) { <p role="alert" class="alert">{{ error }}</p> }
+@if (catalogoCache()) { <p role="status" class="alert">Catálogo guardado sin conexión. Precio y disponibilidad requieren confirmación con ventas.</p> }
+<section class="section" id="ofertas" aria-labelledby="titulo-ofertas">
   <div class="section-head">
     <div>
       <p class="kicker">Promociones</p>
-      <h2>Ofertas publicadas por el ERP</h2>
+      <h2 id="titulo-ofertas">Oportunidades para tu proyecto</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/catalogo" [queryParams]="{ vista: 'ofertas' }">Ver ofertas</a>
   </div>
@@ -88,16 +84,16 @@
       }
     </div>
   } @else {
-    <p class="muted">Cuando un producto quede en oferta en el ERP, aparece aquí.</p>
+    <p class="muted">Estamos preparando nuevas ofertas. Explora nuestro catálogo y consulta con un asesor.</p>
   }
 </section>
 
 @if (destacados().length) {
-  <section class="section">
+  <section class="section" id="destacados" aria-labelledby="titulo-destacados">
     <div class="section-head">
       <div>
         <p class="kicker">Vitrina</p>
-        <h2>Productos destacados</h2>
+        <h2 id="titulo-destacados">Productos destacados</h2>
       </div>
       <a class="btn btn-line btn-sm" routerLink="/catalogo" [queryParams]="{ vista: 'destacados' }">Ver destacados</a>
     </div>
@@ -109,11 +105,27 @@
   </section>
 }
 
-<section class="section">
+<section class="section" id="novedades" aria-labelledby="titulo-novedades">
+  <div class="section-head">
+    <div>
+      <p class="kicker">Novedades</p>
+      <h2 id="titulo-novedades">Descubre nuestros materiales</h2>
+    </div>
+    <a class="btn btn-line btn-sm" routerLink="/catalogo">Abrir tienda</a>
+  </div>
+  <div class="product-grid">
+    @for (producto of catalogo(); track producto.id) {
+      <app-ficha [producto]="producto"></app-ficha>
+    }
+  </div>
+</section>
+</section>
+
+<section class="section" id="aplicaciones" aria-labelledby="titulo-aplicaciones">
   <div class="section-head">
     <div>
       <p class="kicker">Trabajos</p>
-      <h2>Proyectos publicados</h2>
+      <h2 id="titulo-aplicaciones">Proyectos publicados</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/portafolio">Ver proyectos</a>
   </div>
@@ -137,26 +149,11 @@
   }
 </section>
 
-<section class="section">
-  <div class="section-head">
-    <div>
-      <p class="kicker">Novedades</p>
-      <h2>Recién publicados en el catálogo</h2>
-    </div>
-    <a class="btn btn-line btn-sm" routerLink="/catalogo">Abrir tienda</a>
-  </div>
-  <div class="product-grid">
-    @for (producto of catalogo(); track producto.id) {
-      <app-ficha [producto]="producto"></app-ficha>
-    }
-  </div>
-</section>
-
-<section class="section">
+<section class="section" id="servicios" aria-labelledby="titulo-servicios">
   <div class="section-head">
     <div>
       <p class="kicker">Servicios</p>
-      <h2>Lo que el equipo instala o corta</h2>
+      <h2 id="titulo-servicios">De la idea a la instalación</h2>
     </div>
     <a class="btn btn-line btn-sm" routerLink="/servicios">Ver servicios</a>
   </div>
@@ -171,15 +168,40 @@
       }
     </div>
   } @else {
-    <p class="muted">Los servicios activos del ERP se listan en esta portada.</p>
+    <p class="muted">Consulta con nosotros el corte y la instalación que necesita tu proyecto.</p>
   }
 </section>
 
-<section class="cta-comercial">
+<section class="band" id="confianza" aria-label="Por qué POLICALUM">
+  <article>
+    <strong>Distribución desde Trujillo</strong>
+    <p>{{ marca.empresa().direccion || 'Sede principal para despacho y recojo.' }}</p>
+  </article>
+  <article>
+    <strong>Corte a medida</strong>
+    <p>Planchas y perfiles según la obra. Consulta las opciones disponibles con nuestro equipo.</p>
+  </article>
+  <article>
+    <strong>Industria, obra y comercio</strong>
+    <p>El mismo catálogo sirve para naves, viviendas y reventa.</p>
+  </article>
+  <article>
+    <strong>Cotización con RUC</strong>
+    <p>Dejas los datos de tu empresa y ventas recibe el documento pendiente.</p>
+  </article>
+</section>
+
+<section class="sedes-cinema" id="sedes" aria-label="Nuestras sedes">
+  <article><p class="kicker">01 / Sede Trujillo</p><h2>Elvira García y García 711</h2><p>Frente al Colegio Manucci. Coordinamos tu visita y recojo por WhatsApp.</p></article>
+  <article><p class="kicker">02 / Almacén</p><h2>Chicago</h2><p>Consulta con ventas el punto de recojo antes de acercarte.</p><a class="btn btn-line" href="https://wa.me/51954668279" target="_blank" rel="noopener">Coordinar visita</a></article>
+</section>
+<app-mapa-local id="mapa" />
+
+<section class="cta-comercial" id="contacto" aria-labelledby="titulo-contacto">
   <div>
     <p class="kicker">Siguiente paso</p>
-    <h2>La visita se convierte en cotización.</h2>
-    <p>El precio sale del almacén. Ventas confirma el documento con RUC, sin pago en línea.</p>
+    <h2 id="titulo-contacto">Tu próximo espacio empieza aquí.</h2>
+    <p>Cuéntanos tu idea. Te ayudamos a elegir materiales y preparar una cotización para tu obra.</p>
   </div>
   <div class="hero-actions">
     <a class="btn btn-primary" routerLink="/cotizar">Cotizar proyecto</a>
@@ -187,4 +209,4 @@
   </div>
 </section>
 
-<app-mapa-local />
+<!-- El mapa existente se conserva junto a sedes, antes del contacto. -->

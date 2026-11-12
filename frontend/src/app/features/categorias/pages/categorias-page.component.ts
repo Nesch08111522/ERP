@@ -59,7 +59,7 @@ export class CategoriasPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.cargar();
     this.cargarPadres();
-    this.buscar$.pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => { this.filtros.controls.searchTerm.setValue(valor); this.filtrar(); });
+    this.buscar$.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => { this.filtros.controls.searchTerm.setValue(valor); this.filtrar(); });
   }
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
   cargar(): void {

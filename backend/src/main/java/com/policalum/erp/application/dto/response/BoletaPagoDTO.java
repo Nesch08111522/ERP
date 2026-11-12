@@ -1,6 +1,7 @@
 package com.policalum.erp.application.dto.response;
 
 import com.policalum.erp.domain.enums.EstadoNomina;
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +19,9 @@ public record BoletaPagoDTO(
         String tipoContrato,
         LocalDate fechaIngreso,
         Integer diasComputados,
+        /** Snapshot de la política con la que se generó (§8.1). null = nómina anterior a la política. */
+        Integer divisorRemuneracion,
+        PoliticaDivisionSueldo politicaDivision,
         List<BoletaConceptoDTO> ingresos,
         BigDecimal totalIngresos,
         List<BoletaConceptoDTO> descuentos,

@@ -11,6 +11,7 @@ import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.domain.model.User;
 import com.policalum.erp.infrastructure.repository.UserRepository;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
+import com.policalum.erp.infrastructure.security.RateLimitService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationFilter;
 import com.policalum.erp.infrastructure.security.RolePermissionGuard;
 import com.policalum.erp.infrastructure.security.SecurityConfig;
@@ -32,6 +33,8 @@ class ReportePermissionControllerTest {
 
     @Autowired
     MockMvc mvc;
+    @MockitoBean
+    RateLimitService rateLimitService;
 
     @MockitoBean
     ReporteService reporteService;
@@ -46,22 +49,22 @@ class ReportePermissionControllerTest {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void consultarYExportarReportesRespetanElPermisoConfigurado() throws Exception {
-        User admin = User.builder()
+        User operador = User.builder()
                 .rol(Rol.builder()
-                        .nombre(RolNombre.ROLE_ADMIN)
+                        .nombre(RolNombre.ROLE_MULTIFUNCIONAL)
                         .permisosJson(Map.of("finanzas", Map.of("ver_reportes", true)))
                         .build())
                 .build();
-        org.mockito.Mockito.when(userRepository.findPerfilByEmail("admin@policalum.com"))
-                .thenReturn(Optional.of(admin));
+        org.mockito.Mockito.when(userRepository.findPerfilByEmail("operador@policalum.com"))
+                .thenReturn(Optional.of(operador));
 
         mvc.perform(get("/api/v1/reportes/productos/estrella"))
                 .andExpect(status().isOk());
 
         clearInvocations(reporteService);
-        admin.getRol().setPermisosJson(Map.of("finanzas", Map.of("ver_reportes", false)));
+        operador.getRol().setPermisosJson(Map.of("finanzas", Map.of("ver_reportes", false)));
 
         mvc.perform(get("/api/v1/reportes/productos/estrella"))
                 .andExpect(status().isForbidden());

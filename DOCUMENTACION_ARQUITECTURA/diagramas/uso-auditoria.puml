@@ -1,0 +1,22 @@
+@startuml
+title Casos de uso auditoria
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "auditoria" {
+usecase "buscar\nGET /api/v1/auditoria/logs" as U0
+usecase "exportar\nGET /api/v1/auditoria/logs/exportar" as U1
+usecase "porUsuario\nGET /api/v1/auditoria/logs/usuario/{userId}" as U2
+usecase "porEntidad\nGET /api/v1/auditoria/logs/entidad/{tabla}/{registroId}" as U3
+usecase "obtener\nGET /api/v1/auditoria/logs/{id}" as U4
+usecase "dashboard\nGET /api/v1/auditoria/dashboard" as U5
+}
+ADMIN -- U0
+ADMIN -- U1
+ADMIN -- U2
+ADMIN -- U3
+ADMIN -- U4
+ADMIN -- U5
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

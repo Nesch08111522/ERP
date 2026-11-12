@@ -20,3 +20,9 @@
   .sede-layout, .sede-editor { grid-template-columns: minmax(0, 1fr); }
   .sede-fotos { max-height: none; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); }
 }
+
+/* Política de remuneración de la sede (§8.1) */
+.sede-dias-titulo { margin: 0 0 0.35rem; font-size: var(--text-xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); }
+.sede-dias { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; }
+.sede-dias .sede-dia { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; cursor: pointer; }
+.sede-dias-nota { margin: 0.4rem 0 0; font-size: 0.78rem; }

@@ -1,82 +1,1749 @@
-:host { display: block; min-width: 0; max-width: 100%; }
-.search-shell { display: flex; align-items: center; gap: 0.4rem; min-width: 0; padding-left: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-bg); }
-.search-shell .input { border: 0; background: transparent; box-shadow: none; min-height: 2.4rem; }
-.search-shell .icon { flex-shrink: 0; color: var(--color-text-muted); }
-.search-results { left: 0; right: auto; width: 100%; }
-.sede-btn { max-width: clamp(7rem, 16vw, 14rem); }
-.sede-btn .icon { flex-shrink: 0; }
-.bell { position: relative; }
-.badge-count {
-  position: absolute;
-  top: 0.15rem;
-  right: 0.15rem;
-  min-width: 1.05rem;
-  height: 1.05rem;
-  padding: 0 0.2rem;
+
+/* ============================================================
+   POLICALUM ERP
+   PROFESSIONAL RESPONSIVE HEADER
+   Angular | SaaS UI | Dark & Light Theme
+   ============================================================ */
+
+
+/* ============================================================
+   1. CONTENEDOR PRINCIPAL
+   ============================================================ */
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: clamp(.65rem, 1.2vw, 1.1rem);
+
+  width: 100%;
+  min-width: 0;
+  min-height: 72px;
+
+  padding:
+    .65rem
+    clamp(.85rem, 1.8vw, 2rem);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-bg) 92%,
+      transparent
+    );
+
+  border-bottom: 1px solid var(--color-border);
+
+  box-shadow:
+    0 4px 18px rgba(5, 10, 28, .06);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  box-sizing: border-box;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+
+/* ============================================================
+   2. GRUPOS DEL HEADER
+   ============================================================ */
+
+.header-menu,
+.header-actions {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+}
+
+.header-menu {
+  flex: 0 0 auto;
+}
+
+.header-actions {
+  justify-content: flex-end;
+
+  gap: .45rem;
+
+  flex: 0 0 auto;
+
+  margin-left: 0 !important;
+}
+
+.header-actions > * {
+  flex-shrink: 0;
+}
+
+
+/* ============================================================
+   3. BOTONES Y CONTROLES
+   ============================================================ */
+
+.app-header .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  min-height: 44px;
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 12px;
+
+  background: var(--color-surface);
+
+  color: var(--color-text);
+
+  box-shadow: none;
+
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.app-header .btn:hover:not(:disabled) {
+  background: var(--color-surface-raised);
+
+  border-color: var(--color-border-strong);
+
+  color: var(--color-text);
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 5px 15px rgba(5, 10, 28, .10);
+}
+
+.app-header .btn:active:not(:disabled) {
+  transform: scale(.97);
+}
+
+/* Iconos */
+.app-header app-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 20px;
+  height: 20px;
+
+  color: inherit;
+}
+
+/* Botones solamente con iconos */
+.app-header .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+
+  padding: 0;
+
+  border-radius: 12px;
+}
+
+
+/* ============================================================
+   4. BOTÓN DEL MENÚ
+   ============================================================ */
+
+.header-menu .menu-trigger {
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+
+  border-radius: 12px;
+}
+
+.menu-trigger app-icon {
+  width: 21px;
+  height: 21px;
+}
+
+
+/* ============================================================
+   5. BUSCADOR GLOBAL
+   ============================================================ */
+
+.search-shell {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: .7rem;
+
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
+
+  min-height: 46px;
+
+  margin: 0;
+
+  padding: 0 .95rem;
+
+  border: 1px solid var(--color-border);
+
   border-radius: var(--radius-full);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-surface-solid) 75%,
+      var(--color-bg)
+    );
+
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, .025);
+
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* Icono del buscador */
+.search-shell > app-icon {
+  width: 21px;
+  height: 21px;
+
+  color: var(--color-text-muted);
+
+  transition: color var(--transition-fast);
+}
+
+/* Campo de búsqueda */
+.search-shell .search-input,
+.search-shell .input {
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+
+  height: 44px;
+  min-height: 44px;
+
+  padding: 0 .1rem;
+
+  border: 0 !important;
+  border-radius: 0;
+
+  outline: 0 !important;
+
+  background: transparent !important;
+
+  color: var(--color-text);
+
+  box-shadow: none !important;
+
+  font-size: .95rem;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.search-shell .search-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: .85;
+}
+
+/* Foco profesional */
+.search-shell:focus-within {
+  border-color: var(--color-primary);
+
+  background: var(--color-surface-raised);
+
+  box-shadow:
+    0 0 0 3px var(--color-primary-soft),
+    0 8px 24px rgba(31, 162, 214, .07);
+}
+
+.search-shell:focus-within > app-icon {
+  color: var(--color-primary);
+}
+
+.search-shell .search-input:focus {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+
+/* ============================================================
+   6. RESULTADOS DEL BUSCADOR
+   ============================================================ */
+
+.search-results {
+  position: absolute;
+
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+
+  z-index: 90;
+
+  width: 100%;
+  min-width: 0;
+
+  max-height: min(60dvh, 400px);
+
+  padding: .4rem;
+
+  overflow-y: auto;
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 16px;
+
+  background: var(--color-surface-solid);
+
+  box-shadow: var(--shadow-md);
+
+  animation: header-dropdown-in 180ms ease both;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+
+  gap: .7rem;
+
+  min-width: 0;
+
+  padding: .75rem .85rem;
+
+  border-radius: 10px;
+
+  color: var(--color-text);
+
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.search-result-item > span {
+  flex: 1;
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-result-item:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+
+/* ============================================================
+   7. ENLACE AL SITIO WEB
+   ============================================================ */
+
+.web-link {
+  gap: .55rem;
+
+  padding-inline: .9rem !important;
+
+  white-space: nowrap;
+
+  border-color: var(--color-border-strong) !important;
+
+  background: var(--color-primary-soft) !important;
+
+  color: var(--color-primary) !important;
+}
+
+.web-link:hover {
+  border-color: var(--color-primary) !important;
+
+  background: var(--color-primary) !important;
+
+  color: #ffffff !important;
+}
+
+.web-link span {
+  font-size: .82rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   8. SELECTOR DE TEMA
+   ============================================================ */
+
+.theme-toggle {
+  gap: .55rem;
+
+  padding-inline: .85rem !important;
+}
+
+.theme-toggle span {
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.theme-toggle app-icon {
+  transition: transform 260ms ease;
+}
+
+.theme-toggle:hover app-icon {
+  transform: rotate(-12deg);
+}
+
+
+/* ============================================================
+   9. SELECTOR DE SEDES
+   ============================================================ */
+
+.dropdown {
+  position: relative;
+
+  min-width: 0;
+}
+
+.sede-dropdown {
+  flex: 0 1 auto;
+}
+
+.sede-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  gap: .6rem;
+
+  width: auto;
+
+  min-width: 0;
+  max-width: clamp(135px, 15vw, 210px);
+
+  padding: 0 .8rem !important;
+
+  white-space: nowrap;
+}
+
+.sede-btn .sede-icon {
+  width: 19px;
+  height: 19px;
+}
+
+.sede-btn .sede-label {
+  display: block;
+
+  min-width: 0;
+  max-width: 145px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: .85rem;
+  font-weight: 650;
+}
+
+.sede-btn .sede-chevron {
+  width: 15px;
+  height: 15px;
+
+  color: var(--color-text-muted);
+
+  transition: transform var(--transition-fast);
+}
+
+.sede-dropdown.menu-open .sede-chevron {
+  transform: rotate(180deg);
+}
+
+
+/* ============================================================
+   10. MENÚS DESPLEGABLES
+   ============================================================ */
+
+.dropdown-panel {
+  position: absolute;
+
+  top: calc(100% + 10px);
+  right: 0;
+
+  z-index: 100;
+
+  min-width: 220px;
+  max-width: calc(100vw - 24px);
+
+  max-height: min(70dvh, 480px);
+
+  padding: .4rem;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  border: 1px solid var(--color-border);
+
+  border-radius: 16px;
+
+  background: var(--color-surface-solid);
+
+  color: var(--color-text);
+
+  box-shadow: var(--shadow-md);
+
+  transform-origin: top right;
+
+  animation: header-dropdown-in 180ms ease both;
+}
+
+/* Elementos de los menús */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+
+  gap: .65rem;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: .7rem .8rem;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: var(--color-text);
+
+  font-size: .85rem;
+
+  text-align: left;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+/* Encabezados */
+.dropdown-heading {
+  padding: .65rem .8rem;
+
+  color: var(--color-text-muted);
+
+  font-size: .7rem;
+  font-weight: 750;
+
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+/* Separadores */
+.dropdown-divider {
+  height: 1px;
+
+  margin: .4rem .5rem;
+
+  background: var(--color-border);
+}
+
+
+/* ============================================================
+   11. NOTIFICACIONES
+   ============================================================ */
+
+.bell {
+  position: relative;
+}
+
+.bell > app-icon {
+  transition: transform var(--transition-fast);
+}
+
+.bell:hover > app-icon {
+  transform: rotate(-10deg);
+}
+
+/* Contador */
+.badge-count {
+  position: absolute;
+
+  top: -4px;
+  right: -4px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 19px;
+  height: 19px;
+
+  padding: 0 4px;
+
+  border: 2px solid var(--color-surface-solid);
+
+  border-radius: 999px;
+
   background: var(--color-danger);
-  color: white;
-  font-size: 0.65rem;
+  color: #ffffff;
+
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+
+  pointer-events: none;
+}
+
+/* Panel */
+.avisos-panel {
+  width: min(360px, calc(100vw - 24px));
+  min-width: 260px;
+
+  padding: .5rem;
+}
+
+/* Cabecera de notificaciones */
+.avisos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding: .8rem .85rem;
+
+  border-bottom: 1px solid var(--color-border);
+}
+
+.avisos-header > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: .2rem;
+}
+
+.avisos-header strong {
+  font-size: .95rem;
+  font-weight: 750;
+}
+
+.avisos-header > div > span {
+  color: var(--color-text-muted);
+  font-size: .72rem;
+}
+
+.avisos-total {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 24px;
+  height: 24px;
+
+  padding: 0 6px;
+
+  border-radius: 999px;
+
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+/* Cuerpo */
+.avisos-body {
+  max-height: 340px;
+
+  overflow-y: auto;
+}
+
+.aviso {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  gap: .25rem;
+}
+
+.aviso strong {
+  font-size: .83rem;
   font-weight: 700;
 }
-.avisos-panel { min-width: min(18rem, 80vw); padding: 0.4rem; }
-.avisos-titulo { margin: 0; padding: 0.45rem 0.6rem; color: var(--color-text-muted); font-size: var(--text-xs); letter-spacing: 0.04em; text-transform: uppercase; }
-.aviso { display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; }
-.aviso span { color: var(--color-text-muted); font-size: var(--text-xs); }
-.user-label { max-width: clamp(5rem, 12vw, 11rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.theme-toggle span { white-space: nowrap; }
-.web-link { border: 1px solid var(--color-blue-medium, #1fa2d6); white-space: nowrap; }
-.web-link span { white-space: nowrap; }
-.search-shell { width: 100%; max-width: none; min-width: 0; }
-.app-header > .cluster:last-child { min-width: 0; justify-content: flex-end; }
-.dropdown > .btn.btn-sm { max-width: clamp(6.5rem, 16vw, 14rem); }
-.dropdown > .btn.btn-sm > span {
+
+.aviso span {
+  color: var(--color-text-muted);
+
+  font-size: .75rem;
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+}
+
+.avisos-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: .65rem;
+
+  padding: 1.8rem 1rem;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+
+  font-size: .82rem;
+  text-align: center;
+}
+
+.avisos-empty app-icon {
+  width: 28px;
+  height: 28px;
+
+  opacity: .65;
+}
+
+/* Pie */
+.avisos-footer {
+  justify-content: center;
+
+  border-top: 1px solid var(--color-border);
+
+  color: var(--color-primary);
+
+  font-weight: 650;
+}
+
+
+/* ============================================================
+   12. PERFIL DEL USUARIO
+   ============================================================ */
+
+.profile-dropdown {
+  flex: 0 0 auto;
+}
+
+/* Botón de perfil */
+.profile-trigger {
+  display: flex !important;
+  align-items: center;
+
+  justify-content: flex-start;
+
+  gap: .65rem;
+
+  min-width: 48px;
+  min-height: 48px;
+
+  padding: .25rem .55rem !important;
+
+  border-radius: 13px !important;
+}
+
+/* Avatar */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 38px;
+
+  width: 38px;
+  height: 38px;
+
+  overflow: hidden;
+
+  border: 2px solid var(--color-border-strong);
+
+  border-radius: 50%;
+
+  background: var(--color-primary-soft);
+
+  color: var(--color-primary);
+
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.avatar img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: .1rem;
+
+  text-align: left;
+}
+
+.user-label {
+  max-width: 125px;
+
+  overflow: hidden;
+
+  color: var(--color-text);
+
+  font-size: .78rem;
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-info small {
+  color: var(--color-text-muted);
+
+  font-size: .68rem;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-@media (max-width: 1280px) {
-  .user-label { display: none; }
-  .web-link span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
+
+.profile-chevron {
+  width: 15px !important;
+  height: 15px !important;
+
+  color: var(--color-text-muted);
+}
+
+/* Panel del perfil */
+.profile-panel {
+  width: min(290px, calc(100vw - 24px));
+}
+
+/* Resumen */
+.profile-summary {
+  display: flex;
+  align-items: center;
+
+  gap: .8rem;
+
+  padding: .85rem;
+}
+
+.avatar-large {
+  flex-basis: 46px;
+
+  width: 46px;
+  height: 46px;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+
+  gap: .2rem;
+
+  min-width: 0;
+}
+
+.profile-details strong {
+  font-size: .84rem;
+  font-weight: 750;
+}
+
+.profile-details span {
+  color: var(--color-text-muted);
+
+  font-size: .7rem;
+
+  overflow-wrap: anywhere;
+}
+
+.profile-details small {
+  color: var(--color-primary);
+
+  font-size: .7rem;
+  font-weight: 650;
+}
+
+/* Opciones del perfil */
+.menu-item {
+  display: flex;
+  align-items: center;
+
+  gap: .7rem;
+
+  width: 100%;
+
+  padding: .72rem .8rem;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: var(--color-text);
+
+  font-size: .83rem;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.menu-item app-icon {
+  width: 18px;
+  height: 18px;
+
+  color: var(--color-text-muted);
+}
+
+.menu-item:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.menu-item.danger {
+  color: var(--color-danger);
+}
+
+.menu-item.danger app-icon {
+  color: var(--color-danger);
+}
+
+.menu-item.danger:hover {
+  background: var(--color-danger-bg);
+}
+
+
+/* ============================================================
+   13. ANIMACIONES
+   ============================================================ */
+
+@keyframes header-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
-@media (max-width: 40rem) {
-  .sede-btn { width: 2.5rem; max-width: 2.5rem; padding-inline: 0; }
-  .sede-btn span, .sede-btn app-icon:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
-  .search-shell { padding-left: 0.55rem; }
-}
-@media (max-width: 720px) {
-  .web-link span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-  }
-}
+
+
+/* ============================================================
+   14. LAPTOP Y PANTALLAS MEDIANAS
+   Hasta 1360px
+   ============================================================ */
+
 @media (max-width: 1360px) {
+
+  .user-info,
+  .profile-chevron {
+    display: none;
+  }
+
   .theme-toggle span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
+    display: none;
+  }
+
+  .theme-toggle {
+    width: 44px;
+    padding-inline: 0 !important;
+  }
+
+  .web-link span {
+    display: none;
+  }
+
+  .web-link {
+    width: 44px;
+    padding-inline: 0 !important;
+  }
+
+  .sede-btn {
+    max-width: 175px;
+  }
+
+}
+
+
+/* ============================================================
+   15. TABLET
+   Hasta 1024px
+   ============================================================ */
+
+@media (max-width: 1024px) {
+
+  .app-header {
+    gap: .55rem;
+
+    min-height: 66px;
+
+    padding-inline: .85rem;
+  }
+
+  .search-shell {
+    max-width: none;
+    min-height: 44px;
+  }
+
+  .search-shell .input {
+    min-height: 42px;
+  }
+
+  .header-actions {
+    gap: .35rem;
+  }
+
+  .app-header .icon-btn {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+  }
+
+  .sede-btn {
+    max-width: 135px;
+    padding-inline: .65rem !important;
+  }
+
+  .sede-btn .sede-label {
+    max-width: 78px;
+    font-size: .76rem;
+  }
+
+}
+
+
+/* ============================================================
+   16. MÓVIL Y TABLET PEQUEÑA
+   Hasta 720px
+   ============================================================ */
+
+@media (max-width: 720px) {
+
+  /* Distribución en dos filas */
+  .app-header {
+    display: grid;
+
+    grid-template-columns:
+      44px
+      minmax(0, 1fr);
+
+    grid-template-areas:
+      "menu search"
+      "actions actions";
+
+    gap: .65rem .7rem;
+
+    min-height: auto;
+
+    padding: .7rem .75rem;
+  }
+
+  .header-menu {
+    grid-area: menu;
+
+    width: 44px;
+  }
+
+  .header-menu .menu-trigger {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .search-shell {
+    grid-area: search;
+
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+
+    min-height: 44px;
+
+    padding-inline: .75rem;
+  }
+
+  .header-actions {
+    grid-area: actions;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    width: 100%;
+    min-width: 0;
+
+    gap: .55rem;
+
+    margin-left: 0 !important;
+
+    padding-top: .1rem;
+  }
+
+  /* Acciones compactas */
+  .header-actions .icon-btn {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+  }
+
+  .sede-btn {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+
+    padding: 0 !important;
+
+    justify-content: center;
+  }
+
+  .profile-trigger {
+    width: 46px;
+    min-width: 46px;
+
+    justify-content: center;
+
+    padding: .15rem !important;
+  }
+
+  .app-header .dropdown-panel {
+    top: calc(100% + 9px);
+  }
+
+  .search-results {
+    top: calc(100% + 9px);
+  }
+
+}
+
+
+/* ============================================================
+   17. MÓVILES
+   Hasta 480px
+   ============================================================ */
+
+@media (max-width: 480px) {
+
+  .app-header {
+    padding: .65rem .7rem;
+
+    gap: .55rem .6rem;
+  }
+
+  .header-actions {
+    justify-content: space-between;
+    gap: .35rem;
+  }
+
+  .header-actions .icon-btn,
+  .sede-btn {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+  }
+
+  /* Sede: solamente icono */
+  .sede-btn .sede-label,
+  .sede-btn .sede-chevron {
+    display: none;
+  }
+
+  /* Perfil: solamente avatar */
+  .profile-trigger {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+
+    padding: 0 !important;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+
+    flex-basis: 36px;
+  }
+
+  /* Buscador */
+  .search-shell {
+    gap: .55rem;
+    padding-inline: .7rem;
+  }
+
+  .search-shell .search-input {
+    font-size: .85rem;
+  }
+
+  .search-results,
+  .avisos-panel,
+  .profile-panel,
+  .sede-panel {
+    max-width: calc(100vw - 1.4rem);
+  }
+
+}
+
+
+/* ============================================================
+   18. MÓVILES PEQUEÑOS
+   Hasta 360px
+   ============================================================ */
+
+@media (max-width: 360px) {
+
+  .app-header {
+    padding: .55rem .55rem;
+    gap: .5rem;
+  }
+
+  .header-actions {
+    gap: .25rem;
+  }
+
+  .header-actions .icon-btn,
+  .sede-btn,
+  .profile-trigger {
+    width: 39px;
+    min-width: 39px;
+    height: 39px;
+  }
+
+  .avatar {
+    flex-basis: 32px;
+
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-menu,
+  .header-menu .menu-trigger {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  .search-shell {
+    min-height: 42px;
+    padding-inline: .55rem;
+  }
+
+  .search-shell .search-input {
+    height: 40px;
+    min-height: 40px;
+    font-size: .8rem;
+  }
+
+}
+
+
+/* ============================================================
+   19. ACCESIBILIDAD Y MOVIMIENTO REDUCIDO
+   ============================================================ */
+
+.app-header button:focus-visible,
+.app-header a:focus-visible,
+.app-header input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .app-header,
+  .app-header *,
+  .app-header *::before,
+  .app-header *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+}
+
+/* ============================================================
+   POLICALUM - MOBILE HEADER REPAIR
+   Corrección de desbordamiento, distribución y dropdowns
+   ============================================================ */
+
+/* Evitar recortes del header */
+:host {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Mantener los paneles por encima del dashboard */
+.header-actions {
+  position: relative;
+  min-width: 0;
+}
+
+.header-actions > .dropdown {
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+}
+
+/* ============================================================
+   TABLET Y MÓVIL: HASTA 720px
+   ============================================================ */
+
+@media (max-width: 720px) {
+
+  /* Header de dos filas */
+  .app-header {
+    display: grid !important;
+
+    grid-template-columns: 44px minmax(0, 1fr);
+
+    grid-template-areas:
+      "menu search"
+      "actions actions";
+
+    gap: 10px;
+
+    min-height: auto;
+    padding: 10px 12px;
+  }
+
+  .header-menu {
+    grid-area: menu;
+    width: 44px;
+  }
+
+  .header-menu .menu-trigger {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+
+  /* Buscador */
+  .app-header .search-shell {
+    grid-area: search;
+
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+
+    min-height: 44px;
+  }
+
+  /* ========================================================
+     ACCIONES: CINCO COLUMNAS EQUILIBRADAS
+     ======================================================== */
+
+  .app-header .header-actions {
+    grid-area: actions;
+
+    display: grid !important;
+
+    grid-template-columns:
+      repeat(5, minmax(0, 1fr));
+
+    align-items: center;
+    justify-content: stretch;
+
+    width: 100%;
+    min-width: 0;
+
+    gap: 4px;
+
+    padding: 2px 0 0;
+
+    margin: 0 !important;
+  }
+
+  .header-actions > * {
+    min-width: 0;
+    width: 100%;
+    flex: initial;
+  }
+
+  /* Restaurar portal web y tema */
+  .header-actions > .web-link,
+  .header-actions > .theme-toggle {
+    display: inline-flex !important;
+
+    align-items: center;
+    justify-content: center;
+
+    visibility: visible !important;
+
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+
+    padding: 0 !important;
+    margin: 0 auto;
+  }
+
+  .header-actions .web-link span,
+  .header-actions .theme-toggle span {
+    display: none !important;
+  }
+
+  /* Dropdowns centrados en sus respectivas columnas */
+  .header-actions > .dropdown {
+    display: flex !important;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  .header-actions > .dropdown > .btn {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+
+    padding: 0 !important;
+    margin: 0 auto;
+  }
+
+  /* Selector de sede */
+  .header-actions .sede-btn {
+    max-width: 42px;
+
+    justify-content: center;
+
+    gap: 0;
+  }
+
+  .header-actions .sede-label,
+  .header-actions .sede-chevron {
+    display: none !important;
+  }
+
+  /* Perfil */
+  .header-actions .profile-trigger {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+
+    justify-content: center;
+
+    padding: 0 !important;
+  }
+
+  .header-actions .user-info,
+  .header-actions .profile-chevron {
+    display: none !important;
+  }
+
+  .header-actions .avatar {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+  }
+
+  /* ========================================================
+     CORRECCIÓN DE MENÚS DESPLEGABLES
+     ======================================================== */
+
+  .header-actions .dropdown-panel {
+    position: absolute !important;
+
+    top: calc(100% + 8px);
+
+    right: 0 !important;
+    left: auto !important;
+
+    z-index: 150 !important;
+
+    max-height: min(70dvh, 420px);
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    transform: none;
+
+    box-sizing: border-box;
+  }
+
+  /* Perfil: no salirse de la pantalla */
+  .profile-dropdown {
+    position: relative !important;
+  }
+
+  .profile-dropdown .profile-panel {
+    width: min(290px, calc(100vw - 24px)) !important;
+
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+
+    right: 0 !important;
+    left: auto !important;
+
+    transform: none !important;
+  }
+
+  /* Notificaciones */
+  .notifications-dropdown .avisos-panel {
+    width: min(340px, calc(100vw - 24px)) !important;
+
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+
+    right: 0 !important;
+    left: auto !important;
+  }
+
+  /* Selector de sedes */
+  .sede-dropdown .sede-panel {
+    width: min(260px, calc(100vw - 24px)) !important;
+
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+
+    right: 0 !important;
+    left: auto !important;
+  }
+
+  /* Resultados de búsqueda */
+  .search-results {
+    width: 100%;
+    max-width: 100%;
+
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* Permitir que el dropdown sobresalga del header */
+  .app-header,
+  .header-actions {
+    overflow: visible !important;
+  }
+}
+
+
+/* ============================================================
+   MÓVIL PEQUEÑO: HASTA 480px
+   ============================================================ */
+
+@media (max-width: 480px) {
+
+  .app-header {
+    gap: 8px;
+    padding: 9px 10px;
+  }
+
+  .header-actions {
+    gap: 3px !important;
+  }
+
+  .header-actions > .web-link,
+  .header-actions > .theme-toggle,
+  .header-actions > .dropdown > .btn {
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 40px !important;
+  }
+
+  .header-actions .profile-trigger {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+  }
+
+  .header-actions .avatar {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .search-shell {
+    padding-inline: 10px;
+  }
+
+  .search-shell .input {
+    font-size: 13px;
+  }
+}
+
+
+/* ============================================================
+   MÓVIL MUY PEQUEÑO: HASTA 360px
+   ============================================================ */
+
+@media (max-width: 360px) {
+
+  .app-header {
+    padding-inline: 8px;
+    gap: 7px;
+  }
+
+  .app-header .header-menu .menu-trigger {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  .header-actions {
+    gap: 2px !important;
+  }
+
+  .header-actions > .web-link,
+  .header-actions > .theme-toggle,
+  .header-actions > .dropdown > .btn {
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+  }
+
+  .header-actions .avatar {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+}
+
+
+/* ============================================================
+   CORRECCIÓN RESPONSIVE DEL DASHBOARD
+   ============================================================ */
+
+@media (max-width: 640px) {
+
+  .app-main,
+  .app-content {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .app-content {
+    padding: 12px 10px 5.7rem;
+  }
+
+  .app-content > *,
+  .app-content .module-page,
+  .app-content .dashboard-grid,
+  .app-content .panel,
+  .app-content .card,
+  .app-content .tile {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard-grid,
+  .stats-grid,
+  .kpi-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .dashboard-grid > *,
+  .stats-grid > *,
+  .kpi-grid > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+}
+
+/* ============================================================
+   DROPDOWNS MÓVILES: ALINEACIÓN Y POSICIONAMIENTO
+   ============================================================ */
+
+@media (max-width: 720px) {
+
+  .header-actions {
+    position: relative;
+  }
+
+  /* Los paneles toman como referencia todo el grupo */
+  .header-actions > .dropdown {
+    position: static !important;
+  }
+
+  .header-actions > .dropdown > .dropdown-panel {
+    position: absolute !important;
+
+    top: calc(100% + 8px) !important;
+
+    right: 0 !important;
+    left: auto !important;
+
+    transform: none !important;
+
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .header-actions .sede-panel {
+    width: min(260px, calc(100vw - 24px));
+  }
+
+  .header-actions .avisos-panel {
+    width: min(340px, calc(100vw - 24px));
+  }
+
+  .header-actions .profile-panel {
+    width: min(290px, calc(100vw - 24px));
   }
 }

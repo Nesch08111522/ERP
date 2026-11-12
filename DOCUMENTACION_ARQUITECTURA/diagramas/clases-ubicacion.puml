@@ -1,0 +1,40 @@
+@startuml
+title Clases ubicacion
+hide empty methods
+class Almacen <<Entity>> {
+  id : UUID
+  sede : Sede
+  nombre : String
+  activo : Boolean
+  descripcion : String
+  createdAt : LocalDateTime
+}
+note right of Almacen : Metodos: prePersist
+class HorarioOperativo <<Entity>> {
+  id : Short
+  mensaje : String
+  activo : Boolean
+  horarioJson : String
+  avisoImagen : String
+}
+class Sede <<Entity>> {
+  id : UUID
+  nombre : String
+  pais : String
+  ciudad : String
+  direccion : String
+  celularSede : String
+  moneda : String
+  activa : Boolean
+  latitud : Double
+  longitud : Double
+  imagen : String
+  politicaDivision : PoliticaDivisionSueldo
+  diasLaborables : ListString
+  tratamientoAusencias : TratamientoAusencias
+  createdAt : LocalDateTime
+}
+note right of Sede : Metodos: prePersist
+Almacen "0..*" -- "1" Sede : sede
+
+@enduml

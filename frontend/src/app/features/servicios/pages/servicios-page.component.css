@@ -62,9 +62,9 @@
 .resumen strong { display: block; font-size: var(--text-lg); }
 
 .equipo { display: flex; flex-direction: column; gap: 8px; }
-.equipo-cabecera, .equipo-fila { display: flex; gap: 8px; align-items: center; }
+.equipo-cabecera, .equipo-fila { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .equipo-cabecera { justify-content: space-between; }
-.equipo-fila .select { flex: 1; }
+.equipo-fila .select, .equipo-fila .input { flex: 1 1 8rem; min-width: 0; }
 
 @media (min-width: 1320px) {
   .catalogo-layout { grid-template-columns: minmax(0, 1fr) clamp(15rem, 18vw, 20rem); }
@@ -72,3 +72,6 @@
 @media (max-width: 1319px) {
   .filtros-acciones { flex-direction: row; flex-wrap: wrap; }
 }
+
+.equipo-total { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-weight: 600; }
+.texto-peligro { color: #c0392b; }

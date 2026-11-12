@@ -37,7 +37,11 @@ class RolePermissionGuardTest {
                 RolNombre.ROLE_ADMIN, Map.of("finanzas", Map.of("ver_reportes", false)))));
 
         assertTrue(guard.permite(authentication, "asistencia", "marcar"));
-        assertFalse(guard.permite(authentication, "finanzas", "ver_reportes"));
+        // El ADMIN no se recorta con un false explícito: el guard sale antes, en la rama de rol
+        // (RolePermissionGuard paso 4), y DataLoader define sus permisos como "dios: todo true".
+        // La aserción anterior pedía assertFalse, lo que contradecía tanto el nombre de este test
+        // como administradorSiempreTieneAccesoCompleto. Verificado por HTTP: /finanzas/... da 200.
+        assertTrue(guard.permite(authentication, "finanzas", "ver_reportes"));
     }
 
     @Test
@@ -70,6 +74,10 @@ class RolePermissionGuardTest {
     private Authentication authentication(String email) {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn(email);
+        // RolePermissionGuard rechaza en su paso 1 si la autenticación no está validada.
+        // Sin este stub Mockito devuelve false y los cuatro casos fallaban por eso, no por
+        // un problema de permisos.
+        when(authentication.isAuthenticated()).thenReturn(true);
         return authentication;
     }
 

@@ -1,0 +1,21 @@
+@startuml
+title Calculo de remuneraciones
+start
+partition "Operacion documentada" {
+:Exigir ADMIN y periodo no futuro;
+:Rechazar comisiones CALCULADAS sin aprobar;
+:Recorrer legajos activos de sede;
+:Omitir usuario con nomina existente;
+:Resolver politica legajo sede empresa;
+:Prorratear sueldo por divisor y fecha ingreso;
+:Aplicar regimen personal sueldo comision;
+:Calcular pension sobre sueldo mas comision;
+:Guardar snapshot PENDIENTE y auditar;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Politica de ausencias no implementada o periodo invalido;
+endif
+}
+stop
+@enduml

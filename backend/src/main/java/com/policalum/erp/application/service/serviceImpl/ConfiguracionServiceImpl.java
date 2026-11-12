@@ -14,6 +14,8 @@ import com.policalum.erp.application.dto.response.EmpresaResponseDTO;
 import com.policalum.erp.application.dto.response.ParametrosFinanzasDTO;
 import com.policalum.erp.application.dto.response.ParametrosInventarioDTO;
 import com.policalum.erp.application.dto.response.ParametrosReportesDTO;
+import com.policalum.erp.application.dto.response.ParametrosRrhhDTO;
+import com.policalum.erp.application.dto.request.ParametrosRrhhRequestDTO;
 import com.policalum.erp.application.dto.response.ParametrosResponseDTO;
 import com.policalum.erp.application.dto.response.ParametrosVentasDTO;
 import com.policalum.erp.application.dto.response.SerieComprobanteResponseDTO;
@@ -29,6 +31,7 @@ import com.policalum.erp.domain.model.ConfiguracionEmpresa;
 import com.policalum.erp.domain.model.ConfiguracionFinanzas;
 import com.policalum.erp.domain.model.ConfiguracionInventario;
 import com.policalum.erp.domain.model.ConfiguracionReportes;
+import com.policalum.erp.domain.model.ConfiguracionRrhh;
 import com.policalum.erp.domain.model.ConfiguracionVentas;
 import com.policalum.erp.domain.model.Sede;
 import com.policalum.erp.domain.model.SerieComprobante;
@@ -39,6 +42,7 @@ import com.policalum.erp.infrastructure.repository.ConfiguracionEmpresaRepositor
 import com.policalum.erp.infrastructure.repository.ConfiguracionFinanzasRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionInventarioRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionReportesRepository;
+import com.policalum.erp.infrastructure.repository.ConfiguracionRrhhRepository;
 import com.policalum.erp.infrastructure.repository.ConfiguracionVentasRepository;
 import com.policalum.erp.infrastructure.repository.SedeRepository;
 import com.policalum.erp.infrastructure.repository.SerieComprobanteRepository;
@@ -55,6 +59,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import com.policalum.erp.util.HorarioUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -75,6 +80,7 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
     static final String TABLA_INVENTARIO = "configuracion_inventario";
     static final String TABLA_FINANZAS = "configuracion_finanzas";
     static final String TABLA_REPORTES = "configuracion_reportes";
+    static final String TABLA_RRHH = "configuracion_rrhh";
     static final String TABLA_SERIES = "series_comprobante";
 
     private static final Long ID = ConfiguracionEmpresa.ID_UNICO;
@@ -87,6 +93,7 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
     private final ConfiguracionInventarioRepository inventarioRepository;
     private final ConfiguracionFinanzasRepository finanzasRepository;
     private final ConfiguracionReportesRepository reportesRepository;
+    private final ConfiguracionRrhhRepository rrhhRepository;
     private final SerieComprobanteRepository serieRepository;
     private final SedeRepository sedeRepository;
     private final UserRepository userRepository;
@@ -231,24 +238,28 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
     @Override
     @Transactional(readOnly = true)
     public ParametrosResponseDTO obtenerParametros() {
-        return new ParametrosResponseDTO(ventas(), inventario(), finanzas(), reportes());
+        return new ParametrosResponseDTO(ventas(), inventario(), finanzas(), reportes(), rrhh());
     }
 
     @Override
     public ParametrosResponseDTO actualizarParametros(ParametrosRequestDTO r) {
         User admin = exigirAdmin();
-        if (r == null || (r.ventas() == null && r.inventario() == null && r.finanzas() == null && r.reportes() == null)) {
-            throw new IllegalArgumentException("Envíe al menos un grupo de parámetros (ventas, inventario, finanzas o reportes)");
+        if (r == null || (r.ventas() == null && r.inventario() == null && r.finanzas() == null
+                && r.reportes() == null && r.rrhh() == null)) {
+            throw new IllegalArgumentException("Envíe al menos un grupo de parámetros (ventas, inventario, finanzas, reportes o rrhh)");
         }
         // Validaciones cruzadas antes de bloquear nada: o se aplica todo o nada.
         if (r.ventas() != null) validarVentas(r.ventas());
         if (r.finanzas() != null) validarFinanzas(r.finanzas());
+        if (r.rrhh() != null) PoliticaRemuneracionServiceImpl.validarPoliticaEmpresa(
+                r.rrhh().politicaDivision(), r.rrhh().diasLaborables(), r.rrhh().tratamientoAusencias());
 
         if (r.ventas() != null) actualizarVentas(r.ventas(), admin);
         if (r.inventario() != null) actualizarInventario(r.inventario(), admin);
         if (r.finanzas() != null) actualizarFinanzas(r.finanzas(), admin);
         if (r.reportes() != null) actualizarReportes(r.reportes(), admin);
-        return new ParametrosResponseDTO(ventas(), inventario(), finanzas(), reportes());
+        if (r.rrhh() != null) actualizarRrhh(r.rrhh(), admin);
+        return new ParametrosResponseDTO(ventas(), inventario(), finanzas(), reportes(), rrhh());
     }
 
     @Override
@@ -277,6 +288,13 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
     public ParametrosReportesDTO reportes() {
         return reportesRepository.findById(ID).map(mapper::toResponseDto)
                 .orElseGet(() -> faltante(TABLA_REPORTES, ParametrosReportesDTO.DEFAULTS));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ParametrosRrhhDTO rrhh() {
+        return rrhhRepository.findById(ID).map(mapper::toResponseDto)
+                .orElseGet(() -> faltante(TABLA_RRHH, ParametrosRrhhDTO.DEFAULTS));
     }
 
     private void actualizarVentas(ParametrosVentasRequestDTO r, User admin) {
@@ -334,6 +352,35 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         reportesRepository.save(c);
         auditar(TABLA_REPORTES, actual.isPresent() ? AccionAudit.UPDATE : AccionAudit.INSERT, aMapa(antes), aMapa(despues));
         log.info("Parámetros de reportes actualizados: {}", despues);
+    }
+
+    /**
+     * Política de remuneración de la empresa. A diferencia de los otros dominios, aquí no basta
+     * la validación de campo: DIAS_LABORABLES sin máscara es una política que después no se
+     * puede calcular, y hay valores de ausencias que el ERP aún no sabe aplicar. Ambas reglas
+     * viven en {@code PoliticaRemuneracionServiceImpl.validarPolitica}, compartidas con sede y
+     * legajo para que no existan tres criterios distintos de "esto es válido".
+     */
+    private void actualizarRrhh(ParametrosRrhhRequestDTO r, User admin) {
+        Optional<ConfiguracionRrhh> actual = rrhhRepository.findParaActualizar(ID);
+        ConfiguracionRrhh c = actual.orElseGet(() -> ConfiguracionRrhh.builder().id(ID).build());
+        ParametrosRrhhDTO antes = actual.map(mapper::toResponseDto).orElse(ParametrosRrhhDTO.DEFAULTS);
+
+        // null (no lista vacía) cuando no se define: una lista vacía inmutable en la entidad
+        // rompe cualquier reasignación posterior, y "sin máscara" ya lo expresa null.
+        List<String> dias = r.diasLaborables() == null || r.diasLaborables().isEmpty()
+                ? null
+                : HorarioUtil.normalizarDias(r.diasLaborables());
+        ParametrosRrhhDTO despues = new ParametrosRrhhDTO(r.politicaDivision(),
+                dias == null ? List.of() : dias, r.tratamientoAusencias());
+
+        if (actual.isPresent() && antes.equals(despues)) return;
+        mapper.updateEntityFromDto(r, c);
+        c.setDiasLaborables(dias);
+        c.setActualizadoPor(admin);
+        rrhhRepository.save(c);
+        auditar(TABLA_RRHH, actual.isPresent() ? AccionAudit.UPDATE : AccionAudit.INSERT, aMapa(antes), aMapa(despues));
+        log.info("Política de remuneración de la empresa actualizada: {}", despues);
     }
 
     private static void validarVentas(ParametrosVentasRequestDTO v) {
@@ -477,6 +524,10 @@ public class ConfiguracionServiceImpl implements ConfiguracionService {
         if (!reportesRepository.existsById(ID)) {
             reportesRepository.save(ConfiguracionReportes.builder().id(ID).build());
             registrarInicial(TABLA_REPORTES);
+        }
+        if (!rrhhRepository.existsById(ID)) {
+            rrhhRepository.save(ConfiguracionRrhh.builder().id(ID).build());
+            registrarInicial(TABLA_RRHH);
         }
         seriesDeFabrica();
     }

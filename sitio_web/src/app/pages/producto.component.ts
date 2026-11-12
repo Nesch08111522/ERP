@@ -1,4 +1,6 @@
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, switchMap } from 'rxjs';
 import { Meta, Title } from '@angular/platform-browser';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -7,6 +9,7 @@ import { VisorProductoComponent } from '../components/visor-producto.component';
 import { CarritoService } from '../core/carrito.service';
 import { PortalApi, cortePalabras, media, mensajeError, pen } from '../core/portal.api';
 import { ProductoPublico } from '../core/models';
+import { SeoService } from '../core/seo.service';
 
 @Component({
   selector: 'app-producto',
@@ -15,6 +18,8 @@ import { ProductoPublico } from '../core/models';
 })
 export class ProductoComponent implements OnInit {
   private readonly api = inject(PortalApi);
+  private readonly seo = inject(SeoService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly titulo = inject(Title);
   private readonly meta = inject(Meta);
   private readonly route = inject(ActivatedRoute);
@@ -43,13 +48,22 @@ export class ProductoComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
-      if (!id) return;
-      this.aviso.set('');
-      this.api.producto(id).subscribe({
+    this.route.paramMap.pipe(
+      switchMap((params) => {
+        this.aviso.set('');
+        this.error.set('');
+        this.producto.set(null);
+        const id = params.get('id');
+        return id ? this.api.producto(id).pipe(catchError((error: unknown) => {
+          this.error.set(mensajeError(error));
+          return EMPTY;
+        })) : EMPTY;
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
         next: (producto) => {
           this.producto.set(producto);
+          this.seo.product(producto);
           this.titulo.setTitle(`${producto.nombre} | POLICALUM`);
           const resumen = cortePalabras(producto.descripcion, 24) || `${producto.nombre} con precio y stock publicados desde el almacén.`;
           this.meta.updateTag({ name: 'description', content: resumen });
@@ -57,8 +71,6 @@ export class ProductoComponent implements OnInit {
           this.form.patchValue({ fraccionId: producto.esFraccionable ? primera : '', cantidad: 1 });
           this.cargarCercanos(producto);
         },
-        error: (error: unknown) => this.error.set(mensajeError(error)),
-      });
     });
   }
 

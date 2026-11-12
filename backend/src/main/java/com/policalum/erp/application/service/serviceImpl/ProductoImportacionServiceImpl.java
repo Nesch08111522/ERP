@@ -101,9 +101,18 @@ public class ProductoImportacionServiceImpl implements ProductoImportacionServic
     @Transactional(readOnly = true)
     public List<ProductoImportacionFilaDTO> exportar(String searchTerm, UUID categoriaId, TipoProducto tipo,
                                                      Boolean activo, Boolean esFraccionable) {
+        return exportar(searchTerm, categoriaId, tipo, activo, esFraccionable, null, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductoImportacionFilaDTO> exportar(String searchTerm, UUID categoriaId, TipoProducto tipo,
+                                                     Boolean activo, Boolean esFraccionable, UUID sedeId, UUID almacenId) {
         String termino = (searchTerm == null || searchTerm.isBlank()) ? null : searchTerm.trim();
         Pageable pageable = PageRequest.of(0, 5000, Sort.by("nombre"));
-        Page<Producto> page = productoRepository.search(termino, categoriaId, tipo, activo, esFraccionable, pageable);
+        Page<Producto> page = (sedeId == null && almacenId == null)
+                ? productoRepository.search(termino, categoriaId, tipo, activo, esFraccionable, pageable)
+                : productoRepository.searchPorUbicacion(termino, categoriaId, tipo, activo, esFraccionable, sedeId, almacenId, pageable);
         if (page.getTotalElements() > 5000) {
             throw new ValidationException("Hay más de 5000 productos para exportar. Acota la búsqueda.");
         }

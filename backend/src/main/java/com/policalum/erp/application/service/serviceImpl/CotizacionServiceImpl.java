@@ -102,13 +102,13 @@ public class CotizacionServiceImpl implements CotizacionService {
         auditService.registrar("cotizaciones", guardada.getId(), AccionAudit.INSERT,
                 Map.of("estado", guardada.getEstado().name(), "canal", CanalCotizacion.WEB.name(), "total", guardada.getTotal()));
         log.info("Cotización web {} de {} por {}", guardada.getId(), request.razonSocial(), guardada.getTotal());
-        return response(guardada);
+        return response(guardada).sinMargen();
     }
 
     @Override
     @Transactional(readOnly = true)
     public FormatoCotizacionDTO formatoPublico() {
-        return formatoCotizacion.actual(true);
+        return formatoCotizacion.actual(true).sinMargen();
     }
 
     @Override
@@ -142,7 +142,7 @@ public class CotizacionServiceImpl implements CotizacionService {
                     linea.cantidad(), calculada.precio(), calculada.neto(), calculada.igv(), IGV_PORCENTAJE, calculada.total()));
         }
         CargosCotizacionDTO cargos = formatoCotizacion.calcular(subtotal, piezas, request.distrito());
-        return new VistaCotizacionDTO(totalConCargos(cargos), cargos, lineas);
+        return new VistaCotizacionDTO(totalConCargos(cargos), cargos, lineas).sinMargen();
     }
 
     @Override

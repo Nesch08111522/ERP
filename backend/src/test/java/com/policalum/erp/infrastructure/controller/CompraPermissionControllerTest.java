@@ -14,6 +14,7 @@ import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.domain.model.User;
 import com.policalum.erp.infrastructure.repository.UserRepository;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
+import com.policalum.erp.infrastructure.security.RateLimitService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationFilter;
 import com.policalum.erp.infrastructure.security.RolePermissionGuard;
 import com.policalum.erp.infrastructure.security.SecurityConfig;
@@ -36,6 +37,8 @@ class CompraPermissionControllerTest {
 
     @Autowired
     MockMvc mvc;
+    @MockitoBean
+    RateLimitService rateLimitService;
 
     @MockitoBean
     CompraService compraService;
@@ -53,15 +56,18 @@ class CompraPermissionControllerTest {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void consultarComprasNoConcedePermisoParaRecibirlas() throws Exception {
-        User admin = User.builder()
+        // El recorte de permisos se comprueba con MULTIFUNCIONAL: el guard trata a ADMIN como
+        // irrestricto a propósito (paso 4, y DataLoader lo define con todo true), así que un
+        // false explícito no lo bloquea y este test no estaría probando el permiso.
+        User operador = User.builder()
                 .rol(Rol.builder()
-                        .nombre(RolNombre.ROLE_ADMIN)
+                        .nombre(RolNombre.ROLE_MULTIFUNCIONAL)
                         .permisosJson(Map.of("compras", Map.of("leer", true, "recibir", false)))
                         .build())
                 .build();
-        when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
+        when(userRepository.findPerfilByEmail("operador@policalum.com")).thenReturn(Optional.of(operador));
 
         mvc.perform(get("/api/v1/compras"))
                 .andExpect(status().isOk());

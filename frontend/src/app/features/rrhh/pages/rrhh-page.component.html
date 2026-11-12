@@ -1,14 +1,8 @@
 <section class="module-page">
-  <app-page-header title="Recursos humanos" subtitle="Legajos, asistencia, turnos, nómina y comisiones." [actionLabel]="accionLabel()" (action)="abrirCrear()">
+  <app-page-header title="Recursos humanos" subtitle="Legajos, asistencia, turnos, nómina y comisiones." [actionLabel]="hayAccion ? accionLabel() : ''" (action)="abrirCrear()">
     <app-export-buttons modulo="rrhh"></app-export-buttons>
   </app-page-header>
   <app-tabs [tabs]="tabs" [active]="tab" (activeChange)="cambiarTab($event)"></app-tabs>
-  <div class="stats-grid" *ngIf="tab === 'asistencias' && asistenciaDash">
-    <app-stat-card label="Presentes" [value]="asistenciaDash.presentesHoy ?? 0" icon="check"></app-stat-card>
-    <app-stat-card label="Ausentes" [value]="asistenciaDash.ausentesHoy ?? 0" icon="alert"></app-stat-card>
-    <app-stat-card label="Tardanzas" [value]="asistenciaDash.tardanzasHoy ?? 0" icon="bell"></app-stat-card>
-    <app-stat-card label="Empleados" [value]="asistenciaDash.totalEmpleados ?? 0" icon="people"></app-stat-card>
-  </div>
 
   <app-filter-bar *ngIf="tab === 'legajos'">
     <app-form-field label="Texto" inputId="rh-texto"><input id="rh-texto" class="input" [formControl]="filtroLegajo.controls.texto" /></app-form-field>
@@ -19,16 +13,21 @@
     <div class="filter-actions"><button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button><button type="button" class="btn btn-ghost" (click)="limpiar()">Limpiar</button></div>
   </app-filter-bar>
   <app-data-table *ngIf="tab === 'legajos'" [columns]="colLegajos" [rows]="legajos.rows" [loading]="legajos.loading" [error]="legajos.error" [status]="legajos.status" [page]="legajos.page" [size]="legajos.size" [totalElements]="legajos.totalElements" [totalPages]="legajos.totalPages" emptyTitle="No hay legajos" emptyMessage="Crea el legajo de un empleado." emptyAction="Nuevo legajo" (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (retry)="cargar()" (empty)="abrirCrear()">
-    <ng-template #rowActions let-row><button type="button" class="btn btn-ghost btn-sm" (click)="editarLegajo(row)">Editar</button></ng-template>
+    <ng-template #rowActions let-row><button type="button" class="btn btn-ghost btn-sm" (click)="editarLegajo(row)">Editar</button><button type="button" class="btn btn-ghost btn-sm" (click)="abrirHistorial(row)">Historial</button></ng-template>
   </app-data-table>
 
-  <app-filter-bar *ngIf="tab === 'asistencias'">
-    <app-form-field label="Empleado" inputId="rh-emp"><app-select inputId="rh-emp" [options]="usuarios" placeholder="Todos" [formControl]="filtroAsistencia.controls.empleadoId"></app-select></app-form-field>
-    <app-form-field label="Desde" inputId="rh-fi"><input id="rh-fi" class="input" type="date" [formControl]="filtroAsistencia.controls.fechaInicio" /></app-form-field>
-    <app-form-field label="Hasta" inputId="rh-ff"><input id="rh-ff" class="input" type="date" [formControl]="filtroAsistencia.controls.fechaFin" /></app-form-field>
-    <div class="filter-actions"><button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button><button type="button" class="btn btn-ghost" (click)="limpiar()">Limpiar</button></div>
-  </app-filter-bar>
-  <app-data-table *ngIf="tab === 'asistencias'" [columns]="colAsistencias" [rows]="asistencias.rows" [loading]="asistencias.loading" [error]="asistencias.error" [status]="asistencias.status" [page]="asistencias.page" [size]="asistencias.size" [totalElements]="asistencias.totalElements" [totalPages]="asistencias.totalPages" emptyTitle="Sin marcaciones" emptyMessage="Registra una marcación manual o usa el módulo de asistencia." emptyAction="Nueva marcación" (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (retry)="cargar()" (empty)="abrirCrear()"></app-data-table>
+  <!-- Asistencias: los 4 modos del admin + historial filtrable debajo -->
+  <ng-container *ngIf="tab === 'asistencias'">
+    <app-asistencia-admin class="span-hoja" (cambiada)="cargarAsistencias()"></app-asistencia-admin>
+    <h3 class="subtitulo-bloque">Historial de marcaciones</h3>
+    <app-filter-bar *ngIf="tab === 'asistencias'">
+      <app-form-field label="Empleado" inputId="rh-emp"><app-select inputId="rh-emp" [options]="usuarios" placeholder="Todos" [formControl]="filtroAsistencia.controls.empleadoId"></app-select></app-form-field>
+      <app-form-field label="Desde" inputId="rh-fi"><input id="rh-fi" class="input" type="date" [formControl]="filtroAsistencia.controls.fechaInicio" /></app-form-field>
+      <app-form-field label="Hasta" inputId="rh-ff"><input id="rh-ff" class="input" type="date" [formControl]="filtroAsistencia.controls.fechaFin" /></app-form-field>
+      <div class="filter-actions"><button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button><button type="button" class="btn btn-ghost" (click)="limpiar()">Limpiar</button></div>
+    </app-filter-bar>
+    <app-data-table *ngIf="tab === 'asistencias'" [columns]="colAsistencias" [rows]="asistencias.rows" [loading]="asistencias.loading" [error]="asistencias.error" [status]="asistencias.status" [page]="asistencias.page" [size]="asistencias.size" [totalElements]="asistencias.totalElements" [totalPages]="asistencias.totalPages" emptyTitle="Sin marcaciones" emptyMessage="Registre la asistencia arriba: escaneando el QR del empleado, en lote desde el roster o de forma manual." (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (retry)="cargar()"></app-data-table>
+  </ng-container>
 
   <app-filter-bar *ngIf="tab === 'turnos'">
     <app-form-field label="Sede" inputId="rh-tsede"><app-select inputId="rh-tsede" [options]="sedes" placeholder="Todas" [formControl]="filtroTurno.controls.sedeId"></app-select></app-form-field>
@@ -63,6 +62,8 @@
   <app-data-table *ngIf="tab === 'comisiones'" [columns]="colComisiones" [rows]="comisiones.rows" [loading]="comisiones.loading" [error]="comisiones.error" [status]="comisiones.status" [page]="comisiones.page" [size]="comisiones.size" [totalElements]="comisiones.totalElements" [totalPages]="comisiones.totalPages" emptyTitle="No hay comisiones" emptyMessage="Calcula las comisiones del periodo." emptyAction="Calcular" (pageChange)="cambiarPagina($event)" (sizeChange)="cambiarTamano($event)" (retry)="cargar()" (empty)="abrirCrear()">
     <ng-template #rowActions let-row><button type="button" class="btn btn-ghost btn-sm" *ngIf="comisionCalculada(row)" (click)="aprobarComision(row)">Aprobar</button></ng-template>
   </app-data-table>
+
+  <app-mi-regimen *ngIf="tab === 'mi-regimen'"></app-mi-regimen>
 </section>
 
 <app-modal [closable]="!guardando" [open]="modal" [title]="tituloAccion()" (closed)="modal = false; legajoForm.controls.empleadoId.enable()">
@@ -72,15 +73,47 @@
     <app-form-field label="Contrato" inputId="lg-tipo" [required]="true"><select id="lg-tipo" class="select" formControlName="tipoContrato"><option value="PLANILLA">Planilla</option><option value="RECIBO_HONORARIOS">Recibo por honorarios</option><option value="CAS">CAS</option></select></app-form-field>
     <app-form-field label="Ingreso" inputId="lg-fecha" [required]="true" [error]="errorDe('fechaIngreso')"><input id="lg-fecha" class="input" type="date" formControlName="fechaIngreso" /></app-form-field>
     <app-form-field label="Sueldo base" inputId="lg-sueldo" [required]="true" [error]="errorDe('sueldoBase')"><input id="lg-sueldo" class="input" type="number" min="0.01" step="0.01" formControlName="sueldoBase" /></app-form-field>
+    <app-form-field label="Día de paga" inputId="lg-dia" [error]="errorDe('diaCobro')" hint="Día del mes (1-31) en que cobra. Vacío = sin cambio."><input id="lg-dia" class="input" type="number" min="1" max="31" step="1" formControlName="diaCobro" /></app-form-field>
     <app-form-field label="Pensión" inputId="lg-pen"><select id="lg-pen" class="select" formControlName="sistemaPension"><option value="ONP">ONP</option><option value="AFP">AFP</option><option value="NINGUNO">Ninguno</option></select></app-form-field>
-    <app-form-field label="% comisión" inputId="lg-com"><input id="lg-com" class="input" type="number" min="0" max="100" formControlName="porcentajeComision" /></app-form-field>
+    <app-form-field label="% comisión" inputId="lg-com" hint="Sobre sus ventas netas del mes."><input id="lg-com" class="input" type="number" min="0" max="100" step="0.01" formControlName="porcentajeComision" /></app-form-field>
     <app-form-field label="Tasa pensión" inputId="lg-tasa"><input id="lg-tasa" class="input" type="number" min="0" max="100" formControlName="tasaPension" /></app-form-field>
     <label class="check-row"><input class="checkbox" type="checkbox" formControlName="activo" /> Activo</label>
-  </form>
-  <form *ngIf="tab === 'asistencias'" class="form-grid" [formGroup]="asistenciaForm">
-    <app-form-field label="Empleado" inputId="as-emp" [required]="true"><app-select inputId="as-emp" [options]="usuarios" placeholder="Empleado" formControlName="empleadoId" [clearable]="false"></app-select></app-form-field>
-    <app-form-field label="Tipo" inputId="as-tipo" [required]="true"><select id="as-tipo" class="select" formControlName="tipoMarcacion"><option value="ENTRADA">Entrada</option><option value="SALIDA">Salida</option><option value="INICIO_RECESO">Inicio de receso</option><option value="FIN_RECESO">Fin de receso</option></select></app-form-field>
-    <app-form-field label="Fecha y hora" inputId="as-fecha" hint="Vacío usa la hora del servidor."><input id="as-fecha" class="input" type="datetime-local" formControlName="fechaHora" /></app-form-field>
+    <!-- Al crear, el backend fija la vigencia con la fecha de ingreso y un motivo propio: estos
+         campos solo tienen efecto sobre un legajo que ya existe. -->
+    <ng-container *ngIf="editando">
+      <app-form-field label="Vigencia del cambio" inputId="lg-vig" hint="Desde cuándo rige. Vacío = hoy. Solo cuenta si cambia sueldo, comisión, día de paga o contrato."><input id="lg-vig" class="input" type="date" formControlName="fechaVigenciaCambio" /></app-form-field>
+      <app-form-field class="span-2" label="Motivo del cambio" inputId="lg-mot" hint="Aumento, corrección, cambio de contrato. Queda escrito en el historial."><input id="lg-mot" class="input" maxlength="255" formControlName="motivoCambio" /></app-form-field>
+    </ng-container>
+
+    <!-- Política de remuneración de este empleado (§8.1). Vacío = hereda de su sede o de la empresa. -->
+    <app-form-field label="División del sueldo" inputId="lg-div" hint="Vacío = hereda. Sólo cambia cómo se prorratea el sueldo del legajo.">
+      <select id="lg-div" class="select" formControlName="politicaDivision">
+        <option value="">Heredar de la sede o la empresa</option>
+        <option value="DIAS_30">Siempre 30 días</option>
+        <option value="DIAS_CALENDARIO">Días reales del mes</option>
+        <option value="DIAS_LABORABLES">Solo días laborables</option>
+      </select>
+    </app-form-field>
+    <app-form-field label="Ausencias" inputId="lg-aus" hint="El descuento por días sin marcar aún no está disponible.">
+      <select id="lg-aus" class="select" formControlName="tratamientoAusencias">
+        <option value="">Heredar</option>
+        <option value="NO_AFECTA">No afecta el sueldo</option>
+        <option value="DESCUENTO_DIAS_SIN_MARCACION" disabled>Descontar días sin marcación (no disponible)</option>
+      </select>
+    </app-form-field>
+    <div class="span-2">
+      <p class="lg-dias-titulo">Días laborables de este empleado</p>
+      <div class="lg-dias" formArrayName="diasLaborables">
+        <label *ngFor="let dia of diasSemana; let i = index" class="lg-dia">
+          <input class="checkbox" type="checkbox" [formControlName]="i" /> {{ etiquetaDia[dia] }}
+        </label>
+      </div>
+    </div>
+    <p class="span-2 text-muted lg-politica" *ngIf="editando && politicaEfectiva as p">
+      Hoy se liquida con {{ etiquetaDivision[p.division] }}, según {{ etiquetaOrigen[p.origenDivision] }}:
+      {{ p.divisorMesEnCurso }} días en {{ p.periodoReferencia }}.
+      Las nóminas ya emitidas conservan la política con la que se generaron.
+    </p>
   </form>
   <form *ngIf="tab === 'turnos'" class="form-grid" [formGroup]="turnoForm">
     <app-form-field label="Empleado" inputId="tu-emp" [required]="true"><app-select inputId="tu-emp" [options]="usuarios" placeholder="Empleado" formControlName="userId" [clearable]="false"></app-select></app-form-field>
@@ -113,4 +146,73 @@
   </form>
   <div modalFooter><button type="button" class="btn btn-ghost" (click)="pagoAbierto = false">Cancelar</button><button type="button" class="btn btn-primary" (click)="pagar()" [disabled]="pagoForm.invalid || guardando">Pagar</button></div>
 </app-modal>
+<app-modal [open]="historialAbierto" [title]="'Historial salarial · ' + historialEmpleado" (closed)="historialAbierto = false">
+  <p *ngIf="historialCargando" class="text-muted">Cargando historial…</p>
+  <div *ngIf="historialError" class="alert alert-error">{{ historialError }}</div>
+
+  <ng-container *ngIf="!historialCargando && !historialError">
+    <p class="alert alert-info" *ngIf="historialFilas.length === 0">
+      Este legajo aún no tiene historial salarial. Se escribe solo: la primera fila es el sueldo
+      con el que entró la persona y las siguientes aparecen al cambiar sueldo, comisión, día de
+      paga o tipo de contrato.
+    </p>
+
+    <ng-container *ngIf="historialFilas.length > 0">
+      <p class="historial-resumen">
+        <strong>Sueldo vigente</strong>
+        <span class="historial-monto">{{ (historialVigente?.sueldoNuevo ?? 0) | pen }}</span>
+        <span class="text-muted">{{ historialFilas.length }} registro{{ historialFilas.length === 1 ? '' : 's' }} en el historial</span>
+      </p>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="table table-compact">
+            <thead>
+              <tr>
+                <th>Vigencia</th><th>Sueldo</th><th>Variación</th><th>% comisión</th>
+                <th>Día de paga</th><th>Contrato</th><th class="col-motivo">Motivo</th><th>Registrado por</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of historialFilas">
+                <td>
+                  {{ h.vigenciaDesde | date:'dd/MM/yyyy' }}
+                  <span class="text-muted"> → </span>
+                  <span class="text-muted" *ngIf="h.vigenciaHasta">{{ h.vigenciaHasta | date:'dd/MM/yyyy' }}</span>
+                  <span class="badge badge-success" *ngIf="!h.vigenciaHasta">vigente</span>
+                </td>
+                <td>
+                  <span class="text-muted" *ngIf="h.sueldoAnterior !== null">{{ h.sueldoAnterior | pen }} → </span>
+                  <strong>{{ h.sueldoNuevo | pen }}</strong>
+                </td>
+                <td>
+                  <span class="text-muted" *ngIf="h.sueldoDelta === null">sueldo inicial</span>
+                  <span class="sube" *ngIf="esSubida(h)">+ {{ variacionAbsoluta(h) | pen }}</span>
+                  <span class="baja" *ngIf="esBaja(h)">− {{ variacionAbsoluta(h) | pen }}</span>
+                  <span class="text-muted" *ngIf="sinVariacion(h)">sin cambio de sueldo</span>
+                </td>
+                <td>{{ h.comisionNuevo }}%</td>
+                <td>{{ h.diaCobroNuevo ?? '—' }}</td>
+                <td>{{ h.tipoContratoNuevo ?? '—' }}</td>
+                <td class="col-motivo">{{ h.motivo ?? '—' }}</td>
+                <td class="text-muted">{{ h.registradoPorNombre ?? 'migración' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="text-muted historial-nota">
+        El historial no se puede editar ni borrar. Si un registro quedó mal, se corrige con un
+        nuevo cambio cuya vigencia parta de la última fecha registrada, dejando constancia en el
+        motivo.
+      </p>
+    </ng-container>
+  </ng-container>
+
+  <div modalFooter>
+    <button type="button" class="btn btn-ghost" (click)="historialAbierto = false">Cerrar</button>
+  </div>
+</app-modal>
+
 <app-confirm-dialog [open]="confirmar" title="Eliminar registro" message="Esta acción no se puede deshacer." confirmLabel="Eliminar" [loading]="guardando" (confirm)="eliminar()" (cancel)="confirmar = false"></app-confirm-dialog>

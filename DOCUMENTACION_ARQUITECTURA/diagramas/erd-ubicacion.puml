@@ -1,0 +1,38 @@
+@startuml
+title ERD JPA inferido - ubicacion
+hide circle
+entity "almacenes\nAlmacen" as Almacen {
+  * id : UUID <<PK JPA>>
+  sede_id : Sede <<JOIN JPA>>
+  nombre : String
+  activo : Boolean
+  descripcion : String
+  created_at : LocalDateTime
+}
+entity "horario_operativo\nHorarioOperativo" as HorarioOperativo {
+  * id : Short <<PK JPA>>
+  mensaje : String
+  activo : Boolean
+  horario_json : String
+  aviso_imagen : String
+}
+entity "sedes\nSede" as Sede {
+  * id : UUID <<PK JPA>>
+  nombre : String
+  pais : String
+  ciudad : String
+  direccion : String
+  celular_sede : String
+  moneda : String
+  activa : Boolean
+  latitud : Double
+  longitud : Double
+  imagen : String
+  politica_division : PoliticaDivisionSueldo
+  dias_laborables : ListString
+  tratamiento_ausencias : TratamientoAusencias
+  created_at : LocalDateTime
+}
+Almacen -- Sede : ManyToOne sede
+
+@enduml

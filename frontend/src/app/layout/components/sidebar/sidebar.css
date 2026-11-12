@@ -1,70 +1,368 @@
-:host { display: contents; }
+
+/* =========================================================
+   NAVEGACIÓN DEL ERP - POLICALUM
+   Sidebar expandida, contraída y responsive
+   ========================================================= */
+
+:host {
+  display: contents;
+}
+
+/* =========================================================
+   SIDEBAR: ESTRUCTURA GENERAL
+   ========================================================= */
+
+.app-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 260px;
+  width: 260px;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition:
+    width var(--transition-normal, 220ms ease),
+    flex-basis var(--transition-normal, 220ms ease);
+}
+
+.sidebar-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  box-sizing: border-box;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 10px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* =========================================================
+   SIDEBAR CONTRAÍDA - DESKTOP
+   ========================================================= */
+
+.app-shell.sidebar-collapsed .app-sidebar {
+  flex-basis: 76px;
+  width: 76px;
+}
+
+.app-shell.sidebar-collapsed .sidebar-brand {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.app-shell.sidebar-collapsed .brand-name,
+.app-shell.sidebar-collapsed .nav-label,
+.app-shell.sidebar-collapsed .nav-section-btn span {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .nav-link,
+.app-shell.sidebar-collapsed .nav-section-btn {
+  justify-content: center;
+  width: 100%;
+  padding-inline: 0;
+  gap: 0;
+}
+
+.app-shell.sidebar-collapsed .nav-link .icon,
+.app-shell.sidebar-collapsed .nav-section-btn .icon {
+  margin: 0;
+}
+
+/* =========================================================
+   MARCA Y LOGOTIPO
+   ========================================================= */
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.brand-logo {
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.brand-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.brand-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   BOTONES DE SECCIONES
+   ========================================================= */
 
 .nav-section-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 12px;
+  gap: 10px;
+
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: inherit;
+
   font: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
-  cursor: pointer;
   text-align: left;
+  white-space: normal;
+
+  cursor: pointer;
+  box-sizing: border-box;
+
+  transition:
+    background var(--transition-fast, 150ms ease),
+    color var(--transition-fast, 150ms ease);
 }
 
-.nav-section-btn .icon { width: 14px; height: 14px; }
+.nav-section-btn .icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.nav-section-btn span {
+  min-width: 0;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   ENLACES DE NAVEGACIÓN
+   ========================================================= */
 
 .nav-link {
   position: relative;
-  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  width: 100%;
   min-width: 0;
-  white-space: normal;
+  min-height: 44px;
+  padding: 9px 12px;
+  gap: 12px;
+
   border: 1px solid transparent;
-  transition: background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+  border-radius: 8px;
+
+  white-space: normal;
+  text-align: left;
+  text-decoration: none;
+
+  box-sizing: border-box;
+
+  transition:
+    background var(--transition-fast, 150ms ease),
+    border-color var(--transition-fast, 150ms ease),
+    color var(--transition-fast, 150ms ease);
 }
+
+.nav-link .icon,
+.nav-section-btn .icon {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.nav-label {
+  display: block;
+  min-width: 0;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.nav-link:hover {
+  opacity: 1;
+  border-color: var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.nav-link.active {
+  opacity: 1;
+  border-color: var(--color-primary);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+/* =========================================================
+   INDICADORES Y NOTIFICACIONES
+   ========================================================= */
+
 .nav-aviso {
-  margin-left: auto;
-  min-width: 1.15rem;
-  height: 1.15rem;
-  padding: 0 0.28rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  min-width: 1.15rem;
+  height: 1.15rem;
+  margin-left: auto;
+  padding: 0 0.28rem;
+
   border-radius: 999px;
   background: var(--color-primary);
   color: var(--color-primary-contrast);
+
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
+  flex-shrink: 0;
 }
-:host-context(.sidebar-collapsed) .nav-aviso,
+
 .app-shell.sidebar-collapsed .nav-aviso {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 3px;
+  right: 3px;
   margin-left: 0;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  font-size: 9px;
 }
-.nav-link .icon, .nav-section-btn .icon { flex-shrink: 0; }
-.nav-label, .nav-section-btn span { min-width: 0; overflow-wrap: anywhere; }
-.nav-label { line-height: 1.3; }
-.nav-section-btn { min-height: 40px; white-space: normal; }
-.nav-section-btn span { line-height: 1.25; }
-.nav-link:hover { opacity: 0.9; border-color: var(--color-border); }
-.nav-link.active { opacity: 1; border-color: var(--color-primary); background: var(--color-surface-raised); color: var(--color-text); }
 
-.sidebar-brand { min-width: 0; }
-.brand-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; border-radius: 8px; background: var(--color-surface); }
-.brand-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
-.brand-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.app-sidebar { display: flex; flex-direction: column; }
-.sidebar-scroll { flex: 1; }
+/* =========================================================
+   TABLET
+   ========================================================= */
 
 @media (max-width: 900px) {
-  .app-shell.sidebar-open .sidebar-brand { justify-content: flex-start; padding-inline: 16px; }
-  .app-shell.sidebar-open .nav-link { justify-content: flex-start; width: 100%; margin-inline: 0; padding: 8px 10px; }
-  .app-shell.sidebar-open .nav-label { display: block; }
+  .app-shell.sidebar-open .sidebar-brand {
+    justify-content: flex-start;
+    padding-inline: 16px;
+  }
+
+  .app-shell.sidebar-open .nav-link {
+    justify-content: flex-start;
+    width: 100%;
+    margin-inline: 0;
+    padding: 9px 12px;
+  }
+
+  .app-shell.sidebar-open .nav-label {
+    display: block;
+  }
+}
+
+/* =========================================================
+   MÓVIL: SIDEBAR TIPO OFF-CANVAS
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .app-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1000;
+
+    width: min(280px, calc(100vw - 48px));
+    max-width: calc(100vw - 48px);
+    height: 100dvh;
+    flex: none;
+
+    background: var(--color-surface-solid);
+    opacity: 1;
+    filter: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    transform: translateX(-100%);
+    visibility: hidden;
+    box-shadow: none;
+
+    transition:
+      transform 220ms ease,
+      visibility 220ms ease;
+  }
+
+  .app-shell.sidebar-open .app-sidebar {
+    transform: translateX(0);
+    visibility: visible;
+    box-shadow: 8px 0 30px rgb(0 0 0 / 25%);
+  }
+
+  .app-shell.sidebar-open .sidebar-brand {
+    justify-content: flex-start;
+    padding-inline: 16px;
+  }
+
+  .app-shell.sidebar-open .brand-name {
+    display: flex;
+  }
+
+  .app-shell.sidebar-open .nav-label {
+    display: block;
+  }
+
+  .app-shell.sidebar-open .nav-section-btn {
+    justify-content: space-between;
+    padding-inline: 12px;
+  }
+
+  .app-shell.sidebar-open .nav-section-btn span {
+    display: inline;
+  }
+
+  .app-shell.sidebar-open .nav-link {
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 12px;
+  }
+
+  .app-shell.sidebar-open .nav-aviso {
+    position: static;
+    margin-left: auto;
+  }
+}
+
+/* =========================================================
+   ACCESIBILIDAD: MOVIMIENTO REDUCIDO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .nav-link,
+  .nav-section-btn {
+    transition: none !important;
+  }
 }

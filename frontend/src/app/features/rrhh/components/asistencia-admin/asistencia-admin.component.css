@@ -1,0 +1,123 @@
+:host { display: block; min-width: 0; }
+
+.asistencia-admin { display: grid; gap: 1rem; }
+
+/* ── Selector de modos ── */
+.modos {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-line, #d7e1ec);
+  padding-bottom: 0.6rem;
+}
+.modo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted, #5b6b7f);
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+.modo:hover { background: var(--color-bg-subtle, #eef3f9); color: var(--color-text, #122033); }
+.modo.activo {
+  background: var(--color-primary-soft, #e3ecff);
+  border-color: var(--color-primary, #2563eb);
+  color: var(--color-primary, #2563eb);
+  font-weight: 600;
+}
+
+/* ── Bloques ── */
+.bloque { display: grid; gap: 0.9rem; }
+.bloque-head h2 { margin: 0 0 0.2rem; font-size: 1.02rem; }
+.bloque-head p { margin: 0; font-size: 0.84rem; max-width: 70ch; }
+
+/* ── Filtros del roster ── */
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+.campo { display: grid; gap: 0.25rem; font-size: 0.8rem; color: var(--color-text-muted, #5b6b7f); }
+.filtros-acciones { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+
+/* ── Barra de marcación en lote ── */
+.barra-lote {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-line, #d7e1ec);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-bg-subtle, #f3f6fb);
+}
+.contador { font-size: 0.8rem; font-weight: 600; color: var(--color-text-muted, #5b6b7f); }
+.aviso {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-warning, #b45309);
+  background: var(--color-warning-bg, #fef3c7);
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm, 8px);
+}
+
+/* ── Tabla del roster ── */
+.roster { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.roster th {
+  text-align: left;
+  padding: 0.45rem 0.55rem;
+  border-bottom: 1px solid var(--color-line, #d7e1ec);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted, #5b6b7f);
+  white-space: nowrap;
+}
+.roster td { padding: 0.45rem 0.55rem; border-bottom: 1px solid var(--color-line, #d7e1ec); }
+.roster tr.sin-marca td { opacity: 0.72; }
+.col-check { width: 34px; text-align: center; }
+.col-nombre { font-weight: 600; white-space: nowrap; }
+.origen { color: var(--color-text-muted, #5b6b7f); font-size: 0.78rem; }
+
+.estado {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: var(--color-bg-subtle, #eef3f9);
+  color: var(--color-text-muted, #5b6b7f);
+}
+.estado.presente { background: var(--color-success-bg, #dcfce7); color: var(--color-success, #15803d); }
+.estado.alerta   { background: var(--color-warning-bg, #fef3c7); color: var(--color-warning, #b45309); }
+.estado.ausente  { background: var(--color-danger-bg, #fee2e2);  color: var(--color-danger, #b91c1c); }
+
+/* ── Resultado del escáner y del lote ── */
+.exito {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-success, #15803d);
+}
+.detalle-lote {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-line, #d7e1ec);
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.8rem;
+}
+.detalle-lote ul { margin: 0.35rem 0 0; padding-left: 1.1rem; }
+.detalle-lote li { color: var(--color-text-muted, #5b6b7f); }
+
+@media (max-width: 640px) {
+  .filtros { grid-template-columns: 1fr; }
+  .roster th:nth-child(2), .roster td:nth-child(2) { white-space: normal; }
+}

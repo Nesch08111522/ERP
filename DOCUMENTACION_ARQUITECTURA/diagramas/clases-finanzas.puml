@@ -1,0 +1,131 @@
+@startuml
+title Clases finanzas
+hide empty methods
+class Sede <<referencia externa>>
+class User <<referencia externa>>
+class Proveedor <<referencia externa>>
+class Compra <<referencia externa>>
+class CuentaFinanciera <<Entity>> {
+  id : UUID
+  nombre : String
+  tipo : TipoCuentaFinanciera
+  entidad : String
+  ultimosDigitos : String
+  sede : Sede
+  metodosPago : SetMetodoPago
+  activa : Boolean
+  creadoPor : User
+  createdAt : LocalDateTime
+  updatedAt : LocalDateTime
+}
+note right of CuentaFinanciera : Metodos: compartePosibleSede
+class FinanzasCuentaPorPagar <<Entity>> {
+  id : UUID
+  sede : Sede
+  proveedor : Proveedor
+  compra : Compra
+  referenciaId : UUID
+  tipoReferencia : TipoReferenciaCxP
+  descripcion : String
+  montoTotal : BigDecimal
+  montoPagado : BigDecimal
+  estado : EstadoCxP
+  fechaVencimiento : LocalDate
+  fechaPago : LocalDateTime
+  metodoPago : String
+  pagadoPor : User
+  createdAt : LocalDateTime
+}
+class FinanzasRetiroSocio <<Entity>> {
+  id : UUID
+  admin : User
+  sede : Sede
+  turnoCaja : TurnoCaja
+  montoRetirado : BigDecimal
+  origenFondos : OrigenFondos
+  descripcion : String
+  fechaRetiro : LocalDateTime
+  estado : EstadoRetiro
+  motivoAnulacion : String
+  anuladoPor : User
+  fechaAnulacion : LocalDateTime
+  impactoCajaRevertido : Boolean
+  createdAt : LocalDateTime
+}
+class GastoEmpresarial <<Entity>> {
+  id : UUID
+  sede : Sede
+  tipo : TipoGastoEmpresarial
+  monto : BigDecimal
+  fecha : LocalDate
+  descripcion : String
+  anulado : boolean
+  registradoPor : User
+  createdAt : LocalDateTime
+}
+class MovimientoCajaChica <<Entity>> {
+  id : UUID
+  turno : TurnoCaja
+  tipo : TipoCajaChica
+  concepto : ConceptoCajaChica
+  monto : BigDecimal
+  detalle : String
+  user : User
+  createdAt : LocalDateTime
+}
+class PagoCuentaPorPagar <<Entity>> {
+  id : UUID
+  cuentaPorPagar : FinanzasCuentaPorPagar
+  monto : BigDecimal
+  metodoPago : MetodoPago
+  referencia : String
+  observaciones : String
+  fechaPago : LocalDateTime
+  registradoPor : User
+  createdAt : LocalDateTime
+}
+class SaldoCuentaFinanciera <<Entity>> {
+  id : UUID
+  cuenta : CuentaFinanciera
+  saldo : BigDecimal
+  fechaCorte : LocalDateTime
+  observacion : String
+  registradoPor : User
+  createdAt : LocalDateTime
+}
+class TurnoCaja <<Entity>> {
+  id : UUID
+  sede : Sede
+  user : User
+  montoInicial : BigDecimal
+  montoFinalDeclarado : BigDecimal
+  fechaApertura : LocalDateTime
+  fechaCierre : LocalDateTime
+  estado : EstadoTurno
+  observaciones : String
+  totalRetirosSocios : BigDecimal
+  totalReembolsos : BigDecimal
+}
+note right of TurnoCaja : Metodos: getTotalRetirosSociosSeguro, getTotalReembolsosSeguro, getEgresosEfectivoSeguro
+CuentaFinanciera "0..*" -- "0..1" Sede : sede
+CuentaFinanciera "0..*" -- "0..1" User : creadoPor
+FinanzasCuentaPorPagar "0..*" -- "1" Sede : sede
+FinanzasCuentaPorPagar "0..*" -- "0..1" Proveedor : proveedor
+FinanzasCuentaPorPagar "0..*" -- "0..1" Compra : compra
+FinanzasCuentaPorPagar "0..*" -- "0..1" User : pagadoPor
+FinanzasRetiroSocio "0..*" -- "1" User : admin
+FinanzasRetiroSocio "0..*" -- "1" Sede : sede
+FinanzasRetiroSocio "0..*" -- "0..1" TurnoCaja : turnoCaja
+FinanzasRetiroSocio "0..*" -- "0..1" User : anuladoPor
+GastoEmpresarial "0..*" -- "0..1" Sede : sede
+GastoEmpresarial "0..*" -- "0..1" User : registradoPor
+MovimientoCajaChica "0..*" -- "1" TurnoCaja : turno
+MovimientoCajaChica "0..*" -- "1" User : user
+PagoCuentaPorPagar "0..*" -- "1" FinanzasCuentaPorPagar : cuentaPorPagar
+PagoCuentaPorPagar "0..*" -- "0..1" User : registradoPor
+SaldoCuentaFinanciera "0..*" -- "1" CuentaFinanciera : cuenta
+SaldoCuentaFinanciera "0..*" -- "0..1" User : registradoPor
+TurnoCaja "0..*" -- "1" Sede : sede
+TurnoCaja "0..*" -- "1" User : user
+
+@enduml

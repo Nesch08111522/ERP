@@ -1,0 +1,8 @@
+@startuml
+title Estados nomina
+[*] --> PENDIENTE : generar
+PENDIENTE --> APROBADA : aprobar
+APROBADA --> PAGADA : pagar
+PENDIENTE --> [*] : eliminar
+note right of PAGADA : No movimiento automatico de caja
+@enduml

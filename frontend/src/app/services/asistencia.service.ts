@@ -7,7 +7,11 @@ import {
   AsistenciaEstadoDTO,
   AsistenciaFilterDTO,
   AsistenciaQrDTO,
+  AsistenciaRosterDTO,
   DashboardAsistenciaDTO,
+  MarcarLoteRequestDTO,
+  MarcarLoteResponseDTO,
+  QrPersonalDTO,
   RrhhAsistenciaRequestDTO,
   RrhhAsistenciaResponseDTO,
 } from '../models/asistencia.model';
@@ -159,6 +163,38 @@ export class AsistenciaService {
   // ============================================
   obtenerEmpleados(): Observable<UserInfoDTO[]> {
     return this.http.get<UserInfoDTO[]>(`${this.apiUrl}/empleados`, {
+      headers: this.getHeaders(),
+    });
+  }
+
+  // ============================================================
+  // MÓDULO 10: QR personal, escaneo del admin y roster del día
+  // ============================================================
+
+  /** QR dinámico del usuario autenticado, para que el admin lo escanee. */
+  obtenerMiQr(): Observable<QrPersonalDTO> {
+    return this.http.get<QrPersonalDTO>(`${this.apiUrl}/mi-qr`, { headers: this.getHeaders() });
+  }
+
+  /** El admin escaneó el QR personal de un empleado: le registra la marcación. */
+  escanearQrEmpleado(payload: string): Observable<RrhhAsistenciaResponseDTO> {
+    return this.http.post<RrhhAsistenciaResponseDTO>(
+      `${this.apiUrl}/escanear-qr`, { payload }, { headers: this.getHeaders() });
+  }
+
+  /** "Quiénes asistieron hoy". fecha en YYYY-MM-DD; vacío = hoy. */
+  obtenerRoster(fecha?: string, sedeId?: string): Observable<AsistenciaRosterDTO[]> {
+    let params = new HttpParams();
+    if (fecha) params = params.set('fecha', fecha);
+    if (sedeId) params = params.set('sedeId', sedeId);
+    return this.http.get<AsistenciaRosterDTO[]>(`${this.apiUrl}/roster`, {
+      headers: this.getHeaders(), params,
+    });
+  }
+
+  /** Marca entrada o salida en lote desde el roster. */
+  marcarLote(body: MarcarLoteRequestDTO): Observable<MarcarLoteResponseDTO> {
+    return this.http.post<MarcarLoteResponseDTO>(`${this.apiUrl}/marcar-lote`, body, {
       headers: this.getHeaders(),
     });
   }

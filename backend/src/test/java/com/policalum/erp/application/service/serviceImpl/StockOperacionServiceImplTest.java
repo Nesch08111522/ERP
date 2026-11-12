@@ -303,7 +303,7 @@ class StockOperacionServiceImplTest {
         verify(ajusteRepository).buscar(isNull(), isNull(), eq(centro.getId()), isNull(), isNull(),
                 eq(LocalDateTime.of(2000, 1, 1, 0, 0)), eq(LocalDateTime.of(2100, 1, 2, 0, 0)), eq(PageRequest.of(0, 20)));
         verify(stockRepository).consolidado(centro.getId(), "%pc-6%", PageRequest.of(0, 20));
-        assertThrows(AccessDeniedException.class, () -> service.bajoStock(norte.getId(), null, PageRequest.of(0, 20)));
+        assertThrows(AccessDeniedException.class, () -> service.bajoStock(norte.getId(), null, null, PageRequest.of(0, 20)));
     }
 
     @Test

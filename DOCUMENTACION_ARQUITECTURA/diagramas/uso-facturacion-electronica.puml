@@ -1,0 +1,19 @@
+@startuml
+title Casos de uso facturacion-electronica
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "facturacion-electronica" {
+usecase "panel\nGET /api/v1/facturacion-electronica/panel" as U0
+usecase "emitir\nPOST /api/v1/facturacion-electronica/emitir" as U1
+usecase "consultar\nPOST /api/v1/facturacion-electronica/consultar-validez" as U2
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

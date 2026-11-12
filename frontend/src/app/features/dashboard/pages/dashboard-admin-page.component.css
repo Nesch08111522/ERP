@@ -609,12 +609,115 @@
   }
 }
 
+/* 3b. GANANCIA EMPRESA VS PERSONAL */
+
+.tile-ganancias {
+  grid-column: 1 / -1;
+}
+
+.bolsillos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bolsillo {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+  border-left: 4px solid var(--color-border);
+  min-width: 0;
+}
+
+.bolsillo-empresa { border-left-color: var(--color-primary); }
+.bolsillo-personal { border-left-color: var(--color-success); }
+
+.bolsillo-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bolsillo-valor {
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.bolsillo-empresa .bolsillo-valor { color: var(--color-primary); }
+.bolsillo-personal .bolsillo-valor { color: var(--color-success); }
+
+.bolsillo-nota {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.desglose-ganancias {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.desglose-ganancias li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--color-border);
+  font-size: var(--text-sm);
+}
+
+.desglose-ganancias span { color: var(--color-text-muted); }
+.desglose-ganancias strong { font-variant-numeric: tabular-nums; }
+
+.desglose-ganancias .saldo strong { color: var(--color-primary); }
+.desglose-ganancias .saldo.negativo strong { color: var(--color-danger); }
+
 /* CONTROL FINAL DE DESBORDAMIENTO */
 .panel,
 .panel-grid,
 .tile,
 .tile-sunat,
+.tile-ganancias,
+.bolsillo,
+.desglose-ganancias,
 .analitica-grid,
 .ranking {
   overflow-wrap: anywhere;
+}
+
+
+/* Pulido SaaS: KPI y tarjetas con jerarquía visual */
+.panel { gap: clamp(1rem, 1.8vw, 1.5rem); }
+.panel-title h1 { font-size: clamp(1.55rem, 3vw, 2.25rem); letter-spacing: -.035em; }
+.tile { border-color: var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface); box-shadow: var(--shadow-sm); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast); }
+.tile:hover { transform: translateY(-2px); border-color: var(--color-border-strong); box-shadow: var(--shadow-glow); }
+.tile-head h2 { letter-spacing: -.02em; }
+.mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: .7rem; }
+.mini { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-bg-subtle) 72%, transparent); transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast); }
+.mini:hover { transform: translateY(-2px); border-color: var(--color-border-strong); background: var(--color-primary-soft); }
+.mini strong { font-size: clamp(1.1rem, 2.3vw, 1.65rem); letter-spacing: -.03em; }
+.bolsillo { border-radius: var(--radius-lg); box-shadow: inset 0 1px rgba(255,255,255,.06); }
+.rendimiento > div, .fila, .atajos a, .ranking li { border-color: var(--color-border); }
+.chip { background: var(--color-primary-soft); border-color: var(--color-border-strong); }
+
+@media (max-width: 760px) {
+  .panel-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "utilidad" "inventario" "ventas" "rendimiento" "kardex" "atajos" "analitica" "sunat"; }
+  .tile { border-radius: var(--radius-lg); padding: 1rem; }
+  .grafica { height: 105px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile, .mini { transition: none; }
+  .tile:hover, .mini:hover { transform: none; }
 }

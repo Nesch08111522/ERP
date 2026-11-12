@@ -56,7 +56,7 @@ function redondear(valor: number, decimales = 2): number {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, IconComponent, PenPipe, ModalComponent, VentaTicketComponent],
   templateUrl: './pos.component.html',
-  styleUrl: './pos.component.css',
+  styleUrls: ['./pos.component.css', './pos.component.part2.css', './pos.component.part3.css'],
 })
 export class PosComponent implements OnInit, OnDestroy {
   @ViewChild('buscador') buscador?: ElementRef<HTMLInputElement>;

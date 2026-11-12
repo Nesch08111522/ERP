@@ -104,25 +104,25 @@ class KardexServiceImplTest {
 
     @Test
     void buscarMovimientos_sinFechas_incluyeSinFechaYIgnoraOrdenDelCliente() {
-        when(kardexRepository.buscar(any(), any(), any(), any(), any(), anyBoolean(), any())).thenReturn(Page.empty());
+        when(kardexRepository.buscarFiltrado(any(), any(), any(), any(), any(), anyBoolean(), any(), any(), any())).thenReturn(Page.empty());
 
-        service.buscarMovimientos(plancha.getId(), null, TipoReferencia.MERMA, null, null, PageRequest.of(1, 10, Sort.by("id")));
+        service.buscarMovimientos(plancha.getId(), null, TipoReferencia.MERMA, null, null, null, null, PageRequest.of(1, 10, Sort.by("id")));
 
-        verify(kardexRepository).buscar(plancha.getId(), null, TipoReferencia.MERMA,
-                LocalDateTime.of(2000, 1, 1, 0, 0), LocalDateTime.of(2100, 1, 2, 0, 0), true, PageRequest.of(1, 10));
+        verify(kardexRepository).buscarFiltrado(plancha.getId(), null, TipoReferencia.MERMA,
+                LocalDateTime.of(2000, 1, 1, 0, 0), LocalDateTime.of(2100, 1, 2, 0, 0), true, null, null, PageRequest.of(1, 10));
     }
 
     @Test
     void buscarMovimientos_conFechas_rangoSemiabiertoYCalculaStockAnterior() {
         KardexMovimiento salida = mov(TipoMovimiento.SALIDA, TipoReferencia.VENTA, "2", "8");
-        when(kardexRepository.buscar(isNull(), isNull(), isNull(), any(), any(), anyBoolean(), any()))
+        when(kardexRepository.buscarFiltrado(isNull(), isNull(), isNull(), any(), any(), anyBoolean(), isNull(), isNull(), any()))
                 .thenReturn(new PageImpl<>(List.of(salida)));
 
         Page<KardexMovimientoDetalleDTO> r = service.buscarMovimientos(null, null, null,
-                LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 8), PageRequest.of(0, 20));
+                LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 8), null, null, PageRequest.of(0, 20));
 
-        verify(kardexRepository).buscar(null, null, null, LocalDateTime.of(2026, 10, 1, 0, 0),
-                LocalDateTime.of(2026, 10, 9, 0, 0), false, PageRequest.of(0, 20));
+        verify(kardexRepository).buscarFiltrado(null, null, null, LocalDateTime.of(2026, 10, 1, 0, 0),
+                LocalDateTime.of(2026, 10, 9, 0, 0), false, null, null, PageRequest.of(0, 20));
         KardexMovimientoDetalleDTO d = r.getContent().get(0);
         assertEquals(new BigDecimal("10"), d.stockAnterior());
         assertEquals("Centro", d.sedeNombre());
@@ -132,7 +132,7 @@ class KardexServiceImplTest {
     @Test
     void buscarMovimientos_desdePosteriorAHasta_lanzaIllegalArgument() {
         assertThrows(IllegalArgumentException.class, () -> service.buscarMovimientos(null, null, null,
-                LocalDate.of(2026, 10, 9), LocalDate.of(2026, 10, 1), PageRequest.of(0, 20)));
+                LocalDate.of(2026, 10, 9), LocalDate.of(2026, 10, 1), null, null, PageRequest.of(0, 20)));
         verifyNoInteractions(kardexRepository);
     }
 

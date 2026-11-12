@@ -15,6 +15,7 @@ import com.policalum.erp.application.service.serviceImpl.LimitePublico;
 import com.policalum.erp.application.service.serviceImpl.MensajeWebService;
 import com.policalum.erp.application.service.serviceImpl.PedidoWhatsappService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
+import com.policalum.erp.infrastructure.security.RateLimitService;
 import com.policalum.erp.infrastructure.security.JwtUtil;
 import com.policalum.erp.infrastructure.security.SesionUsuarioCache;
 import com.policalum.erp.infrastructure.security.TokenDenylist;
@@ -36,6 +37,8 @@ import org.springframework.test.web.servlet.MockMvc;
 class CotizacionPublicControllerTest {
 
     @Autowired MockMvc mvc;
+    @MockitoBean
+    RateLimitService rateLimitService;
     @MockitoBean CotizacionService cotizaciones;
     @MockitoBean CotizacionDocumentoService documentos;
     @MockitoBean MensajeWebService mensajes;

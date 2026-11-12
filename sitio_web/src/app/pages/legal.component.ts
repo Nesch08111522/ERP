@@ -77,7 +77,7 @@ export class EnviosComponent {}
     <article class="legal section">
       <p class="kicker">Empresa</p>
       <h1>{{ marca.empresa().nombreComercial }}</h1>
-      <p>{{ marca.empresa().razonSocial || marca.empresa().nombreComercial }} atiende obras e industria con policarbonato y accesorios. El catálogo, el stock y la cotización salen del mismo ERP que usa el equipo de ventas.</p>
+      <p>{{ marca.empresa().razonSocial || marca.empresa().nombreComercial }} atiende obras e industria con policarbonato y accesorios. Te acompañamos en la selección de materiales, desde la primera idea hasta la coordinación de tu pedido.</p>
       @if (marca.empresa().direccion) { <p>Dirección: {{ marca.empresa().direccion }}</p> }
       @if (marca.empresa().telefono) { <p>Teléfono: {{ marca.empresa().telefono }}</p> }
       @if (marca.empresa().email) { <p>Correo: {{ marca.empresa().email }}</p> }
@@ -119,10 +119,10 @@ export class GarantiaComponent {
       @if (partes().length) {
         @for (parrafo of partes(); track $index) { <p>{{ parrafo }}</p> }
       } @else {
-        <p><strong>¿El precio de la ficha es el final?</strong> Es el precio de venta del almacén. La cotización suma la utilidad, la movilidad del distrito y los otros cargos que estén publicados en el ERP.</p>
-        <p><strong>¿Agregar al carrito aparta el stock?</strong> No. El carrito queda en este navegador. El stock se mueve cuando ventas convierte la cotización aceptada en una venta.</p>
-        <p><strong>¿Puedo cotizar sin pagar en línea?</strong> Sí. Envías la cotización y el equipo la ve en el ERP, con un aviso. Puedes escribir por WhatsApp desde el mismo resultado.</p>
-        <p><strong>¿Qué pasa si el sitio no carga el catálogo?</strong> Si ya lo habías abierto, se muestra el último catálogo guardado en el navegador y un aviso de que no hay conexión con el servidor.</p>
+        <details class="faq-item"><summary>¿El precio de la ficha es el final?</summary><p>Es el precio de venta del almacén. La cotización suma la utilidad, la movilidad del distrito y los otros cargos que estén publicados en el ERP.</p></details>
+        <details class="faq-item"><summary>¿Agregar al carrito aparta el stock?</summary><p>No. El carrito queda en este navegador. El stock se mueve cuando ventas convierte la cotización aceptada en una venta.</p></details>
+        <details class="faq-item"><summary>¿Puedo cotizar sin pagar en línea?</summary><p>Sí. Envías la cotización y el equipo la ve en el ERP, con un aviso. Puedes escribir por WhatsApp desde el mismo resultado.</p></details>
+        <details class="faq-item"><summary>¿Qué pasa si el sitio no carga el catálogo?</summary><p>Si ya lo habías abierto, se muestra el último catálogo guardado en el navegador y un aviso de que no hay conexión con el servidor.</p></details>
       }
     </article>
   `,
@@ -136,10 +136,12 @@ export class FaqComponent {
   selector: 'app-blog',
   imports: [RouterLink],
   template: `
-    <article class="section">
+    <article class="section journal">
+      <header class="page-intro">
       <p class="kicker">Noticias</p>
       <h1>Blog y obras</h1>
-      <p class="lead">Las obras publicadas salen del portafolio del ERP. Si el servidor no responde, lo verás aquí.</p>
+      <p class="lead">Ideas, aplicaciones y detalles de nuestros proyectos para inspirar tu próximo espacio.</p>
+      </header>
       @if (cargando()) { <p class="muted" role="status">Cargando proyectos…</p> }
       @if (error()) { <p class="alert" role="alert">{{ error() }}</p> }
       @if (!cargando() && !obras().length && !error()) { <p class="muted">Todavía no hay proyectos publicados.</p> }

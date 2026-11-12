@@ -1,0 +1,21 @@
+@startuml
+title Despliegue configurado no observado
+node "Dispositivo usuario" {
+artifact "Navegador ERP" as E
+artifact "Navegador portal" as W
+}
+node "Servidor aplicaciones (ubicacion pendiente)" {
+artifact "Bundle Angular ERP" as F
+artifact "Bundle Angular portal" as P
+artifact "Spring Boot Java 17" as B
+}
+node "Servidor BD (ubicacion pendiente)" {
+database PostgreSQL as D
+}
+E --> F : HTTP(S) configurado
+W --> P : HTTP(S) configurado
+E --> B : API / JWT
+W --> B : API publica
+B --> D : JDBC configurado
+note "Puertos, TLS, red local y hosts activos no verificados.\nNo se representa infraestructura prevista como real." as N
+@enduml

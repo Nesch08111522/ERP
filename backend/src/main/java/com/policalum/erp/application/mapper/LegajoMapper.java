@@ -26,6 +26,7 @@ public interface LegajoMapper {
     @Mapping(target = "activo", ignore = true)
     @Mapping(target = "documentosJson", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "diasLaborables", ignore = true)
     RrhhLegajoDigital toEntity(LegajoRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
@@ -35,6 +36,9 @@ public interface LegajoMapper {
     @Mapping(target = "activo", ignore = true)
     @Mapping(target = "documentosJson", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
+    // diasLaborables lo asigna LegajoServiceImpl ya normalizado: MapStruct intentaría clear()
+    // sobre la lista existente del legajo gestionado, y las máscaras inmutables revientan.
+    @Mapping(target = "diasLaborables", ignore = true)
     void updateEntityFromDto(LegajoRequestDTO dto, @MappingTarget RrhhLegajoDigital entity);
 
     @Mapping(target = "id", source = "entity.id")

@@ -31,6 +31,7 @@
                   <p class="rol-detalle">{{ descripcion(rol.nombre) }}</p>
                 </div>
                 <div class="rol-acciones">
+                  <span class="badge badge-info" *ngIf="rol.nombre === 'ROLE_ADMIN'" title="El backend concede acceso completo al rol Administrador antes de leer este mapa.">Acceso completo</span>
                   <button type="button" class="btn btn-ghost btn-sm" (click)="abrirEditar(rol)">Editar</button>
                 </div>
               </div>
@@ -62,12 +63,22 @@
     </app-form-field>
     <fieldset class="permiso-editor">
       <legend>Permisos</legend>
-      <p class="rol-detalle">Los permisos limitan las acciones de este rol y nunca conceden privilegios de otro rol. Lo que quede sin marcar queda desactivado.</p>
+
+      <div class="alert alert-info" *ngIf="esRolAdmin">
+        El rol Administrador no se recorta con estas casillas: el backend le concede acceso
+        completo antes de consultar este mapa. Aquí solo puedes ajustar los permisos del rol
+        Multifuncional.
+      </div>
+      <p class="rol-detalle" *ngIf="!esRolAdmin">
+        Los permisos limitan las acciones de este rol y nunca conceden privilegios de otro rol.
+        Lo que quede sin marcar queda desactivado.
+      </p>
+
       <fieldset class="permiso-bloque" *ngFor="let grupo of editor">
         <legend>{{ grupo.label }}</legend>
         <div class="permiso-opciones">
           <label class="permiso-opcion" *ngFor="let accion of grupo.acciones">
-            <input class="checkbox" type="checkbox" [checked]="accion.activo" (change)="alternar(accion, casillaMarcada($event))">
+            <input class="checkbox" type="checkbox" [checked]="accion.activo" [disabled]="esRolAdmin" (change)="alternar(accion, casillaMarcada($event))">
             <span>{{ accion.label }}</span>
           </label>
         </div>
@@ -76,6 +87,6 @@
   </form>
   <div modalFooter>
     <button type="button" class="btn btn-ghost" (click)="modal = false" [disabled]="guardando">Cancelar</button>
-    <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando">{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
+    <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando || esRolAdmin">{{ guardando ? 'Guardando…' : 'Guardar' }}</button>
   </div>
 </app-modal>

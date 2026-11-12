@@ -13,6 +13,8 @@ public record LegajoListadoDTO(
         String tipoContrato,
         LocalDate fechaIngreso,
         BigDecimal sueldoBase,
+        Integer diaCobro,
+        BigDecimal porcentajeComision,
         SistemaPension sistemaPension,
         Boolean activo
 ) { }

@@ -79,6 +79,9 @@ export interface ProyectoPublico {
   referencia?: string;
   etiquetas?: string[];
   imagenes?: string[];
+  videoUrl?: string;
+  hlsUrl?: string;
+  dashUrl?: string;
 }
 
 export interface LineaCarrito {

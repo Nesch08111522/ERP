@@ -1,10 +1,13 @@
 package com.policalum.erp.application.dto.request;
 
+import com.policalum.erp.domain.enums.PoliticaDivisionSueldo;
+import com.policalum.erp.domain.enums.TratamientoAusencias;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public record SedeRequestDTO(
         @NotBlank(message = "El nombre de la sede es requerido") @Size(max = 100, message = "El nombre no puede exceder 100 caracteres") String nombre,
@@ -25,5 +28,14 @@ public record SedeRequestDTO(
 
         @DecimalMin(value = "-180.0", message = "La longitud no es válida") @DecimalMax(value = "180.0", message = "La longitud no es válida") Double longitud,
 
-        @Size(max = 500, message = "La imagen no puede exceder 500 caracteres") String imagen) {
+        @Size(max = 500, message = "La imagen no puede exceder 500 caracteres") String imagen,
+
+        /** Política de remuneración de la sede (§8.1). null = hereda la de la empresa. */
+        PoliticaDivisionSueldo politicaDivision,
+
+        /** Solo cuenta si la política es DIAS_LABORABLES. null = hereda. */
+        @Size(max = 7, message = "Máximo 7 días laborables") List<String> diasLaborables,
+
+        /** null = hereda. Ver TratamientoAusencias: hay valores declarados y aún bloqueados. */
+        TratamientoAusencias tratamientoAusencias) {
 }

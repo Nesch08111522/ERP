@@ -144,7 +144,15 @@ export interface HiloPublico {
 
 export function media(ruta?: string | null): string | null {
   if (!ruta) return null;
-  if (ruta.startsWith('http://') || ruta.startsWith('https://')) return ruta;
+  if (/^https?:\/\//i.test(ruta)) {
+    const url = new URL(ruta);
+    const backend = new URL(environment.apiUrl);
+    const ownHost = url.hostname === backend.hostname || url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    if (ownHost && url.port === backend.port && url.pathname.startsWith('/api/v1/public/')) {
+      return `${backend.origin}${url.pathname}${url.search}${url.hash}`;
+    }
+    return ruta;
+  }
   return `${environment.apiUrl}${ruta}`;
 }
 

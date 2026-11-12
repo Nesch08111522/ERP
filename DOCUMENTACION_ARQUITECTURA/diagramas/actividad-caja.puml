@@ -1,0 +1,19 @@
+@startuml
+title Apertura y cierre de caja
+start
+partition "Operacion documentada" {
+:Abrir: comprobar no existe turno abierto usuario sede;
+:Guardar ABIERTO y monto inicial;
+:Cerrar: bloquear turno propio abierto;
+:Sumar efectivo e ingresos caja chica;
+:Restar retiros reembolsos y egresos;
+:Calcular diferencia declarada;
+:Guardar CERRADO y fecha;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Duplicado o turno ajeno/cerrado;
+endif
+}
+stop
+@enduml

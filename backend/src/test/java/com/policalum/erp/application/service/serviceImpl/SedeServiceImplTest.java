@@ -35,7 +35,8 @@ class SedeServiceImplTest {
     }
 
     private SedeRequestDTO request() {
-        return new SedeRequestDTO("Trujillo Centro", null, "Trujillo", "Jr. Pizarro 1", "944111222", null, null, null, null, null);
+        return new SedeRequestDTO("Trujillo Centro", null, "Trujillo", "Jr. Pizarro 1", "944111222", null, null, null, null, null,
+                null, null, null);
     }
 
     @Test

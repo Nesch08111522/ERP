@@ -190,6 +190,7 @@ export interface BoletaConceptoDTO {
 export interface BoletaPagoDTO {
   descuentos?: Array<BoletaConceptoDTO>;
   diasComputados?: number;
+  divisorRemuneracion?: number;
   empleadoEmail?: string;
   empleadoId?: string;
   empleadoNombre?: string;
@@ -200,6 +201,7 @@ export interface BoletaPagoDTO {
   netoAPagar?: number;
   nominaId?: string;
   periodo?: string;
+  politicaDivision?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
   sedeNombre?: string;
   tipoContrato?: string;
   totalDescuentos?: number;
@@ -956,10 +958,12 @@ export interface LegajoDocumentoResponseDTO {
 
 export interface LegajoListadoDTO {
   activo?: boolean;
+  diaCobro?: number;
   empleadoId?: string;
   empleadoNombre?: string;
   fechaIngreso?: string;
   id?: string;
+  porcentajeComision?: number;
   sedeNombre?: string;
   sistemaPension?: "ONP" | "AFP" | "NINGUNO";
   sueldoBase?: number;
@@ -969,12 +973,17 @@ export interface LegajoListadoDTO {
 export interface LegajoRequestDTO {
   activo?: boolean;
   diaCobro?: number;
+  diasLaborables?: Array<string>;
   empleadoId: string;
   fechaIngreso: string;
+  fechaVigenciaCambio?: string;
+  motivoCambio?: string;
+  politicaDivision?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
   porcentajeComision?: number;
   sistemaPension: "ONP" | "AFP" | "NINGUNO";
   sueldoBase: number;
   tasaPension?: number;
+  tratamientoAusencias?: "NO_AFECTA" | "DESCUENTO_DIAS_SIN_MARCACION";
   tipoContrato: string;
 }
 
@@ -982,19 +991,34 @@ export interface LegajoResponseDTO {
   activo?: boolean;
   createdAt?: string;
   diaCobro?: number;
+  diasLaborables?: Array<string>;
   documentos?: Array<LegajoDocumentoResponseDTO>;
   empleadoEmail?: string;
   empleadoId?: string;
   empleadoNombre?: string;
   fechaIngreso?: string;
   id?: string;
+  politicaDivision?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
   porcentajeComision?: number;
   sedeId?: string;
   sedeNombre?: string;
   sistemaPension?: "ONP" | "AFP" | "NINGUNO";
   sueldoBase?: number;
   tasaPension?: number;
+  tratamientoAusencias?: "NO_AFECTA" | "DESCUENTO_DIAS_SIN_MARCACION";
   tipoContrato?: string;
+}
+
+/** Política ya resuelta por la cadena legajo → sede → empresa (§8.1). */
+export interface PoliticaRemuneracionDTO {
+  ausencias?: "NO_AFECTA" | "DESCUENTO_DIAS_SIN_MARCACION";
+  division?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
+  diasLaborables?: Array<string>;
+  origenAusencias?: "EMPLEADO" | "SEDE" | "EMPRESA";
+  origenDiasLaborables?: "EMPLEADO" | "SEDE" | "EMPRESA";
+  origenDivision?: "EMPLEADO" | "SEDE" | "EMPRESA";
+  divisorMesEnCurso?: number;
+  periodoReferencia?: string;
 }
 
 export interface LineaVentaCommandDTO {
@@ -1202,6 +1226,7 @@ export interface NominaResponseDTO {
   descuentoPension?: number;
   descuentos?: number;
   diasComputados?: number;
+  divisorRemuneracion?: number;
   empleadoNombre?: string;
   estado?: "PENDIENTE" | "APROBADA" | "PAGADA";
   fechaAprobacion?: string;
@@ -1213,6 +1238,7 @@ export interface NominaResponseDTO {
   otrosDescuentos?: number;
   pagadoPorNombre?: string;
   periodo?: string;
+  politicaDivision?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
   porcentajeComision?: number;
   referenciaPago?: string;
   sedeId?: string;
@@ -1839,10 +1865,23 @@ export interface ParametrosReportesRequestDTO {
   maxFilasExportacion: number;
 }
 
+export interface ParametrosRrhhDTO {
+  diasLaborables?: Array<string>;
+  politicaDivision?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
+  tratamientoAusencias?: "NO_AFECTA" | "DESCUENTO_DIAS_SIN_MARCACION";
+}
+
+export interface ParametrosRrhhRequestDTO {
+  diasLaborables?: Array<string>;
+  politicaDivision: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
+  tratamientoAusencias: "NO_AFECTA" | "DESCUENTO_DIAS_SIN_MARCACION";
+}
+
 export interface ParametrosRequestDTO {
   finanzas?: ParametrosFinanzasRequestDTO;
   inventario?: ParametrosInventarioRequestDTO;
   reportes?: ParametrosReportesRequestDTO;
+  rrhh?: ParametrosRrhhRequestDTO;
   ventas?: ParametrosVentasRequestDTO;
 }
 
@@ -1850,6 +1889,7 @@ export interface ParametrosResponseDTO {
   finanzas?: ParametrosFinanzasDTO;
   inventario?: ParametrosInventarioDTO;
   reportes?: ParametrosReportesDTO;
+  rrhh?: ParametrosRrhhDTO;
   ventas?: ParametrosVentasDTO;
 }
 
@@ -2461,6 +2501,7 @@ export interface SedeRequestDTO {
   activa?: boolean;
   celularSede?: string;
   ciudad?: string;
+  diasLaborables?: Array<string>;
   direccion?: string;
   imagen?: string;
   latitud?: number;
@@ -2468,6 +2509,8 @@ export interface SedeRequestDTO {
   moneda?: string;
   nombre: string;
   pais?: string;
+  politicaDivision?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
+  tratamientoAusencias?: "NO_AFECTA" | "DESCUENTO_DIAS_SIN_MARCACION";
 }
 
 export interface SedeResponseDTO {
@@ -2475,6 +2518,7 @@ export interface SedeResponseDTO {
   celularSede?: string;
   ciudad?: string;
   createdAt?: string;
+  diasLaborables?: Array<string>;
   direccion?: string;
   id?: string;
   imagen?: string;
@@ -2483,6 +2527,8 @@ export interface SedeResponseDTO {
   moneda?: string;
   nombre?: string;
   pais?: string;
+  politicaDivision?: "DIAS_30" | "DIAS_CALENDARIO" | "DIAS_LABORABLES";
+  tratamientoAusencias?: "NO_AFECTA" | "DESCUENTO_DIAS_SIN_MARCACION";
 }
 
 export interface SeparacionPatrimonialDTO {
@@ -2517,7 +2563,11 @@ export interface SeriesRequestDTO {
 
 export interface ServicioColaboradorRequestDTO {
   participacion?: 'INSTALO' | 'AYUDO' | string;
-  userId: string;
+  userId?: string;
+  tipoColaborador?: 'REGISTRADO' | 'EXTERNO' | string;
+  nombreExterno?: string;
+  costo?: number;
+  estadoLiquidacion?: 'PENDIENTE' | 'PAGADO' | 'NO_APLICA' | string;
 }
 
 export interface ServicioColaboradorResponseDTO {
@@ -2526,6 +2576,10 @@ export interface ServicioColaboradorResponseDTO {
   nombre?: string;
   participacion?: string;
   userId?: string;
+  tipoColaborador?: string;
+  nombreExterno?: string;
+  costo?: number;
+  estadoLiquidacion?: string;
 }
 
 export interface ServicioRequestDTO {

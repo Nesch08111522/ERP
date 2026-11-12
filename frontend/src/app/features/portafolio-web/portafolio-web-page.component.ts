@@ -23,6 +23,9 @@ export interface ProyectoWeb {
   servicio?: string;
   referencia?: string;
   etiquetas?: string[];
+  videoUrl?: string;
+  hlsUrl?: string;
+  dashUrl?: string;
   orden: number;
   publicado: boolean;
   createdAt?: string;
@@ -41,6 +44,9 @@ interface CuerpoProyecto {
   referencia: string;
   etiquetas: string[];
   imagenes: string[];
+  videoUrl: string;
+  hlsUrl: string;
+  dashUrl: string;
 }
 
 @Component({
@@ -48,7 +54,7 @@ interface CuerpoProyecto {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, PageHeaderComponent, FormFieldComponent],
   templateUrl: './portafolio-web-page.component.html',
-  styleUrls: ['./portafolio-web-page.component.css'],
+  styleUrls: ['./portafolio-web-page.component.css', './portafolio-web-page.component.part2.css'],
 })
 export class PortafolioWebPageComponent implements OnInit {
   readonly topeDescripcion = 40;
@@ -73,6 +79,9 @@ export class PortafolioWebPageComponent implements OnInit {
     servicio: ['', Validators.maxLength(60)],
     referencia: ['', [Validators.maxLength(160), maxPalabras(this.topeReferencia)]],
     etiquetas: ['', etiquetasValidas],
+    videoUrl: ['', Validators.maxLength(500)],
+    hlsUrl: ['', Validators.maxLength(500)],
+    dashUrl: ['', Validators.maxLength(500)],
     orden: [0, [Validators.required, entero]],
     publicado: [true],
     imagenes: this.imagenes,
@@ -138,6 +147,9 @@ export class PortafolioWebPageComponent implements OnInit {
       servicio: proyecto.servicio ?? '',
       referencia: proyecto.referencia ?? '',
       etiquetas: (proyecto.etiquetas ?? []).join(', '),
+      videoUrl: proyecto.videoUrl ?? '',
+      hlsUrl: proyecto.hlsUrl ?? '',
+      dashUrl: proyecto.dashUrl ?? '',
       orden: proyecto.orden ?? 0,
       publicado: proyecto.publicado !== false,
     });
@@ -156,6 +168,9 @@ export class PortafolioWebPageComponent implements OnInit {
       servicio: '',
       referencia: '',
       etiquetas: '',
+      videoUrl: '',
+      hlsUrl: '',
+      dashUrl: '',
       orden: 0,
       publicado: true,
     });
@@ -255,6 +270,9 @@ export class PortafolioWebPageComponent implements OnInit {
       referencia: valor.referencia,
       etiquetas: valor.etiquetas.split(',').map((item) => item.trim()).filter(Boolean),
       imagenes: fotos,
+      videoUrl: valor.videoUrl.trim(),
+      hlsUrl: valor.hlsUrl.trim(),
+      dashUrl: valor.dashUrl.trim(),
     };
   }
 

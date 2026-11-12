@@ -1,0 +1,111 @@
+@startuml
+title ERD JPA inferido - web
+hide circle
+entity "cms_ajustes\nCmsAjuste" as CmsAjuste {
+  * id : Short <<PK JPA>>
+  color_primario : String
+  color_secundario : String
+  tamano_base : Integer
+  modo : String
+  banner : String
+  resumen : String
+  horario_semana : String
+  horario_sabado : String
+  facebook : String
+  instagram : String
+  linkedin : String
+  youtube : String
+  correo_soporte : String
+  texto_privacidad : String
+  texto_terminos : String
+  texto_garantia : String
+  texto_faq : String
+  hero_kicker : String
+  hero_titulo : String
+  hero_texto : String
+  materiales_kicker : String
+  materiales_titulo : String
+  materiales_texto : String
+  materiales_json : String
+  identidad_propia : Boolean
+  web_nombre : String
+  web_razon_social : String
+  web_ruc : String
+  web_telefono : String
+  web_email : String
+  web_direccion : String
+  web_ubigeo : String
+  origen_empresa : String
+  colores_json : String
+}
+entity "conversaciones_web\nConversacionWeb" as ConversacionWeb {
+  * id : UUID <<PK JPA>>
+  clave : String
+  nombre : String
+  correo : String
+  telefono : String
+  empresa : String
+  estado : String
+  cliente_id : UUID
+  dispositivo : String
+  ultimo_texto : String
+  created_at : LocalDateTime
+  ultimo_mensaje_at : LocalDateTime
+  no_leidos_equipo : int
+  no_leidos_cliente : int
+  marcado_no_leido : Boolean
+  archivado : Boolean
+  cliente_escribe_hasta : LocalDateTime
+  equipo_escribe_hasta : LocalDateTime
+}
+entity "chat_lineas\nLineaChat" as LineaChat {
+  * id : UUID <<PK JPA>>
+  conversacion_id : UUID
+  autor : AutorChat
+  autor_nombre : String
+  texto : String
+  created_at : LocalDateTime
+}
+entity "mensajes_web\nMensajeContacto" as MensajeContacto {
+  * id : UUID <<PK JPA>>
+  nombre : String
+  correo : String
+  telefono : String
+  empresa : String
+  asunto : String
+  tipo_mensaje : String
+  documento_tipo : String
+  documento_numero : String
+  direccion : String
+  bien : String
+  monto : String
+  pedido : String
+  mensaje : String
+  estado : EstadoMensajeWeb
+  leido : Boolean
+  archivado : Boolean
+  nota_gestion : String
+  created_at : LocalDateTime
+  gestionado_at : LocalDateTime
+}
+entity "proyectos_portafolio\nProyectoPortafolio" as ProyectoPortafolio {
+  * id : UUID <<PK JPA>>
+  titulo : String
+  descripcion : String
+  imagen_url : String
+  video_url : String
+  hls_url : String
+  dash_url : String
+  orden : Integer
+  publicado : Boolean
+  cliente : String
+  lugar : String
+  anio : String
+  servicio : String
+  referencia : String
+  etiquetas_json : String
+  imagenes_json : String
+  created_at : LocalDateTime
+}
+
+@enduml

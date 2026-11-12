@@ -1,0 +1,193 @@
+<div class="mi-regimen">
+
+  <header class="encabezado">
+    <div>
+      <h2>Mi régimen de ganancia</h2>
+      <p class="text-muted">
+        Usted es a la vez administrador y trabajador. Aquí define qué cobra como trabajador y
+        qué porcentaje toma como dueño. La utilidad del negocio se muestra aparte, para que
+        nunca confunda "lo que ganó la empresa" con "lo que se llevó usted".
+      </p>
+    </div>
+    <label class="campo-periodo">
+      <span>Periodo</span>
+      <input class="input" type="month" [(ngModel)]="periodo" (change)="cargarResumen()" />
+    </label>
+  </header>
+
+  <p *ngIf="cargando" class="text-muted">Cargando su régimen…</p>
+  <p *ngIf="error" class="alert alert-error">{{ error }}</p>
+
+  <div class="columnas" *ngIf="!cargando && !error">
+
+    <!-- ══════════ CONFIGURACIÓN ══════════ -->
+    <section class="panel-config">
+      <h3>¿Cuánto gana usted?</h3>
+
+      <div class="componentes">
+        <label class="componente" [class.apagado]="!sueldoHabilitado">
+          <span class="componente-head">
+            <input class="checkbox" type="checkbox" [(ngModel)]="sueldoHabilitado" />
+            <strong>Sueldo base</strong>
+          </span>
+          <span class="componente-valor">{{ (regimen?.sueldoBase ?? 0) | pen }} / mes</span>
+          <span class="componente-nota text-muted">
+            Se define en <a routerLink="/modules/rrhh">RRHH → Legajos</a>. Aquí solo decide si lo cobra.
+          </span>
+        </label>
+
+        <label class="componente" [class.apagado]="!comisionHabilitada">
+          <span class="componente-head">
+            <input class="checkbox" type="checkbox" [(ngModel)]="comisionHabilitada" />
+            <strong>Comisión por mis ventas</strong>
+          </span>
+          <span class="componente-valor">{{ (regimen?.porcentajeComisionVentas ?? 0) }}% sobre ventas netas</span>
+          <span class="componente-nota text-muted">
+            El porcentaje vive en su legajo. Se liquida cuando aprueba las comisiones del mes.
+          </span>
+        </label>
+
+        <label class="componente" [class.apagado]="!repartoHabilitado">
+          <span class="componente-head">
+            <input class="checkbox" type="checkbox" [(ngModel)]="repartoHabilitado" />
+            <strong>Reparto de utilidad</strong>
+          </span>
+          <span class="componente-valor" *ngIf="repartoHabilitado">
+            {{ (porcentajeReparto ?? 0) }}% de {{ etiquetaBase[baseReparto] | lowercase }}
+          </span>
+          <span class="componente-valor text-muted" *ngIf="!repartoHabilitado">Desactivado</span>
+
+          <div class="reparto-detalle" *ngIf="repartoHabilitado">
+            <label class="campo">
+              <span>% a repartir</span>
+              <input class="input" type="number" min="0" max="100" step="0.01" [(ngModel)]="porcentajeReparto" />
+            </label>
+            <label class="campo">
+              <span>Base de cálculo</span>
+              <select class="select" [(ngModel)]="baseReparto">
+                <option *ngFor="let b of bases" [value]="b">{{ etiquetaBase[b] }}</option>
+              </select>
+            </label>
+            <label class="campo">
+              <span>Tope mensual (opcional)</span>
+              <input class="input" type="number" min="0" step="0.01" [(ngModel)]="topeRepartoMensual" placeholder="Sin tope" />
+            </label>
+          </div>
+          <p class="alert alert-warning" *ngIf="repartoInvalido">
+            Indique un porcentaje mayor a 0 o desactive el reparto.
+          </p>
+        </label>
+      </div>
+
+      <p class="nota-legal text-muted">
+        El reparto es una <strong>distribución</strong> de la utilidad, no un gasto: no la reduce.
+        Por eso se muestra aparte del resultado del negocio.
+      </p>
+
+      <div class="acciones">
+        <button type="button" class="btn btn-primary" (click)="guardar()"
+                [disabled]="guardando || !hayCambios || repartoInvalido">
+          {{ guardando ? 'Guardando…' : 'Guardar régimen' }}
+        </button>
+        <button type="button" class="btn btn-ghost" (click)="cargarTodo()" [disabled]="guardando">Descartar cambios</button>
+      </div>
+
+      <!-- Su propio historial. La cifra la fija RRHH → Legajos; aquí solo se consulta. -->
+      <section class="mi-historial" *ngIf="historial.length > 0">
+        <h4>Cómo evolucionó lo que cobra</h4>
+        <ol>
+          <li *ngFor="let h of historial">
+            <span class="hi-fecha">{{ h.vigenciaDesde | date:'dd/MM/yyyy' }}</span>
+            <span class="hi-monto">
+              <span class="text-muted" *ngIf="h.sueldoAnterior !== null">{{ h.sueldoAnterior | pen }} → </span>
+              <strong>{{ h.sueldoNuevo | pen }}</strong>
+            </span>
+            <span class="hi-nota text-muted" *ngIf="h.vigente">vigente</span>
+            <span class="hi-nota text-muted" *ngIf="h.motivo">{{ h.motivo }}</span>
+          </li>
+        </ol>
+        <p class="text-muted hi-pie">
+          Se escribe solo al guardar el legajo. Si falta un ajuste, corrija con uno nuevo: el
+          historial no se borra.
+        </p>
+      </section>
+    </section>
+
+    <!-- ══════════ LOS DOS BOLSILLOS ══════════ -->
+    <section class="panel-bolsillos" *ngIf="resumen as r">
+
+      <article class="bolsillo empresa">
+        <h4>Ganancia de la empresa</h4>
+        <p class="bolsillo-total">{{ r.empresaUtilidadNeta | pen }}</p>
+        <p class="bolsillo-sub text-muted">utilidad neta · {{ r.periodo }}</p>
+        <dl class="desglose">
+          <div><dt>Ventas netas reales</dt><dd>{{ r.empresaVentasNetas | pen }}</dd></div>
+          <div><dt>Compras netas</dt><dd class="resta">− {{ r.empresaComprasNetas | pen }}</dd></div>
+          <div><dt>Utilidad bruta</dt><dd>{{ r.empresaUtilidadBruta | pen }}</dd></div>
+          <div><dt>Nóminas pagadas</dt><dd class="resta">− {{ r.empresaGastosOperativos | pen }}</dd></div>
+          <div><dt>Gastos empresariales</dt><dd class="resta">− {{ r.empresaGastosEmpresariales | pen }}</dd></div>
+          <div><dt>Margen neto</dt><dd>{{ r.empresaMargenNetoPct }}%</dd></div>
+          <div><dt>Retiros de socios</dt><dd class="text-muted">{{ r.empresaRetirosSocios | pen }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="bolsillo personal">
+        <h4>Mi ganancia personal</h4>
+        <p class="bolsillo-total">{{ r.personalTotal | pen }}</p>
+        <p class="bolsillo-sub text-muted">{{ r.personalSobreEmpresaPct }}% de la utilidad de la empresa</p>
+        <dl class="desglose">
+          <div [class.no-cobra]="!r.sueldoHabilitado">
+            <dt>Sueldo base</dt>
+            <dd>{{ r.personalSueldo | pen }}</dd>
+            <small class="text-muted" *ngIf="!r.sueldoHabilitado">desactivado ({{ r.personalSueldoBase | pen }} en su legajo)</small>
+            <small class="text-muted" *ngIf="r.sueldoHabilitado && r.personalDiasComputados < 30">{{ r.personalDiasComputados }} días computados</small>
+          </div>
+          <div [class.no-cobra]="!r.comisionHabilitada">
+            <dt>Comisión por ventas</dt>
+            <dd>{{ r.personalComision | pen }}</dd>
+            <small class="text-muted" *ngIf="r.comisionHabilitada">
+              {{ r.personalComisionPct }}% sobre {{ r.personalComisionBaseVentas | pen }}
+            </small>
+            <small class="text-muted" *ngIf="!r.comisionHabilitada">desactivada</small>
+          </div>
+          <div [class.no-cobra]="!r.repartoHabilitado">
+            <dt>Reparto de utilidad</dt>
+            <dd>{{ r.personalRepartoUtilidad | pen }}</dd>
+            <small class="text-muted" *ngIf="r.repartoHabilitado">
+              {{ r.personalPorcentajeReparto }}% de {{ r.personalMontoBaseReparto | pen }}
+              <ng-container *ngIf="r.personalTopeRepartoMensual"> · tope {{ r.personalTopeRepartoMensual | pen }}</ng-container>
+            </small>
+            <small class="text-muted" *ngIf="!r.repartoHabilitado">desactivado</small>
+          </div>
+          <div class="pagado">
+            <dt>Nómina propia ya pagada</dt>
+            <dd>{{ r.personalNominasPagadas | pen }}</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="cruce" [class.negativo]="saldoNegativo">
+        <h4>Utilidad de la empresa tras su reparto</h4>
+        <p class="cruce-total">{{ r.saldoEmpresaTrasReparto | pen }}</p>
+        <p class="text-muted">
+          Su sueldo y su comisión ya salieron de la utilidad como gasto de personal; aquí solo se
+          resta el reparto de ganancia.
+        </p>
+        <p class="text-muted" *ngIf="saldoNegativo">
+          El reparto supera la utilidad del periodo. Revise el porcentaje o el tope mensual antes de liquidar.
+        </p>
+      </article>
+
+      <p class="alert alert-warning" *ngIf="r.advertencia">
+        <app-icon name="alert"></app-icon>
+        <span>{{ r.advertencia }}</span>
+      </p>
+
+      <p class="text-muted dia-paga">
+        Su día de paga es el <strong>{{ regimen?.diaCobro ?? '—' }}</strong> de cada mes
+        <ng-container *ngIf="regimen?.tipoContrato"> · contrato {{ regimen?.tipoContrato | titlecase }}</ng-container>.
+      </p>
+    </section>
+
+  </div>
+</div>

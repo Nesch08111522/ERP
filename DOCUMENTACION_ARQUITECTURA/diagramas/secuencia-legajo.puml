@@ -1,0 +1,30 @@
+@startuml
+title Consulta legajo propio
+actor Usuario
+participant "BackendApiService (Angular)" as F
+participant HttpClient as H
+participant "SecurityFilterChain / PreAuthorize" as S
+participant LegajoController as C
+participant LegajoServiceImpl as A
+participant RrhhLegajoDigitalRepository as R
+Usuario -> F : Solicitar operacion
+F -> H : construir peticion
+H -> S : HTTP Bearer
+alt autenticacion o autorizacion rechazada
+S --> H : 401 / 403
+else acceso permitido
+S -> C : peticion autorizada
+C -> A : obtenerMio(...)
+note right of A : usuario actual; obtener legajo propio; responder DTO
+A -> R : consultas/persistencia resumidas
+R --> A : entidades/proyecciones
+alt excepcion del servicio
+A --> C : excepcion
+C --> H : respuesta via GlobalExceptionHandler
+else operacion valida
+A --> C : DTO
+C --> H : respuesta HTTP
+H --> F : Observable
+end
+end
+@enduml

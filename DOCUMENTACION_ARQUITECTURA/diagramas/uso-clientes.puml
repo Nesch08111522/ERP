@@ -1,0 +1,66 @@
+@startuml
+title Casos de uso clientes
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "clientes" {
+usecase "clienteDesdeChat\nPOST /api/v1/chats/{id}/cliente" as U0
+usecase "createCliente\nPOST /api/v1/clientes" as U1
+usecase "updateCliente\nPUT /api/v1/clientes/{id}" as U2
+usecase "getClienteById\nGET /api/v1/clientes/{id}" as U3
+usecase "getClienteByDocumento\nGET /api/v1/clientes/documento/{numeroDocumento}" as U4
+usecase "deleteCliente\nDELETE /api/v1/clientes/{id}" as U5
+usecase "searchClientes\nGET /api/v1/clientes" as U6
+usecase "getRecentClientes\nGET /api/v1/clientes/recientes" as U7
+usecase "getClientesIncompletos\nGET /api/v1/clientes/incompletos" as U8
+usecase "getClientesWithPurchases\nGET /api/v1/clientes/compras/activos" as U9
+usecase "getClientesWithoutPurchases\nGET /api/v1/clientes/compras/inactivos" as U10
+usecase "getDashboardStatistics\nGET /api/v1/clientes/estadisticas/dashboard" as U11
+usecase "getDistribucionPorTipoDocumento\nGET /api/v1/clientes/estadisticas/tipo-documento" as U12
+usecase "countTotalClientes\nGET /api/v1/clientes/estadisticas/count" as U13
+usecase "countClientesRegistradosHoy\nGET /api/v1/clientes/estadisticas/hoy" as U14
+usecase "validateDocumento\nGET /api/v1/clientes/validar/documento" as U15
+usecase "validateEmail\nGET /api/v1/clientes/validar/email" as U16
+usecase "clientesFrecuentes\nGET /api/v1/reportes/clientes/frecuentes" as U17
+usecase "exportarClientes\nGET /api/v1/reportes/clientes/frecuentes/exportar" as U18
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+MULTIFUNCIONAL -- U8
+ADMIN -- U9
+MULTIFUNCIONAL -- U9
+ADMIN -- U10
+MULTIFUNCIONAL -- U10
+ADMIN -- U11
+MULTIFUNCIONAL -- U11
+ADMIN -- U12
+MULTIFUNCIONAL -- U12
+ADMIN -- U13
+MULTIFUNCIONAL -- U13
+ADMIN -- U14
+MULTIFUNCIONAL -- U14
+ADMIN -- U15
+MULTIFUNCIONAL -- U15
+ADMIN -- U16
+MULTIFUNCIONAL -- U16
+ADMIN -- U17
+MULTIFUNCIONAL -- U17
+ADMIN -- U18
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

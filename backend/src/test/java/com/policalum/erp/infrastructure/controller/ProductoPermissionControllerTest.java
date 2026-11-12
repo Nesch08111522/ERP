@@ -8,12 +8,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.policalum.erp.application.service.ProductoImportacionService;
 import com.policalum.erp.application.service.ProductoService;
+import com.policalum.erp.application.service.StockService;
 import com.policalum.erp.application.service.serviceImpl.ProductoImagenService;
 import com.policalum.erp.domain.enums.RolNombre;
 import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.domain.model.User;
 import com.policalum.erp.infrastructure.repository.UserRepository;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
+import com.policalum.erp.infrastructure.security.RateLimitService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationFilter;
 import com.policalum.erp.infrastructure.security.RolePermissionGuard;
 import com.policalum.erp.infrastructure.security.SecurityConfig;
@@ -36,6 +38,8 @@ class ProductoPermissionControllerTest {
 
     @Autowired
     MockMvc mvc;
+    @MockitoBean
+    RateLimitService rateLimitService;
 
     @MockitoBean
     ProductoService productoService;
@@ -45,6 +49,10 @@ class ProductoPermissionControllerTest {
 
     @MockitoBean
     ProductoImagenService productoImagenService;
+
+    /** ProductoController recibe StockService como parametro 3; sin este bean el contexto no arranca. */
+    @MockitoBean
+    StockService stockService;
 
     @MockitoBean
     UserRepository userRepository;
@@ -56,16 +64,16 @@ class ProductoPermissionControllerTest {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void separaPermisosDeLecturaYCreacionDeProductos() throws Exception {
-        User admin = User.builder()
+        User operador = User.builder()
                 .rol(Rol.builder()
-                        .nombre(RolNombre.ROLE_ADMIN)
+                        .nombre(RolNombre.ROLE_MULTIFUNCIONAL)
                         .permisosJson(Map.of("productos", Map.of("leer", true, "crear", false)))
                         .build())
                 .build();
-        org.mockito.Mockito.when(userRepository.findPerfilByEmail("admin@policalum.com"))
-                .thenReturn(Optional.of(admin));
+        org.mockito.Mockito.when(userRepository.findPerfilByEmail("operador@policalum.com"))
+                .thenReturn(Optional.of(operador));
 
         mvc.perform(get("/api/v1/productos"))
                 .andExpect(status().isOk());

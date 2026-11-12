@@ -1,0 +1,16 @@
+@startuml
+title Registro de gastos
+start
+partition "Operacion documentada" {
+:Recibir solicitud en GastoEmpresarialController;
+:Aplicar validaciones y autorizacion del codigo;
+:Delegar al servicio de gastos;
+:Persistir segun implementacion;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Detalle financiero pendiente de lectura semantica completa;
+endif
+}
+stop
+@enduml

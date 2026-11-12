@@ -1,0 +1,30 @@
+@startuml
+title Registro remuneraciones
+actor Usuario
+participant "BackendApiService (Angular)" as F
+participant HttpClient as H
+participant "SecurityFilterChain / PreAuthorize" as S
+participant NominaController as C
+participant NominaServiceImpl as A
+participant RrhhNominaRepository as R
+Usuario -> F : Solicitar operacion
+F -> H : construir peticion
+H -> S : HTTP Bearer
+alt autenticacion o autorizacion rechazada
+S --> H : 401 / 403
+else acceso permitido
+S -> C : peticion autorizada
+C -> A : generar(...)
+note right of A : ADMIN; legajos activos; comisiones aprobadas; politica y regimen; guardar snapshots; auditar
+A -> R : consultas/persistencia resumidas
+R --> A : entidades/proyecciones
+alt excepcion del servicio
+A --> C : excepcion
+C --> H : respuesta via GlobalExceptionHandler
+else operacion valida
+A --> C : DTO
+C --> H : respuesta HTTP
+H --> F : Observable
+end
+end
+@enduml

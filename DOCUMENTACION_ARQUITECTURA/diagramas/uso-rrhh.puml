@@ -1,0 +1,140 @@
+@startuml
+title Casos de uso rrhh
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "rrhh" {
+usecase "calcular\nPOST /api/v1/rrhh/comisiones/calcular" as U0
+usecase "buscar\nGET /api/v1/rrhh/comisiones" as U1
+usecase "porEmpleado\nGET /api/v1/rrhh/comisiones/empleado/{userId}" as U2
+usecase "porPeriodo\nGET /api/v1/rrhh/comisiones/periodo" as U3
+usecase "aprobar\nPATCH /api/v1/rrhh/comisiones/{id}/aprobar" as U4
+usecase "crear\nPOST /api/v1/rrhh/legajos" as U5
+usecase "miLegajo\nGET /api/v1/rrhh/legajos/me" as U6
+usecase "dashboard\nGET /api/v1/rrhh/legajos/dashboard" as U7
+usecase "buscar\nGET /api/v1/rrhh/legajos" as U8
+usecase "obtener\nGET /api/v1/rrhh/legajos/{empleadoId}" as U9
+usecase "actualizar\nPUT /api/v1/rrhh/legajos/{empleadoId}" as U10
+usecase "historialDeEmpleado\nGET /api/v1/rrhh/legajos/{empleadoId}/historial-salarial" as U11
+usecase "miHistorialSalarial\nGET /api/v1/rrhh/legajos/me/historial-salarial" as U12
+usecase "politicaDeEmpleado\nGET /api/v1/rrhh/legajos/{empleadoId}/politica-remuneracion" as U13
+usecase "miPolitica\nGET /api/v1/rrhh/legajos/me/politica-remuneracion" as U14
+usecase "subirDocumento\nPOST /api/v1/rrhh/legajos/{id}/documentos" as U15
+usecase "listarDocumentos\nGET /api/v1/rrhh/legajos/{id}/documentos" as U16
+usecase "descargarDocumento\nGET /api/v1/rrhh/legajos/{id}/documentos/{docId}" as U17
+usecase "eliminarDocumento\nDELETE /api/v1/rrhh/legajos/{id}/documentos/{docId}" as U18
+usecase "generar\nPOST /api/v1/rrhh/nominas/generar" as U19
+usecase "dashboard\nGET /api/v1/rrhh/nominas/dashboard" as U20
+usecase "buscar\nGET /api/v1/rrhh/nominas" as U21
+usecase "obtener\nGET /api/v1/rrhh/nominas/{id}" as U22
+usecase "boleta\nGET /api/v1/rrhh/nominas/{id}/boleta" as U23
+usecase "aprobar\nPOST /api/v1/rrhh/nominas/{id}/aprobar" as U24
+usecase "pagar\nPOST /api/v1/rrhh/nominas/{id}/pagar" as U25
+usecase "eliminar\nDELETE /api/v1/rrhh/nominas/{id}" as U26
+usecase "mio\nGET /api/v1/rrhh/mi-regimen" as U27
+usecase "guardar\nPUT /api/v1/rrhh/mi-regimen" as U28
+usecase "resumen\nGET /api/v1/rrhh/mi-regimen/resumen" as U29
+usecase "generarQrPublico\nGET /api/v1/rrhh/asistencias/qr-publico" as U30
+usecase "generarQrConfiguracion\nGET /api/v1/rrhh/asistencias/qr-config/{empleadoId}" as U31
+usecase "configurarTOTP\nPOST /api/v1/rrhh/asistencias/configurar-totp/{empleadoId}" as U32
+usecase "marcarPorQr\nPOST /api/v1/rrhh/asistencias/marcar-qr" as U33
+usecase "miQr\nGET /api/v1/rrhh/asistencias/mi-qr" as U34
+usecase "escanearQr\nPOST /api/v1/rrhh/asistencias/escanear-qr" as U35
+usecase "roster\nGET /api/v1/rrhh/asistencias/roster" as U36
+usecase "marcarLote\nPOST /api/v1/rrhh/asistencias/marcar-lote" as U37
+usecase "registrarManual\nPOST /api/v1/rrhh/asistencias/manual" as U38
+usecase "listarAsistencias\nGET /api/v1/rrhh/asistencias/listar" as U39
+usecase "misAsistencias\nGET /api/v1/rrhh/asistencias/mis-asistencias" as U40
+usecase "buscarPorId\nGET /api/v1/rrhh/asistencias/{id}" as U41
+usecase "actualizarManual\nPUT /api/v1/rrhh/asistencias/{id}" as U42
+usecase "eliminarMarcacion\nDELETE /api/v1/rrhh/asistencias/{id}" as U43
+usecase "obtenerDashboard\nGET /api/v1/rrhh/asistencias/dashboard" as U44
+usecase "obtenerUltimaMarcacion\nGET /api/v1/rrhh/asistencias/ultima-marcacion" as U45
+usecase "obtenerEstadoDelDia\nGET /api/v1/rrhh/asistencias/estado-dia" as U46
+usecase "marcarPorQrReal\nPOST /api/v1/rrhh/asistencias/marcar-qr-real" as U47
+usecase "obtenerEmpleados\nGET /api/v1/rrhh/asistencias/empleados" as U48
+usecase "crear\nPOST /api/v1/rrhh/turnos" as U49
+usecase "asignar\nPOST /api/v1/rrhh/turnos/asignar" as U50
+usecase "dashboard\nGET /api/v1/rrhh/turnos/dashboard" as U51
+usecase "buscar\nGET /api/v1/rrhh/turnos" as U52
+usecase "porEmpleado\nGET /api/v1/rrhh/turnos/empleado/{userId}" as U53
+usecase "obtener\nGET /api/v1/rrhh/turnos/{id}" as U54
+usecase "actualizar\nPUT /api/v1/rrhh/turnos/{id}" as U55
+usecase "eliminar\nDELETE /api/v1/rrhh/turnos/{id}" as U56
+}
+ADMIN -- U0
+ADMIN -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+ADMIN -- U4
+ADMIN -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+ADMIN -- U8
+ADMIN -- U9
+ADMIN -- U10
+ADMIN -- U11
+ADMIN -- U12
+MULTIFUNCIONAL -- U12
+ADMIN -- U13
+ADMIN -- U14
+MULTIFUNCIONAL -- U14
+ADMIN -- U15
+ADMIN -- U16
+MULTIFUNCIONAL -- U16
+ADMIN -- U17
+MULTIFUNCIONAL -- U17
+ADMIN -- U18
+ADMIN -- U19
+ADMIN -- U20
+ADMIN -- U21
+ADMIN -- U22
+ADMIN -- U23
+MULTIFUNCIONAL -- U23
+ADMIN -- U24
+ADMIN -- U25
+ADMIN -- U26
+ADMIN -- U27
+ADMIN -- U28
+ADMIN -- U29
+ADMIN -- U30
+ADMIN -- U31
+ADMIN -- U32
+ADMIN -- U33
+ADMIN -- U34
+MULTIFUNCIONAL -- U34
+ADMIN -- U35
+ADMIN -- U36
+ADMIN -- U37
+ADMIN -- U38
+ADMIN -- U39
+MULTIFUNCIONAL -- U39
+ADMIN -- U40
+MULTIFUNCIONAL -- U40
+ADMIN -- U41
+MULTIFUNCIONAL -- U41
+ADMIN -- U42
+ADMIN -- U43
+ADMIN -- U44
+MULTIFUNCIONAL -- U44
+ADMIN -- U45
+MULTIFUNCIONAL -- U45
+ADMIN -- U46
+MULTIFUNCIONAL -- U46
+ADMIN -- U47
+ADMIN -- U48
+ADMIN -- U49
+ADMIN -- U50
+ADMIN -- U51
+ADMIN -- U52
+ADMIN -- U53
+MULTIFUNCIONAL -- U53
+ADMIN -- U54
+MULTIFUNCIONAL -- U54
+ADMIN -- U55
+ADMIN -- U56
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

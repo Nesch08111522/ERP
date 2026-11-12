@@ -1,0 +1,63 @@
+@startuml
+title Clases configuracion
+hide empty methods
+class User <<referencia externa>>
+class ConfiguracionEmpresa <<Entity>> {
+  id : Long
+  ruc : String
+  razonSocial : String
+  nombreComercial : String
+  direccionFiscal : String
+  ubigeo : String
+  telefono : String
+  email : String
+  logoUrl : String
+  actualizadoPor : User
+  updatedAt : LocalDateTime
+}
+class ConfiguracionFinanzas <<Entity>> {
+  id : Long
+  mesesHistoricosProyeccion : Integer
+  mesesProyeccionDefault : Integer
+  mesesProyeccionMax : Integer
+  actualizadoPor : User
+  updatedAt : LocalDateTime
+}
+class ConfiguracionInventario <<Entity>> {
+  id : Long
+  umbralJustificacionAjuste : BigDecimal
+  minCaracteresJustificacion : Integer
+  actualizadoPor : User
+  updatedAt : LocalDateTime
+}
+class ConfiguracionReportes <<Entity>> {
+  id : Long
+  maxFilasExportacion : Integer
+  actualizadoPor : User
+  updatedAt : LocalDateTime
+}
+class ConfiguracionRrhh <<Entity>> {
+  id : Long
+  politicaDivision : PoliticaDivisionSueldo
+  diasLaborables : ListString
+  tratamientoAusencias : TratamientoAusencias
+  actualizadoPor : User
+  updatedAt : LocalDateTime
+}
+class ConfiguracionVentas <<Entity>> {
+  id : Long
+  vigenciaCotizacionDias : Integer
+  preformaMinutosDefault : Integer
+  preformaMinutosMin : Integer
+  preformaMinutosMax : Integer
+  actualizadoPor : User
+  updatedAt : LocalDateTime
+}
+ConfiguracionEmpresa "0..*" -- "0..1" User : actualizadoPor
+ConfiguracionFinanzas "0..*" -- "0..1" User : actualizadoPor
+ConfiguracionInventario "0..*" -- "0..1" User : actualizadoPor
+ConfiguracionReportes "0..*" -- "0..1" User : actualizadoPor
+ConfiguracionRrhh "0..*" -- "0..1" User : actualizadoPor
+ConfiguracionVentas "0..*" -- "0..1" User : actualizadoPor
+
+@enduml

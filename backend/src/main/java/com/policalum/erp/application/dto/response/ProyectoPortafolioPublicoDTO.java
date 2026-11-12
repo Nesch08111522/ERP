@@ -15,5 +15,8 @@ public record ProyectoPortafolioPublicoDTO(
         String servicio,
         String referencia,
         List<String> etiquetas,
-        List<String> imagenes
+        List<String> imagenes,
+        String videoUrl,
+        String hlsUrl,
+        String dashUrl
 ) {}

@@ -1,0 +1,18 @@
+@startuml
+title Salida de inventario
+start
+partition "Operacion documentada" {
+:Obtener usuario y producto almacen;
+:Exigir acceso sede;
+:Bloquear stock y validar ajuste negativo;
+:Comprobar saldo suficiente;
+:Registrar ajuste y salida Kardex;
+:Auditar y devolver DTO;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Saldo negativo o motivo ausente;
+endif
+}
+stop
+@enduml

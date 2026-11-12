@@ -246,14 +246,15 @@ public class StockOperacionServiceImpl implements StockOperacionService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<SaldoKardexDTO> bajoStock(UUID sedeId, UUID almacenId, Pageable pageable) {
+    public Page<SaldoKardexDTO> bajoStock(UUID sedeId, UUID almacenId, String busqueda, Pageable pageable) {
         User actual = usuarioActual();
         UUID sede = sedePermitida(actual, sedeId);
         if (almacenId != null) {
             Almacen a = almacenRepository.findById(almacenId).orElseThrow(() -> new ResourceNotFoundException("Almacén no encontrado: " + almacenId));
             exigirAccesoSede(actual, a);
         }
-        return stockRepository.buscarSaldos(null, almacenId, sede, null, true, sinOrden(pageable)).map(consultaMapper::toSaldoDto);
+        String patron = busqueda == null || busqueda.isBlank() ? null : "%" + busqueda.trim().toLowerCase(Locale.ROOT) + "%";
+        return stockRepository.buscarSaldos(null, almacenId, sede, patron, true, sinOrden(pageable)).map(consultaMapper::toSaldoDto);
     }
 
     @Override

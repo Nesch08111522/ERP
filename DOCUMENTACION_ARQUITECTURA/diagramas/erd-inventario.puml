@@ -1,0 +1,134 @@
+@startuml
+title ERD JPA inferido - inventario
+hide circle
+entity "stock_ajustes\nAjusteStock" as AjusteStock {
+  * id : UUID <<PK JPA>>
+  codigo : String
+  producto_id : Producto <<JOIN JPA>>
+  almacen_id : Almacen <<JOIN JPA>>
+  tipo_movimiento : TipoMovimiento
+  cantidad : BigDecimal
+  stock_anterior : BigDecimal
+  stock_resultante : BigDecimal
+  costo_unitario : BigDecimal
+  valor : BigDecimal
+  motivo : String
+  justificacion : String
+  kardex_movimiento_id : KardexMovimiento <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "catalogo_fracciones\nCatalogoFraccion" as CatalogoFraccion {
+  * id : UUID <<PK JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  nombre_fraccion : String
+  factor_descuento_kardex : BigDecimal
+  precio_venta : BigDecimal
+  en_oferta : Boolean
+  oferta_porcentaje : BigDecimal
+  precio_oferta : BigDecimal
+  activo : Boolean
+}
+entity "categorias\nCategoria" as Categoria {
+  * id : UUID <<PK JPA>>
+  parent_id : Categoria <<JOIN JPA>>
+  nombre : String
+  slug : String
+  activa : Boolean
+}
+entity "kardex_movimientos\nKardexMovimiento" as KardexMovimiento {
+  * id : UUID <<PK JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  almacen_id : Almacen <<JOIN JPA>>
+  referencia_id : UUID
+  tipo_referencia : TipoReferencia
+  tipo_movimiento : TipoMovimiento
+  cantidad_movida : BigDecimal
+  stock_resultante : BigDecimal
+  costo_unitario : BigDecimal
+  precio_venta : BigDecimal
+  user_id : User <<JOIN JPA>>
+  observacion : String
+  created_at : LocalDateTime
+}
+entity "productos\nProducto" as Producto {
+  * id : UUID <<PK JPA>>
+  categoria_id : Categoria <<JOIN JPA>>
+  proveedor_id : Proveedor <<JOIN JPA>>
+  codigo_sku : String
+  nombre : String
+  descripcion : String
+  tipo : TipoProducto
+  precio_compra : BigDecimal
+  precio_venta_base : BigDecimal
+  unidad : String
+  es_fraccionable : Boolean
+  activo : Boolean
+  destacado : Boolean
+  oferta : Boolean
+  oferta_manual : Boolean
+  precio_oferta : BigDecimal
+  oferta_porcentaje : BigDecimal
+  oferta_desde : LocalDate
+  oferta_hasta : LocalDate
+  created_at : LocalDateTime
+  incluye_igv : Boolean
+  tipo_afectacion : String
+  codigo_proveedor : String
+  tiempo_reposicion_dias : Integer
+  permite_stock_negativo : Boolean
+  precio_mayorista : BigDecimal
+  visible_catalogo : Boolean
+  disponible_venta : Boolean
+  imagen : String
+}
+entity "stock\nStock" as Stock {
+  * id : UUID <<PK JPA>>
+  producto_id : Producto <<JOIN JPA>>
+  almacen_id : Almacen <<JOIN JPA>>
+  cantidad : BigDecimal
+  stock_minimo : BigDecimal
+  stock_maximo : BigDecimal
+  punto_reposicion : BigDecimal
+  updated_at : LocalDateTime
+}
+entity "stock_transferencias\nTransferenciaStock" as TransferenciaStock {
+  * id : UUID <<PK JPA>>
+  codigo : String
+  producto_id : Producto <<JOIN JPA>>
+  almacen_origen_id : Almacen <<JOIN JPA>>
+  almacen_destino_id : Almacen <<JOIN JPA>>
+  cantidad : BigDecimal
+  entre_sedes : Boolean
+  motivo : String
+  referencia_documento : String
+  movimiento_salida_id : KardexMovimiento <<JOIN JPA>>
+  movimiento_entrada_id : KardexMovimiento <<JOIN JPA>>
+  user_id : User <<JOIN JPA>>
+  created_at : LocalDateTime
+}
+entity "Almacen (externa)" as Almacen
+entity "User (externa)" as User
+entity "Proveedor (externa)" as Proveedor
+AjusteStock -- Producto : ManyToOne producto
+AjusteStock -- Almacen : ManyToOne almacen
+AjusteStock -- KardexMovimiento : ManyToOne kardexMovimiento
+AjusteStock -- User : ManyToOne user
+CatalogoFraccion -- Producto : ManyToOne producto
+Categoria -- Categoria : ManyToOne parent
+KardexMovimiento -- Producto : ManyToOne producto
+KardexMovimiento -- Almacen : ManyToOne almacen
+KardexMovimiento -- User : ManyToOne user
+Producto -- Categoria : ManyToOne categoria
+Producto -- Proveedor : ManyToOne proveedor
+Producto -- CatalogoFraccion : OneToMany fracciones
+Stock -- Producto : ManyToOne producto
+Stock -- Almacen : ManyToOne almacen
+TransferenciaStock -- Producto : ManyToOne producto
+TransferenciaStock -- Almacen : ManyToOne almacenOrigen
+TransferenciaStock -- Almacen : ManyToOne almacenDestino
+TransferenciaStock -- KardexMovimiento : ManyToOne movimientoSalida
+TransferenciaStock -- KardexMovimiento : ManyToOne movimientoEntrada
+TransferenciaStock -- User : ManyToOne user
+
+@enduml

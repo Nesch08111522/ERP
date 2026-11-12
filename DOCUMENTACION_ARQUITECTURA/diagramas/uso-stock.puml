@@ -1,0 +1,52 @@
+@startuml
+title Casos de uso stock
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "stock" {
+usecase "findStockByProducto\nGET /api/v1/productos/{id}/stock" as U0
+usecase "getStockByAlmacen\nGET /api/v1/stock/almacen/{almacenId}" as U1
+usecase "getStockByAlmacenAndProducto\nGET /api/v1/stock/almacen/{almacenId}/producto/{productoId}" as U2
+usecase "getStockByProducto\nGET /api/v1/stock/producto/{productoId}" as U3
+usecase "getResumenByProducto\nGET /api/v1/stock/producto/{productoId}/resumen" as U4
+usecase "saveOrUpdate\nPOST /api/v1/stock" as U5
+usecase "registrarAjuste\nPOST /api/v1/stock/ajuste" as U6
+usecase "ajustes\nGET /api/v1/stock/ajustes" as U7
+usecase "transferir\nPOST /api/v1/stock/transferencia" as U8
+usecase "transferencias\nGET /api/v1/stock/transferencias" as U9
+usecase "transferencia\nGET /api/v1/stock/transferencias/{id}" as U10
+usecase "bajoStock\nGET /api/v1/stock/bajo-stock" as U11
+usecase "consolidado\nGET /api/v1/stock/consolidado" as U12
+usecase "dashboard\nGET /api/v1/stock/dashboard" as U13
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+MULTIFUNCIONAL -- U8
+ADMIN -- U9
+MULTIFUNCIONAL -- U9
+ADMIN -- U10
+MULTIFUNCIONAL -- U10
+ADMIN -- U11
+MULTIFUNCIONAL -- U11
+ADMIN -- U12
+MULTIFUNCIONAL -- U12
+ADMIN -- U13
+MULTIFUNCIONAL -- U13
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

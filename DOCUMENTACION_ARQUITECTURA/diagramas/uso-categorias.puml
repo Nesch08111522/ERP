@@ -1,0 +1,39 @@
+@startuml
+title Casos de uso categorias
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "categorias" {
+usecase "create\nPOST /api/v1/categorias" as U0
+usecase "update\nPUT /api/v1/categorias/{id}" as U1
+usecase "findById\nGET /api/v1/categorias/{id}" as U2
+usecase "search\nGET /api/v1/categorias" as U3
+usecase "findRoots\nGET /api/v1/categorias/raices" as U4
+usecase "findChildren\nGET /api/v1/categorias/{parentId}/hijas" as U5
+usecase "delete\nDELETE /api/v1/categorias/{id}" as U6
+usecase "validateSlug\nGET /api/v1/categorias/validar-slug" as U7
+usecase "dashboard\nGET /api/v1/categorias/estadisticas/dashboard" as U8
+usecase "categorias\nGET /api/v1/public/catalogo/categorias" as U9
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+MULTIFUNCIONAL -- U8
+ADMIN -- U9
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

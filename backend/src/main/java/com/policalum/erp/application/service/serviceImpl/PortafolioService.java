@@ -64,6 +64,9 @@ public class PortafolioService {
         proyecto.setTitulo(request.titulo().trim());
         proyecto.setDescripcion(descripcion);
         proyecto.setImagenUrl(imagenes.isEmpty() ? null : imagenes.get(0));
+        proyecto.setVideoUrl(url(request.videoUrl()));
+        proyecto.setHlsUrl(url(request.hlsUrl()));
+        proyecto.setDashUrl(url(request.dashUrl()));
         proyecto.setOrden(request.orden());
         proyecto.setPublicado(request.publicado());
         proyecto.setCliente(limpio(request.cliente()));
@@ -83,7 +86,8 @@ public class PortafolioService {
         return new ProyectoPortafolioResponseDTO(proyecto.getId(), proyecto.getTitulo(), proyecto.getDescripcion(),
                 proyecto.getImagenUrl(), proyecto.getOrden(), proyecto.getPublicado(), proyecto.getCreatedAt(),
                 proyecto.getCliente(), proyecto.getLugar(), proyecto.getAnio(), proyecto.getServicio(),
-                proyecto.getReferencia(), ListasJson.leer(proyecto.getEtiquetasJson()), ListasJson.imagenes(proyecto));
+                proyecto.getReferencia(), ListasJson.leer(proyecto.getEtiquetasJson()), ListasJson.imagenes(proyecto),
+                proyecto.getVideoUrl(), proyecto.getHlsUrl(), proyecto.getDashUrl());
     }
 
     private static void exigirPalabras(String texto, int tope, String mensaje) {

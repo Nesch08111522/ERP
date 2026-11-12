@@ -1,0 +1,30 @@
+@startuml
+title Registro venta
+actor Usuario
+participant "BackendApiService (Angular)" as F
+participant HttpClient as H
+participant "SecurityFilterChain / PreAuthorize" as S
+participant VentaController as C
+participant VentaServiceImpl as A
+participant VentaRepository as R
+Usuario -> F : Solicitar operacion
+F -> H : construir peticion
+H -> S : HTTP Bearer
+alt autenticacion o autorizacion rechazada
+S --> H : 401 / 403
+else acceso permitido
+S -> C : peticion autorizada
+C -> A : registrar(...)
+note right of A : turno propio abierto; serie local; lineas; Kardex salida; pagos igual total; guardar
+A -> R : consultas/persistencia resumidas
+R --> A : entidades/proyecciones
+alt excepcion del servicio
+A --> C : excepcion
+C --> H : respuesta via GlobalExceptionHandler
+else operacion valida
+A --> C : DTO
+C --> H : respuesta HTTP
+H --> F : Observable
+end
+end
+@enduml

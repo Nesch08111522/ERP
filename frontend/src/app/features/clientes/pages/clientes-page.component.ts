@@ -71,7 +71,7 @@ export class ClientesPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargar();
-    this.buscar$.pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => {
+    this.buscar$.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe((valor) => {
       this.filtros.controls.searchTerm.setValue(valor);
       this.filtrar();
     });

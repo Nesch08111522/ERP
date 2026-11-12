@@ -14,6 +14,7 @@ import com.policalum.erp.application.dto.response.BoletaPagoDTO;
 import com.policalum.erp.application.dto.response.GeneracionNominaResponseDTO;
 import com.policalum.erp.application.mapper.NominaMapper;
 import com.policalum.erp.application.service.AuditService;
+import com.policalum.erp.application.service.RegimenRemuneracionService;
 import com.policalum.erp.domain.enums.*;
 import com.policalum.erp.domain.model.*;
 import com.policalum.erp.infrastructure.repository.*;
@@ -40,7 +41,15 @@ class NominaServiceImplTest {
     @Mock UserRepository userRepository;
     @Mock NominaMapper mapper;
     @Mock AuditService auditService;
-    @InjectMocks NominaServiceImpl service;
+    /** Sin régimen configurado: Mockito devuelve null y la nómina sigue usando el legajo tal cual. */
+    @Mock RegimenRemuneracionService regimenService;
+    /**
+     * La política se resuelve con la implementación real sobre una configuración inexistente,
+     * que cae en el default DIAS_30. Así estas pruebas ejercitan el prorrateo de verdad en vez
+     * de un stub que pueda divergir del código producido.
+     */
+    @Mock ConfiguracionRrhhRepository configuracionRepository;
+    NominaServiceImpl service;
 
     private static final String EMAIL = "admin@policalum.com";
     private static final String PERIODO = "2026-09";
@@ -52,6 +61,9 @@ class NominaServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        service = new NominaServiceImpl(nominaRepository, legajoRepository, comisionRepository, sedeRepository,
+                userRepository, mapper, auditService, regimenService,
+                new PoliticaRemuneracionServiceImpl(configuracionRepository, legajoRepository, userRepository));
         sede = Sede.builder().id(sedeId).nombre("Trujillo Centro").activa(true).build();
         actual = usuario("Miguel", RolNombre.ROLE_ADMIN, EMAIL);
         empleado = usuario("Ana", RolNombre.ROLE_MULTIFUNCIONAL, "ana@policalum.com");
@@ -63,6 +75,11 @@ class NominaServiceImplTest {
         SecurityContextHolder.setContext(context);
         lenient().when(userRepository.findByEmailAndActivoTrue(EMAIL)).thenAnswer(i -> Optional.of(actual));
         lenient().when(nominaRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        // Sin régimen configurado para nadie: la nómina sigue cobrando lo que dice el legajo.
+        // Mockito devolvería false por defecto y vaciaría el sueldo de todas las pruebas.
+        lenient().when(regimenService.componenteActivo(any(), any())).thenReturn(true);
+        // Sin fila de configuración: la política de la empresa es DIAS_30, como siempre.
+        lenient().when(configuracionRepository.findById(ConfiguracionRrhh.ID_UNICO)).thenReturn(Optional.empty());
     }
 
     @AfterEach
@@ -92,6 +109,8 @@ class NominaServiceImplTest {
         assertEquals(new BigDecimal("1479.00"), n.getTotalNeto());
         assertEquals(new BigDecimal("13.00"), n.getTasaPension());
         assertEquals(30, n.getDiasComputados());
+        assertEquals(30, n.getDivisorRemuneracion());
+        assertEquals(PoliticaDivisionSueldo.DIAS_30, n.getPoliticaDivision());
         assertSame(comision, n.getComision());
         assertSame(sede, n.getSede());
         assertSame(actual, n.getGeneradoPor());
@@ -177,6 +196,31 @@ class NominaServiceImplTest {
         assertEquals(0, captor.getValue().getDescuentoPension().signum());
         assertTrue(captor.getValue().getObservaciones().contains("AFP sin tasa"));
         assertEquals(1, r.advertencias().size());
+    }
+
+    /**
+     * La política de la sede llega hasta la nómina emitida. Septiembre 2026 tiene 22 días
+     * laborables L-V; quien entró el 15 trabajó 12. 1500 × 12 / 22 = 818.1818 → 818.18, y con
+     * ONP 13% (106.36) el neto queda en 711.82. Calculado a mano, no con el código probado.
+     */
+    @Test
+    void generar_conPoliticaLaborableDeLaSede_prorrateaSobre22Dias() {
+        sede.setPoliticaDivision(PoliticaDivisionSueldo.DIAS_LABORABLES);
+        sede.setDiasLaborables(List.of("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"));
+        RrhhLegajoDigital legajo = legajo("PLANILLA", "1500.00", SistemaPension.ONP, null, LocalDate.of(2026, 9, 15));
+        prepararGeneracion(legajo, Optional.empty());
+        ArgumentCaptor<RrhhNomina> captor = ArgumentCaptor.forClass(RrhhNomina.class);
+
+        service.generar(new GenerarNominaRequestDTO(PERIODO, sedeId));
+
+        verify(nominaRepository).save(captor.capture());
+        RrhhNomina n = captor.getValue();
+        assertEquals(12, n.getDiasComputados());
+        assertEquals(22, n.getDivisorRemuneracion());
+        assertEquals(PoliticaDivisionSueldo.DIAS_LABORABLES, n.getPoliticaDivision());
+        assertEquals(new BigDecimal("818.18"), n.getSueldoBaseCalculado());
+        assertEquals(new BigDecimal("106.36"), n.getDescuentoPension());
+        assertEquals(new BigDecimal("711.82"), n.getTotalNeto());
     }
 
     @Test
@@ -325,17 +369,8 @@ class NominaServiceImplTest {
         assertThrows(AccessDeniedException.class, () -> service.boleta(nominaId));
     }
 
-    // ===================== CÁLCULO DE DÍAS =====================
-
-    @Test
-    void diasComputados_casosBorde() {
-        YearMonth sep = YearMonth.of(2026, 9);
-        assertEquals(30, NominaServiceImpl.diasComputados(LocalDate.of(2025, 5, 1), sep));
-        assertEquals(30, NominaServiceImpl.diasComputados(LocalDate.of(2026, 9, 1), sep));
-        assertEquals(1, NominaServiceImpl.diasComputados(LocalDate.of(2026, 9, 30), sep));
-        assertEquals(0, NominaServiceImpl.diasComputados(LocalDate.of(2026, 10, 1), sep));
-        assertEquals(1, NominaServiceImpl.diasComputados(LocalDate.of(2026, 10, 31), YearMonth.of(2026, 10)));
-    }
+    // El cálculo de días por política se prueba en PoliticaRemuneracionServiceImplTest:
+    // aquí interesa el alambre (qué se guarda en la nómina), no la aritmética.
 
     // ===================== HELPERS =====================
 

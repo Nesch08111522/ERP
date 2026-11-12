@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, inject, signal } from '@angular/core';
-import { environment } from '../../environments/environment';
+import { Component, ElementRef, HostListener, OnDestroy, inject, signal } from '@angular/core';
+import { media } from '../core/portal.api';
 import { CmsStore } from '../core/cms.store';
 
 interface MaterialVista {
@@ -36,21 +36,21 @@ const RESPALDO: MaterialVista[] = [
     id: 'conectores-colores',
     nombre: 'Conectores y colores',
     resumen: 'Perfiles y tonos de policarbonato para unir la cubierta y dosificar la luz.',
-    imagenUrl: '',
+    imagenUrl: '/videos/conectores-colores-poster.jpg',
     videoUrl: '/videos/conectores-colores.mp4',
   },
   {
     id: 'ubicanos',
     nombre: 'Ubícanos',
     resumen: 'La sede y el taller en Trujillo, para llegar, cotizar y recoger en persona.',
-    imagenUrl: '',
+    imagenUrl: '/videos/ubicanos-poster.jpg',
     videoUrl: '/videos/ubicanos.mp4',
   },
   {
     id: 'conector-blanco',
     nombre: 'Conector blanco',
     resumen: 'El perfil de unión en blanco, alineado con la plancha y listo para la cubierta.',
-    imagenUrl: '',
+    imagenUrl: '/videos/conector-blanco-poster.jpg',
     videoUrl: '/videos/conector-blanco.mp4',
   },
 ];
@@ -66,23 +66,18 @@ const RESPALDO: MaterialVista[] = [
             <h2>{{ tituloVisible }}</h2>
             @if (textoVisible) { <p class="lead">{{ textoVisible }}</p> }
           </div>
-          @if (piezas.length > 1) {
-            <div class="reel-nav">
-              <button type="button" (click)="girar(-1)" aria-label="Anterior">‹</button>
-              <button type="button" (click)="girar(1)" aria-label="Siguiente">›</button>
-            </div>
-          }
+
         </div>
         <div class="reel" aria-label="Reel de POLICALUM">
-          @for (item of cinta; track item.clave) {
-            <button type="button" class="reel-item" (click)="abrir(item.origen)" [attr.aria-label]="'Abrir ' + item.nombre" [attr.aria-hidden]="item.vuelta ? true : null" [attr.tabindex]="item.vuelta ? -1 : null">
-              @if (item.imagenUrl) {
-                <img [src]="item.imagenUrl" [alt]="item.nombre" />
+          @for (item of piezas; track item.id; let i = $index) {
+            <button type="button" class="reel-item" (click)="abrir(i)" [attr.aria-label]="'Abrir ' + item.nombre">
+              @if (item.imagenUrl && !imagenesFallidas().has(item.id)) {
+                <img [src]="item.imagenUrl" [alt]="item.nombre" loading="lazy" decoding="async" (error)="falloImagen(item.id)" />
               } @else {
-                <video muted playsinline preload="metadata" [src]="item.videoUrl"></video>
+                <video class="reel-preview" muted playsinline preload="metadata" [src]="item.videoUrl" aria-hidden="true"></video>
               }
               <span class="reel-play" aria-hidden="true">{{ item.videoUrl ? '▶' : '＋' }}</span>
-              <span>
+              <span class="reel-copy">
                 <strong>{{ item.nombre }}</strong>
                 <small>{{ item.resumen }}</small>
               </span>
@@ -99,7 +94,8 @@ const RESPALDO: MaterialVista[] = [
           }
           <div class="escena" (click)="$event.stopPropagation()">
             @if (pieza.videoUrl) {
-              <video controls playsinline [src]="pieza.videoUrl"></video>
+              <video controls playsinline preload="metadata" [poster]="pieza.imagenUrl" [src]="pieza.videoUrl" (error)="errorVideo.set(true)"></video>
+              @if (errorVideo()) { <div class="media-error" role="alert"><p>No pudimos reproducir este video. Comprueba tu conexión y vuelve a intentarlo.</p><button type="button" class="btn btn-line" (click)="reintentarVideo()">Reintentar video</button></div> }
             } @else {
               <img [src]="pieza.imagenUrl" [alt]="pieza.nombre" />
             }
@@ -110,10 +106,12 @@ const RESPALDO: MaterialVista[] = [
     }
   `,
 })
-export class GaleriaMaterialesComponent implements AfterViewInit, OnDestroy {
+export class GaleriaMaterialesComponent implements OnDestroy {
   private readonly cms = inject(CmsStore);
   private readonly host = inject(ElementRef<HTMLElement>);
-  private reloj = 0;
+  private apertura = 0;
+  readonly errorVideo = signal(false);
+  readonly imagenesFallidas = signal<Set<string>>(new Set());
 
   readonly abierto = signal(false);
   readonly indice = signal(0);
@@ -138,43 +136,38 @@ export class GaleriaMaterialesComponent implements AfterViewInit, OnDestroy {
       id: item.id || item.nombre,
       nombre: textoClaro(item.nombre),
       resumen: textoClaro(item.resumen?.trim() || ''),
-      imagenUrl: medioVisible(item.imagenUrl),
+      imagenUrl: medioVisible(item.imagenUrl) || portadaLocal(item.videoUrl),
       videoUrl: medioVisible(item.videoUrl),
     }));
-  }
-
-  get cinta(): Array<MaterialVista & { clave: string; origen: number; vuelta: number }> {
-    const base = this.piezas;
-    const vueltas = base.length > 1 ? 2 : 1;
-    const salida: Array<MaterialVista & { clave: string; origen: number; vuelta: number }> = [];
-    for (let vuelta = 0; vuelta < vueltas; vuelta++) {
-      base.forEach((item, origen) => salida.push({ ...item, clave: `${item.id}-${vuelta}`, origen, vuelta }));
-    }
-    return salida;
   }
 
   get actual(): MaterialVista | null {
     return this.piezas[this.indice()] ?? null;
   }
 
-  ngAfterViewInit(): void {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    this.reloj = window.setInterval(() => {
-      if (!this.abierto()) this.girar(1);
-    }, 4200);
+  ngOnDestroy(): void {
+    window.clearTimeout(this.apertura);
+    this.callar();
   }
 
-  ngOnDestroy(): void {
-    window.clearInterval(this.reloj);
+  falloImagen(id: string): void {
+    this.imagenesFallidas.update(actual => new Set([...actual, id]));
+  }
+
+  reintentarVideo(): void {
+    this.errorVideo.set(false);
+    this.sonar();
   }
 
   abrir(indice: number): void {
+    this.errorVideo.set(false);
     this.indice.set(indice);
     this.abierto.set(true);
     this.sonar();
   }
 
   cerrar(): void {
+    window.clearTimeout(this.apertura);
     this.callar();
     const dialogo = this.host.nativeElement.querySelector('dialog') as HTMLDialogElement | null;
     if (dialogo?.open) dialogo.close();
@@ -189,38 +182,9 @@ export class GaleriaMaterialesComponent implements AfterViewInit, OnDestroy {
     const total = this.piezas.length;
     if (!total) return;
     this.callar();
+    this.errorVideo.set(false);
     this.indice.set((this.indice() + paso + total) % total);
     this.sonar();
-  }
-
-  girar(paso: number): void {
-    const reel = this.pista();
-    const medida = this.medida(reel);
-    if (!reel || !medida) return;
-    const { ancho, ciclo, bloque } = medida;
-    if (paso < 0 && reel.scrollLeft < ancho) reel.scrollLeft += ciclo;
-    if (paso > 0 && reel.scrollLeft >= ciclo) reel.scrollLeft -= ciclo;
-    const destino = reel.scrollLeft + paso * bloque;
-    const cerrar = () => {
-      reel.removeEventListener('scrollend', cerrar);
-      if (reel.scrollLeft >= ciclo - 1) reel.scrollLeft -= ciclo;
-    };
-    reel.addEventListener('scrollend', cerrar);
-    reel.scrollTo({ left: destino, behavior: 'smooth' });
-  }
-
-  private pista(): HTMLElement | null {
-    return this.host.nativeElement.querySelector('.reel');
-  }
-
-  private medida(reel: HTMLElement | null): { ancho: number; ciclo: number; bloque: number } | null {
-    const tarjeta = reel?.querySelector('.reel-item') as HTMLElement | null;
-    const total = this.piezas.length;
-    if (!reel || !tarjeta || total < 2) return null;
-    const ancho = tarjeta.getBoundingClientRect().width + 14;
-    const cupo = Math.max(1, Math.floor((reel.clientWidth + 14) / ancho));
-    const porBloque = cupo >= total ? Math.max(1, Math.floor(total / 2)) : cupo;
-    return { ancho, ciclo: ancho * total, bloque: ancho * porBloque };
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -237,11 +201,13 @@ export class GaleriaMaterialesComponent implements AfterViewInit, OnDestroy {
   }
 
   private sonar(): void {
-    window.setTimeout(() => {
+    window.clearTimeout(this.apertura);
+    this.apertura = window.setTimeout(() => {
+      if (!this.abierto()) return;
       const video = this.host.nativeElement.querySelector('.visor-reel video') as HTMLVideoElement | null;
-      if (!video) return;
       const dialogo = this.host.nativeElement.querySelector('dialog') as HTMLDialogElement | null;
       if (dialogo && !dialogo.open) dialogo.showModal();
+      if (!video) return;
       video.muted = false;
       video.volume = 1;
       video.load();
@@ -272,7 +238,12 @@ function textoClaro(valor: string): string {
 function medioVisible(ruta?: string | null): string {
   const texto = ruta?.trim() ?? '';
   if (!texto) return '';
-  if (texto.startsWith('http://') || texto.startsWith('https://')) return texto;
-  if (texto.startsWith('/api/')) return `${environment.apiUrl}${texto}`;
+  if (/^https?:\/\//i.test(texto) || texto.startsWith('/api/')) return media(texto) ?? '';
   return texto;
+}
+
+// Only use a generated poster for an exact bundled video URL, never an unrelated CMS asset.
+function portadaLocal(ruta?: string | null): string {
+  const conocida = RESPALDO.find(item => item.videoUrl === ruta?.trim());
+  return conocida?.imagenUrl ?? '';
 }

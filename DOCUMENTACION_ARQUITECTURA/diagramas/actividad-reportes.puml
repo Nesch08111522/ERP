@@ -1,0 +1,17 @@
+@startuml
+title Generacion de reportes
+start
+partition "Operacion documentada" {
+:Seleccionar reporte en frontend;
+:Construir peticion con filtros;
+:Aplicar permisos de reportes o exportacion;
+:Consultar repositorios y proyecciones;
+:Entregar resultado al consumidor;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Filtros formato y excepciones por reporte requieren revision individual;
+endif
+}
+stop
+@enduml

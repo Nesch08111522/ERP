@@ -7,12 +7,13 @@ import { TokenService } from '../../services/token.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { QrPublicoComponent } from '../qr-publico/qr-publico.component';
 import { ListadoAsistenciasComponent } from './listado-asistencias.component';
+import { MiQrComponent } from './mi-qr.component';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Default,
   selector: 'app-asistencia',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, QrPublicoComponent, ListadoAsistenciasComponent],
+  imports: [CommonModule, FormsModule, IconComponent, QrPublicoComponent, ListadoAsistenciasComponent, MiQrComponent],
   templateUrl: './asistencia.component.html',
   styleUrls: ['./asistencia.css'],
 })

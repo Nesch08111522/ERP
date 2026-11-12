@@ -1,0 +1,17 @@
+@startuml
+title Autenticacion y autorizacion
+start
+partition "Operacion documentada" {
+:Leer Bearer o token SSE;
+:Validar firma y expiracion JWT;
+:Consultar denylist y version de sesion;
+:Configurar SecurityContext;
+:Evaluar PreAuthorize y permiso JSON;
+if (Validaciones satisfechas?) then (si)
+:Resultado de la operacion;
+else (no)
+:Token invalido o permiso denegado;
+endif
+}
+stop
+@enduml

@@ -110,6 +110,19 @@ export class PortafolioComponent implements OnInit {
     return this.galeria(obra)[this.fotoIndice()] ?? null;
   }
 
+  /** HLS/DASH primero y MP4 como fallback; el navegador descarta fuentes no soportadas. */
+  fuentesVideo(obra: ProyectoPublico): { url: string; tipo: string }[] {
+    return [
+      obra.hlsUrl?.trim() ? { url: obra.hlsUrl.trim(), tipo: 'application/vnd.apple.mpegurl' } : null,
+      obra.dashUrl?.trim() ? { url: obra.dashUrl.trim(), tipo: 'application/dash+xml' } : null,
+      obra.videoUrl?.trim() ? { url: obra.videoUrl.trim(), tipo: 'video/mp4' } : null,
+    ].filter((fuente): fuente is { url: string; tipo: string } => !!fuente);
+  }
+
+  tieneVideo(obra: ProyectoPublico): boolean {
+    return this.fuentesVideo(obra).length > 0;
+  }
+
   imagenFallida(event: Event): void {
     const imagen = event.target;
     if (imagen instanceof HTMLImageElement) {

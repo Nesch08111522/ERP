@@ -1,0 +1,11 @@
+@startuml
+title Estados compra
+[*] --> BORRADOR : crear (transitorio)
+BORRADOR --> RECIBIDA : ingresar en misma transaccion
+BORRADOR --> ANULADA : anular
+BORRADOR --> [*] : eliminar
+note right of RECIBIDA
+El alta nueva termina RECIBIDA.
+No anula compra recibida.
+end note
+@enduml

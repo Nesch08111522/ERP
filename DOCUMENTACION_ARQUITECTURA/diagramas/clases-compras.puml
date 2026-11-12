@@ -1,0 +1,88 @@
+@startuml
+title Clases compras
+hide empty methods
+class User <<referencia externa>>
+class Sede <<referencia externa>>
+class Producto <<referencia externa>>
+class CatalogoFraccion <<referencia externa>>
+class Almacen <<referencia externa>>
+class Compra <<Entity>> {
+  id : UUID
+  numeroOrdenCompra : String
+  fechaEmision : LocalDate
+  fechaVencimientoPago : LocalDate
+  moneda : Moneda
+  estadoCompra : EstadoCompra
+  anuladoPor : User
+  fechaAnulacion : LocalDateTime
+  motivoAnulacion : String
+  detalles : ListDetalleCompra
+  adjuntos : ListCompraAdjunto
+  proveedor : Proveedor
+  sede : Sede
+  user : User
+  numeroFacturaProveedor : String
+  subtotalNeto : BigDecimal
+  totalIgv : BigDecimal
+  total : BigDecimal
+  estadoRecepcion : EstadoRecepcion
+  estadoPago : EstadoPago
+  observaciones : String
+  createdAt : LocalDateTime
+  updatedAt : LocalDateTime
+}
+note right of Compra : Metodos: addDetalle, clearDetalles, addAdjunto
+class CompraAdjunto <<Entity>> {
+  id : UUID
+  compra : Compra
+  tipo : String
+  nombreOriginal : String
+  urlArchivo : String
+  contentType : String
+  tamanoBytes : Long
+  subidoPor : User
+  createdAt : LocalDateTime
+}
+class DetalleCompra <<Entity>> {
+  id : UUID
+  compra : Compra
+  producto : Producto
+  fraccion : CatalogoFraccion
+  almacen : Almacen
+  cantidad : BigDecimal
+  precioUnitarioConIgv : BigDecimal
+  valorUnitarioNeto : BigDecimal
+  igvLinea : BigDecimal
+  porcentajeIgv : BigDecimal
+  subtotal : BigDecimal
+  cantidadRecibida : BigDecimal
+}
+class Proveedor <<Entity>> {
+  id : UUID
+  nombreRazon : String
+  tipoDocumento : String
+  numeroDocumento : String
+  celular : String
+  email : String
+  direccion : String
+  condicionesPago : String
+  diasCredito : Integer
+  banco : String
+  cuentaBancaria : String
+  activo : Boolean
+  createdAt : LocalDateTime
+}
+Compra "0..*" -- "0..1" User : anuladoPor
+Compra "0..1" -- "0..*" DetalleCompra : detalles
+Compra "0..1" -- "0..*" CompraAdjunto : adjuntos
+Compra "0..*" -- "1" Proveedor : proveedor
+Compra "0..*" -- "1" Sede : sede
+Compra "0..*" -- "1" User : user
+CompraAdjunto "0..*" -- "1" Compra : compra
+CompraAdjunto "0..*" -- "1" User : subidoPor
+DetalleCompra "0..*" -- "1" Compra : compra
+DetalleCompra "0..*" -- "1" Producto : producto
+DetalleCompra "0..*" -- "0..1" CatalogoFraccion : fraccion
+DetalleCompra "0..*" -- "1" Almacen : almacen
+
+@enduml

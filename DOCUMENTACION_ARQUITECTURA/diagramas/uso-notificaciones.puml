@@ -1,0 +1,31 @@
+@startuml
+title Casos de uso notificaciones
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "notificaciones" {
+usecase "listar\nGET /api/v1/notificaciones" as U0
+usecase "leida\nPOST /api/v1/notificaciones/{id}/leida" as U1
+usecase "leerTodas\nPOST /api/v1/notificaciones/leer-todas" as U2
+usecase "archivar\nDELETE /api/v1/notificaciones/{id}" as U3
+usecase "clave\nGET /api/v1/notificaciones/push/clave" as U4
+usecase "guardar\nPOST /api/v1/notificaciones/push" as U5
+usecase "quitar\nDELETE /api/v1/notificaciones/push" as U6
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+MULTIFUNCIONAL -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+MULTIFUNCIONAL -- U6
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

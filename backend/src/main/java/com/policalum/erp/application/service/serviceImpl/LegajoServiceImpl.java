@@ -9,6 +9,7 @@ import com.policalum.erp.application.dto.response.LegajoResponseDTO;
 import com.policalum.erp.application.mapper.LegajoMapper;
 import com.policalum.erp.application.service.AuditService;
 import com.policalum.erp.application.service.FileStorageService;
+import com.policalum.erp.application.service.HistorialSalarialService;
 import com.policalum.erp.application.service.LegajoService;
 import com.policalum.erp.domain.enums.AccionAudit;
 import com.policalum.erp.domain.enums.RolNombre;
@@ -21,6 +22,7 @@ import com.policalum.erp.exception.ResourceNotFoundException;
 import com.policalum.erp.infrastructure.repository.RrhhLegajoDigitalRepository;
 import com.policalum.erp.infrastructure.repository.RrhhLegajoDocumentoRepository;
 import com.policalum.erp.infrastructure.repository.UserRepository;
+import com.policalum.erp.util.HorarioUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -63,12 +65,14 @@ public class LegajoServiceImpl implements LegajoService {
     private final FileStorageService fileStorageService;
     private final LegajoMapper mapper;
     private final AuditService auditService;
+    private final HistorialSalarialService historialSalarial;
 
     // ============ LEGAJO ============
 
     @Override
     public LegajoResponseDTO crear(LegajoRequestDTO request) {
-        exigirAdmin(usuarioActual());
+        User admin = usuarioActual();
+        exigirAdmin(admin);
         validarDatos(request);
 
         User empleado = userRepository.findById(request.empleadoId())
@@ -87,6 +91,10 @@ public class LegajoServiceImpl implements LegajoService {
 
         RrhhLegajoDigital guardado = legajoRepository.save(legajo);
         auditService.registrar(TABLA, guardado.getId(), AccionAudit.INSERT, snapshot(guardado));
+        // El sueldo con el que entró la persona también es historia: sin esta fila, el
+        // historial empezaría recién en la primera subida de sueldo.
+        historialSalarial.registrarCambios(null, guardado, guardado.getFechaIngreso(),
+                HistorialSalarialServiceImpl.MOTIVO_INICIAL, admin);
         log.info("Legajo creado: {} - empleado {}", guardado.getId(), empleado.getEmail());
         return mapper.toResponseDto(guardado, List.of());
     }
@@ -109,7 +117,8 @@ public class LegajoServiceImpl implements LegajoService {
 
     @Override
     public LegajoResponseDTO actualizar(UUID empleadoId, LegajoRequestDTO request) {
-        exigirAdmin(usuarioActual());
+        User admin = usuarioActual();
+        exigirAdmin(admin);
         if (!empleadoId.equals(request.empleadoId())) {
             throw new IllegalArgumentException("El empleadoId del cuerpo no coincide con el de la URL");
         }
@@ -117,6 +126,9 @@ public class LegajoServiceImpl implements LegajoService {
 
         RrhhLegajoDigital legajo = legajoDe(empleadoId);
         Map<String, Object> antes = snapshot(legajo);
+        // Hay que tomar el retrato ANTES de mutar: mapper.updateEntityFromDto escribe sobre la
+        // misma entidad gestionada y después ya no existe el valor previo.
+        HistorialSalarialService.Retrato retratoAntes = retrato(legajo);
         Integer diaCobroPrevio = legajo.getDiaCobro();
 
         mapper.updateEntityFromDto(request, legajo);
@@ -129,6 +141,8 @@ public class LegajoServiceImpl implements LegajoService {
         datos.put("antes", antes);
         datos.put("despues", snapshot(guardado));
         auditService.registrar(TABLA, guardado.getId(), AccionAudit.UPDATE, datos);
+        historialSalarial.registrarCambios(retratoAntes, guardado, request.fechaVigenciaCambio(),
+                request.motivoCambio(), admin);
         log.info("Legajo actualizado: {} - empleado {}", guardado.getId(), empleadoId);
         return respuestaCompleta(guardado);
     }
@@ -281,6 +295,9 @@ public class LegajoServiceImpl implements LegajoService {
         }
         normalizarTipoContrato(r.tipoContrato());
         resolverTasaPension(r.sistemaPension(), r.tasaPension());
+        // La política del legajo se valida con la misma regla que la de empresa y la de sede.
+        PoliticaRemuneracionServiceImpl.validarPolitica(r.politicaDivision(), r.diasLaborables(),
+                r.tratamientoAusencias());
     }
 
     /** Devuelve la tasa a guardar según el sistema, o lanza IllegalArgumentException si es incoherente. */
@@ -320,6 +337,9 @@ public class LegajoServiceImpl implements LegajoService {
         legajo.setTipoContrato(normalizarTipoContrato(r.tipoContrato()));
         legajo.setTasaPension(resolverTasaPension(r.sistemaPension(), r.tasaPension()));
         legajo.setPorcentajeComision(r.porcentajeComision() != null ? r.porcentajeComision() : BigDecimal.ZERO);
+        // La máscara del legajo se normaliza acá (el mapper la ignora) y null = "hereda de la sede".
+        legajo.setDiasLaborables(r.diasLaborables() == null || r.diasLaborables().isEmpty()
+                ? null : HorarioUtil.normalizarDias(r.diasLaborables()));
     }
 
     private TipoDocumentoLegajo parseTipo(String tipo) {
@@ -348,6 +368,12 @@ public class LegajoServiceImpl implements LegajoService {
         List<LegajoDocumentoResponseDTO> docs = documentoRepository.findByLegajo_IdOrderByCreatedAtDesc(legajo.getId())
                 .stream().map(mapper::toDocumentoDto).toList();
         return mapper.toResponseDto(legajo, docs);
+    }
+
+    /** Lo que el historial salarial necesita comparar: solo los cuatro campos remunerativos. */
+    private HistorialSalarialService.Retrato retrato(RrhhLegajoDigital l) {
+        return new HistorialSalarialService.Retrato(l.getTipoContrato(), l.getSueldoBase(),
+                l.getPorcentajeComision(), l.getDiaCobro());
     }
 
     private Map<String, Object> snapshot(RrhhLegajoDigital l) {

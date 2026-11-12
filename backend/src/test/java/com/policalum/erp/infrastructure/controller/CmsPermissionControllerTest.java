@@ -18,6 +18,7 @@ import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.domain.model.User;
 import com.policalum.erp.infrastructure.repository.UserRepository;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
+import com.policalum.erp.infrastructure.security.RateLimitService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationFilter;
 import com.policalum.erp.infrastructure.security.RolePermissionGuard;
 import com.policalum.erp.infrastructure.security.SecurityConfig;
@@ -40,6 +41,8 @@ class CmsPermissionControllerTest {
 
     @Autowired
     MockMvc mvc;
+    @MockitoBean
+    RateLimitService rateLimitService;
 
     @MockitoBean
     CmsService cms;
@@ -63,17 +66,17 @@ class CmsPermissionControllerTest {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Test
-    @WithMockUser(username = "admin@policalum.com", roles = "ADMIN")
+    @WithMockUser(username = "operador@policalum.com", roles = "MULTIFUNCIONAL")
     void configuracionRequierePermisoPeroLaLecturaPublicaSigueAbierta() throws Exception {
-        User admin = User.builder()
+        User operador = User.builder()
                 .rol(Rol.builder()
-                        .nombre(RolNombre.ROLE_ADMIN)
+                        .nombre(RolNombre.ROLE_MULTIFUNCIONAL)
                         .permisosJson(Map.of("sitio_web", Map.of(
                                 "leer", true,
                                 "configurar", false)))
                         .build())
                 .build();
-        when(userRepository.findPerfilByEmail("admin@policalum.com")).thenReturn(Optional.of(admin));
+        when(userRepository.findPerfilByEmail("operador@policalum.com")).thenReturn(Optional.of(operador));
         when(cms.publico()).thenReturn(new CmsPublicoDTO("#111111", "#FFFFFF", 16, "claro", "", false,
                 null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 

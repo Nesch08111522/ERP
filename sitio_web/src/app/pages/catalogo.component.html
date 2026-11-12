@@ -1,8 +1,8 @@
-<section class="shop-head">
+<section class="shop-head page-intro">
   <p class="crumb">Tienda / <b>{{ titulo() }}</b></p>
   <h1>{{ titulo() }}</h1>
   <div class="shop-sub">
-    <p class="deck">Piezas de cubierta y cerramiento, con precio de venta e inventario publicado desde el ERP.</p>
+    <p class="deck">Policarbonatos, aluminios y accesorios. Encuentra los materiales que tu proyecto necesita.</p>
     <div class="catalogo-acciones">
       <button type="button" class="btn btn-primary btn-sm" (click)="descargarCatalogo()" [disabled]="descargandoCatalogo()">
         {{ descargandoCatalogo() ? 'Preparando catálogo…' : 'Descargar catálogo PDF' }}
@@ -95,7 +95,7 @@
   <div>
 @if (error()) { <p class="alert" role="alert">{{ error() }} <button type="button" class="btn btn-line btn-sm" (click)="reintentar()">Reintentar</button></p> }
 @if (cargando()) { <p class="muted">Cargando catálogo...</p> }
-@if (!cargando() && !visibles().length) { <p class="muted">No hay productos con ese filtro.</p> }
+@if (!cargando() && !error() && !visibles().length) { <div class="empty-state"><p class="kicker">Explora otras opciones</p><h2>No encontramos materiales con esos filtros.</h2><p>Prueba otro nombre o consulta todas las categorías.</p><button type="button" class="btn btn-line" (click)="limpiar()">Ver todos los productos</button></div> }
 
 <div class="product-grid" [class.lista]="vistaLista()">
   @for (producto of visibles(); track producto.id) {

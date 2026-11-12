@@ -2,3 +2,11 @@
 .portfolio-error { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 1rem; padding: 1rem; border: 1px solid #b42318; border-radius: 12px; color: #b42318; }
 .portfolio-error p { margin: 0; }
 .portfolio-error button { border: 0; border-radius: 8px; padding: .5rem .85rem; background: #b42318; color: #fff; cursor: pointer; }
+
+.video-adaptativo { display: grid; gap: .45rem; width: 100%; margin: 0 0 1rem; }
+.video-adaptativo video { display: block; width: 100%; max-width: 100%; max-height: min(58vh, 34rem); object-fit: contain; border-radius: 14px; background: #111827; }
+.video-adaptativo small { color: var(--muted); font-size: .78rem; }
+
+@media (max-width: 640px) {
+  .video-adaptativo video { max-height: 45vh; border-radius: 10px; }
+}

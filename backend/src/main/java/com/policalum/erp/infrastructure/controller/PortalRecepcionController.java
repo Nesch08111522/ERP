@@ -79,7 +79,7 @@ public class PortalRecepcionController {
         if (cotizacion.canal() != CanalCotizacion.WEB) {
             throw new ResourceNotFoundException("Cotización no encontrada");
         }
-        return documentos.descargar(id, "pdf");
+        return documentos.descargar(id, "pdf", true);
     }
 
     @PostMapping("/pedidos-whatsapp")

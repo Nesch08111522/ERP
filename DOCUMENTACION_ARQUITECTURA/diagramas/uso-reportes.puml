@@ -1,0 +1,47 @@
+@startuml
+title Casos de uso reportes
+left to right direction
+actor ADMIN
+actor MULTIFUNCIONAL
+rectangle "reportes" {
+usecase "reporteUso\nGET /api/v1/movilidades/reportes/uso" as U0
+usecase "vendedores\nGET /api/v1/reportes/ventas/vendedores" as U1
+usecase "resumenVentas\nGET /api/v1/reportes/ventas/resumen" as U2
+usecase "ventas\nGET /api/v1/reportes/ventas" as U3
+usecase "exportarVentas\nGET /api/v1/reportes/ventas/exportar" as U4
+usecase "rentabilidad\nGET /api/v1/reportes/productos/rentabilidad" as U5
+usecase "exportarRentabilidad\nGET /api/v1/reportes/productos/rentabilidad/exportar" as U6
+usecase "productosEstrella\nGET /api/v1/reportes/productos/estrella" as U7
+usecase "clientesFrecuentes\nGET /api/v1/reportes/clientes/frecuentes" as U8
+usecase "exportarClientes\nGET /api/v1/reportes/clientes/frecuentes/exportar" as U9
+usecase "rankingProveedores\nGET /api/v1/reportes/proveedores/ranking" as U10
+usecase "exportarProveedores\nGET /api/v1/reportes/proveedores/ranking/exportar" as U11
+usecase "arqueos\nGET /api/v1/reportes/caja/arqueos" as U12
+usecase "exportarArqueos\nGET /api/v1/reportes/caja/arqueos/exportar" as U13
+}
+ADMIN -- U0
+MULTIFUNCIONAL -- U0
+ADMIN -- U1
+MULTIFUNCIONAL -- U1
+ADMIN -- U2
+MULTIFUNCIONAL -- U2
+ADMIN -- U3
+MULTIFUNCIONAL -- U3
+ADMIN -- U4
+ADMIN -- U5
+MULTIFUNCIONAL -- U5
+ADMIN -- U6
+ADMIN -- U7
+MULTIFUNCIONAL -- U7
+ADMIN -- U8
+MULTIFUNCIONAL -- U8
+ADMIN -- U9
+ADMIN -- U10
+MULTIFUNCIONAL -- U10
+ADMIN -- U11
+ADMIN -- U12
+MULTIFUNCIONAL -- U12
+ADMIN -- U13
+note "Autorizacion condicionada por permiso, sede y propietario.\nSin include/extend: no demostrados semantica UML." as N
+
+@enduml

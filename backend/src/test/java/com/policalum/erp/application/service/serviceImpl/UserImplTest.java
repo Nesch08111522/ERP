@@ -12,6 +12,8 @@ import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.domain.model.Sede;
 import com.policalum.erp.domain.model.User;
 import com.policalum.erp.exception.ResourceNotFoundException;
+import com.policalum.erp.infrastructure.repository.RolRepository;
+import com.policalum.erp.infrastructure.repository.SedeRepository;
 import com.policalum.erp.infrastructure.repository.RefreshTokenRepository;
 import com.policalum.erp.infrastructure.repository.UserRepository;
 import com.policalum.erp.infrastructure.security.SesionUsuarioCache;
@@ -31,6 +33,8 @@ class UserImplTest {
     @Mock UserRepository userRepository;
     @Mock RefreshTokenRepository refreshTokenRepository;
     @Mock SesionUsuarioCache sesionUsuarioCache;
+    @Mock RolRepository rolRepository;
+    @Mock SedeRepository sedeRepository;
     @Spy UserMapper userMapper = Mappers.getMapper(UserMapper.class);
     @InjectMocks UserImpl service;
 
@@ -43,6 +47,9 @@ class UserImplTest {
         sede = Sede.builder().id(UUID.randomUUID()).nombre("Centro").build();
         lenient().when(passwordEncoder.encode(anyString())).thenAnswer(i -> "{bcrypt}" + i.getArgument(0));
         lenient().when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        // UserImpl re-resuelve rol y sede por id para no persistir referencias transitorias.
+        lenient().when(rolRepository.findById(rol.getId())).thenReturn(Optional.of(rol));
+        lenient().when(sedeRepository.findById(sede.getId())).thenReturn(Optional.of(sede));
     }
 
     private UserRequestDTO request(String password, Boolean activo) {
@@ -53,13 +60,22 @@ class UserImplTest {
         User u = User.builder().id(UUID.randomUUID()).nombreUsuario("ana_old").nombre("Ana").apellido("Vieja")
                 .email("old@policalum.com").passwordHash("{bcrypt}HashActual1!").activo(true).build();
         lenient().when(userRepository.findById(u.getId())).thenReturn(Optional.of(u));
+        // updateUser relee con relaciones para armar la respuesta; sin este stub el servicio
+        // lanza ResourceNotFoundException y la aserción del hash nunca se ejecuta.
+        lenient().when(userRepository.findByIdWithRelations(u.getId())).thenReturn(Optional.of(u));
         return u;
+    }
+
+    /** El alta no trae id: la relectura post-guardado se pide con cualquier identificador. */
+    private void stubRelecturaTrasGuardar(User u) {
+        lenient().when(userRepository.findByIdWithRelations(any())).thenReturn(Optional.of(u));
     }
 
     // ---------------------------------------------------------------- crear
 
     @Test
     void createUser_encriptaLaContrasenaYNuncaLaGuardaEnClaro() {
+        stubRelecturaTrasGuardar(User.builder().id(UUID.randomUUID()).email("ana@policalum.com").build());
         service.createUser(request("Secreta1!", true));
 
         ArgumentCaptor<User> c = ArgumentCaptor.forClass(User.class);
@@ -70,6 +86,7 @@ class UserImplTest {
 
     @Test
     void createUser_siempreQuedaActivoAunqueElDtoDigaLoContrario() {
+        stubRelecturaTrasGuardar(User.builder().id(UUID.randomUUID()).email("ana@policalum.com").build());
         service.createUser(request("Secreta1!", false));
 
         ArgumentCaptor<User> c = ArgumentCaptor.forClass(User.class);
@@ -81,6 +98,10 @@ class UserImplTest {
 
     @Test
     void createUser_respuestaNoExponeLaContrasena() {
+        User persistido = User.builder().id(UUID.randomUUID()).email("ana@policalum.com")
+                .passwordHash("{bcrypt}Secreta1!").rol(rol).sede(sede).activo(true).build();
+        stubRelecturaTrasGuardar(persistido);
+
         UserResponseDTO r = service.createUser(request("Secreta1!", true));
 
         assertEquals("ana@policalum.com", r.email());
@@ -152,14 +173,14 @@ class UserImplTest {
     @Test
     void findById_inexistente_vacio() {
         UUID id = UUID.randomUUID();
-        when(userRepository.findById(id)).thenReturn(Optional.empty());
+        when(userRepository.findByIdWithRelations(id)).thenReturn(Optional.empty());
 
         assertTrue(service.findById(id).isEmpty());
     }
 
     @Test
     void getUsers_mapeaTodos() {
-        when(userRepository.findAll()).thenReturn(List.of(User.builder().email("a@x.com").build(), User.builder().email("b@x.com").build()));
+        when(userRepository.findAllWithRelations()).thenReturn(List.of(User.builder().email("a@x.com").build(), User.builder().email("b@x.com").build()));
 
         assertEquals(List.of("a@x.com", "b@x.com"), service.getUsers().stream().map(UserResponseDTO::email).toList());
     }

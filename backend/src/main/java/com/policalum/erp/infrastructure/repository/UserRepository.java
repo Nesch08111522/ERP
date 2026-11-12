@@ -18,6 +18,9 @@ import com.policalum.erp.domain.model.User;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     // Buscar por email
+    // rol se inicializa porque los controladores lo leen (getRol().getNombre()) con
+    // open-in-view=false; sin esto, el proxy lazy explota como 500 (LazyInitializationException).
+    @EntityGraph(attributePaths = { "rol", "sede" })
     Optional<User> findByEmail(String email);
 
     // UserRepository.java
@@ -34,10 +37,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """)
     Optional<User> findPerfilByEmail(@Param("email") String email);
 
-    // Buscar usuarios activos por email
+    // Buscar usuarios activos por email (rol/sede inicializados: ver comentario en findByEmail)
     @Query("""
                 SELECT u
                 FROM User u
+                JOIN FETCH u.rol
+                LEFT JOIN FETCH u.sede
                 WHERE u.email = :email
                 AND u.activo = true
             """)
