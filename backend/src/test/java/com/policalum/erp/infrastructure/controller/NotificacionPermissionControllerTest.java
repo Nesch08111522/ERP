@@ -11,6 +11,7 @@ import com.policalum.erp.domain.model.Rol;
 import com.policalum.erp.domain.model.User;
 import com.policalum.erp.infrastructure.repository.UserRepository;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
+import com.policalum.erp.infrastructure.security.RateLimitService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationFilter;
 import com.policalum.erp.infrastructure.security.RolePermissionGuard;
 import com.policalum.erp.infrastructure.security.SecurityConfig;
@@ -33,6 +34,8 @@ class NotificacionPermissionControllerTest {
 
     @Autowired
     MockMvc mvc;
+    @MockitoBean
+    RateLimitService rateLimitService;
 
     @MockitoBean
     NotificacionServiceImpl service;

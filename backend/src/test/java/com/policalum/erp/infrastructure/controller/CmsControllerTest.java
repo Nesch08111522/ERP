@@ -12,6 +12,7 @@ import com.policalum.erp.application.service.serviceImpl.CmsPublicador;
 import com.policalum.erp.application.service.serviceImpl.CmsService;
 import com.policalum.erp.application.service.serviceImpl.PortafolioService;
 import com.policalum.erp.infrastructure.security.JwtAuthenticationEntryPoint;
+import com.policalum.erp.infrastructure.security.RateLimitService;
 import com.policalum.erp.infrastructure.security.JwtUtil;
 import com.policalum.erp.infrastructure.security.SesionUsuarioCache;
 import com.policalum.erp.infrastructure.security.TokenDenylist;
@@ -28,6 +29,8 @@ import org.springframework.test.web.servlet.MockMvc;
 class CmsControllerTest {
 
     @Autowired MockMvc mvc;
+    @MockitoBean
+    RateLimitService rateLimitService;
     @MockitoBean CmsService cms;
     @MockitoBean CmsMedioService medios;
     @MockitoBean CmsPublicador publicador;

@@ -34,7 +34,7 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
     const texto = fixture.nativeElement.textContent as string;
     expect(texto).toContain('Mi perfil');
-    expect(texto).toContain('Cambiar contraseña');
+    expect(texto).toContain('Seguridad y contraseña');
     expect(texto).toContain('Cerrar sesión');
   });
 });

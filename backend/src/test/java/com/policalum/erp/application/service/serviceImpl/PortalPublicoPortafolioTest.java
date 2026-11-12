@@ -49,7 +49,7 @@ class PortalPublicoPortafolioTest {
         assertEquals(id, resultado.get(0).id());
         assertEquals("Obra", resultado.get(0).titulo());
         assertEquals(List.of("id", "titulo", "descripcion", "imagenUrl", "orden", "cliente",
-                "lugar", "anio", "servicio", "referencia", "etiquetas", "imagenes"),
+                "lugar", "anio", "servicio", "referencia", "etiquetas", "imagenes", "videoUrl", "hlsUrl", "dashUrl"),
                 Arrays.stream(ProyectoPortafolioPublicoDTO.class.getRecordComponents())
                         .map(component -> component.getName())
                         .toList());
