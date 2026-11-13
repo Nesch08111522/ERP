@@ -35,3 +35,9 @@ build/
 # Uploads locales
 /uploads/
 *.log
+
+# Variables de entorno y configuracion local
+.env
+.env.*
+application-local.properties
+application-dev.properties

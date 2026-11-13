@@ -163,24 +163,27 @@ public class CatalogoSeeder implements CommandLineRunner {
             return;
         }
         List<ServicioColaboradorRequestDTO> equipo = new ArrayList<>();
+
         userRepository.findByEmail("empleado@policalum.com").ifPresent(usuario ->
                 equipo.add(new ServicioColaboradorRequestDTO(
-                        usuario.getId(),
-                        "REGISTRADO",   // tipoColaborador
-                        null,           // nombreExterno (solo para EXTERNO)
-                        "INSTALO",      // participacion
-                        null,           // costo (se calcula después, según sueldo)
-                        "NO_APLICA"     // estadoLiquidacion (REGISTRADO → NO_APLICA)
+                        usuario.getId(),    // userId
+                        "INSTALO",          // participacion (¡Aquí va!)
+                        "REGISTRADO",       // tipoColaborador
+                        null,               // nombreExterno
+                        null,               // costo
+                        "NO_APLICA"         // estadoLiquidacion
                 )));
+
         userRepository.findByEmail("admin@policalum.com").ifPresent(usuario ->
                 equipo.add(new ServicioColaboradorRequestDTO(
-                        usuario.getId(),
-                        "REGISTRADO",
-                        null,
-                        "AYUDO",
-                        null,
-                        "NO_APLICA"
+                        usuario.getId(),    // userId
+                        "AYUDO",            // participacion (¡Aquí va!)
+                        "REGISTRADO",       // tipoColaborador
+                        null,               // nombreExterno
+                        null,               // costo
+                        "NO_APLICA"         // estadoLiquidacion
                 )));
+
         servicioService.create(new ServicioRequestDTO(
                 "Servicio de corte",
                 "Corte de planchas de policarbonato y perfiles a medida.",
